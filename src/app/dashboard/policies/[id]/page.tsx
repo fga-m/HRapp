@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Shield, CheckCircle, Clock, ExternalLink,
-  Users, RefreshCw, Check, Maximize2, Minimize2
+  Users, RefreshCw, Check, Maximize2, Minimize2, Edit
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -123,9 +123,9 @@ export default function PolicyDetailPage() {
         <Link href="/dashboard/policies" className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors">
           <ArrowLeft className="w-5 h-5 text-[#223149]" />
         </Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold text-[#223149]">{policy.title}</h1>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#223149]">{policy.title}</h1>
             <span className="text-sm text-[#9BADB7] font-medium">v{policy.version}</span>
             {!policy.is_active && (
               <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">Archived</span>
@@ -135,6 +135,15 @@ export default function PolicyDetailPage() {
             <p className="text-[#5F7C84] mt-1 text-sm">{policy.description}</p>
           )}
         </div>
+        {role === "admin" && (
+          <Link
+            href={`/dashboard/policies/${id}/edit`}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors flex-shrink-0"
+          >
+            <Edit className="w-4 h-4" />
+            <span className="hidden sm:inline">Edit</span>
+          </Link>
+        )}
       </div>
 
       {/* Document + Staff Sign-off action */}

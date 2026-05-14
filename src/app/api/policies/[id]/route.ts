@@ -77,7 +77,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const newVersion = bump_version
     ? (new_version && new_version > (current?.version || 1) ? new_version : (current?.version || 1) + 1)
-    : current?.version;
+    : (new_version || current?.version);
 
   const { data, error } = await supabaseAdmin
     .from("policies")
