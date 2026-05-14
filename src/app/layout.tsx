@@ -18,6 +18,17 @@ const leagueSpartan = League_Spartan({
 export const metadata: Metadata = {
   title: "FGA Melbourne | HR Portal",
   description: "FGA Melbourne Staff HR Portal",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FGA HR",
+  },
 };
 
 export default function RootLayout({

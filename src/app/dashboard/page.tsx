@@ -44,21 +44,21 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <Link
               key={stat.label}
               href={stat.href}
-              className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow group"
+              className="bg-white rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 shadow-sm hover:shadow-md transition-shadow group"
             >
-              <div className="w-11 h-11 rounded-xl bg-[#ECE3DF] flex items-center justify-center group-hover:bg-[#223149] transition-colors">
-                <Icon className="w-5 h-5 text-[#223149] group-hover:text-white transition-colors" />
+              <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-[#ECE3DF] flex items-center justify-center group-hover:bg-[#223149] transition-colors flex-shrink-0">
+                <Icon className="w-4 h-4 md:w-5 md:h-5 text-[#223149] group-hover:text-white transition-colors" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-[#223149]">{stat.value}</p>
-                <p className="text-xs text-[#5F7C84]">{stat.label}</p>
+                <p className="text-xs text-[#5F7C84] leading-tight">{stat.label}</p>
               </div>
             </Link>
           );
@@ -68,7 +68,7 @@ export default function DashboardPage() {
       {/* Quick Links */}
       <div>
         <h2 className="text-lg font-bold text-[#223149] mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           {quickLinks.map((link) => {
             const Icon = link.icon;
             return (

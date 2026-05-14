@@ -31,17 +31,17 @@ export default async function StaffPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/staff/import"
-            className="flex items-center gap-2 px-4 py-2.5 border border-[#223149] text-[#223149] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            className="flex items-center gap-2 px-3 py-2.5 border border-[#223149] text-[#223149] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
           >
             <Download className="w-4 h-4" />
-            Import from Google
+            <span className="hidden sm:inline">Import from Google</span>
           </Link>
           <Link
             href="/dashboard/staff/new"
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
+            className="flex items-center gap-2 px-3 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
           >
             <UserPlus className="w-4 h-4" />
-            Add Staff
+            <span className="hidden sm:inline">Add Staff</span>
           </Link>
         </div>
       </div>

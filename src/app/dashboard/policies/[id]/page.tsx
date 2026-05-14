@@ -138,7 +138,7 @@ export default function PolicyDetailPage() {
       </div>
 
       {/* Document + Staff Sign-off action */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
         {/* Document card */}
         <div className="md:col-span-2 bg-white rounded-2xl shadow-sm overflow-hidden">
           {/* Toolbar */}
@@ -179,7 +179,7 @@ export default function PolicyDetailPage() {
               <iframe
                 src={getEmbedUrl(policy.content_drive_url)}
                 className="w-full border-0"
-                style={{ height: "600px" }}
+                style={{ height: "min(600px, 70vh)" }}
                 title={policy.title}
                 allow="autoplay"
               />
@@ -328,8 +328,8 @@ export default function PolicyDetailPage() {
       )}
       {/* Version Modal */}
       {showVersionModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
+        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
+          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-6 w-full md:max-w-sm space-y-4 pb-safe">
             <h2 className="text-lg font-bold text-[#223149]">Update Version</h2>
             <p className="text-sm text-[#5F7C84]">
               Current version: <span className="font-semibold">v{data?.policy?.version}</span>. All staff will be notified to re-sign.

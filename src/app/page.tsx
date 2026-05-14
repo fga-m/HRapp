@@ -6,8 +6,8 @@ export default async function Home() {
   if (session) redirect("/dashboard");
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#ECE3DF]">
-      <div className="w-full max-w-md px-8 py-12 bg-white rounded-2xl shadow-lg text-center">
+    <main className="min-h-screen flex items-center justify-center bg-[#ECE3DF] p-4">
+      <div className="w-full max-w-md px-6 py-10 md:px-8 md:py-12 bg-white rounded-2xl shadow-lg text-center">
         {/* Logo / Org Name */}
         <div className="mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#223149] mb-4">

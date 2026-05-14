@@ -36,7 +36,7 @@ export default function PoliciesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Policies</h1>
           <p className="text-[#5F7C84] mt-1 text-sm">
