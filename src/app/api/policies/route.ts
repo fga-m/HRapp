@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, description, content_drive_url, requires_signoff, version } = body;
+  const { title, description, content_drive_url, requires_signoff, version, required_signatories } = body;
 
   if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
 
@@ -57,23 +57,31 @@ export async function POST(req: NextRequest) {
       requires_signoff: requires_signoff ?? true,
       version: version && version >= 1 ? version : 1,
       created_by: caller.id,
+      required_signatories: required_signatories ?? null,
     })
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Notify all active staff
+  // Notify required staff (null = all active staff)
   if (requires_signoff) {
-    const { data: allStaff } = await supabaseAdmin
+    let staffQuery = supabaseAdmin
       .from("staff")
       .select("id")
       .eq("is_active", true)
       .neq("id", caller.id);
 
-    if (allStaff?.length) {
+    // If specific signatories selected, filter to just those people
+    if (Array.isArray(required_signatories) && required_signatories.length > 0) {
+      staffQuery = staffQuery.in("id", required_signatories);
+    }
+
+    const { data: staffToNotify } = await staffQuery;
+
+    if (staffToNotify?.length) {
       await supabaseAdmin.from("notifications").insert(
-        allStaff.map((s: any) => ({
+        staffToNotify.map((s: any) => ({
           staff_id: s.id,
           title: "New Policy Requires Your Sign-off",
           message: `Please review and sign off on: ${title}`,

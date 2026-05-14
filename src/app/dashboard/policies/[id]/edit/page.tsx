@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
+import StaffSignoffSelector from "@/components/ui/StaffSignoffSelector";
 
 export default function EditPolicyPage() {
   const { id } = useParams();
@@ -18,6 +19,7 @@ export default function EditPolicyPage() {
     requires_signoff: true,
     version: 1,
   });
+  const [requiredSignatories, setRequiredSignatories] = useState<string[] | null>(null);
 
   useEffect(() => {
     fetch(`/api/policies/${id}`)
@@ -31,6 +33,7 @@ export default function EditPolicyPage() {
           requires_signoff: p.requires_signoff ?? true,
           version: p.version || 1,
         });
+        setRequiredSignatories(p.required_signatories ?? null);
         setLoading(false);
       });
   }, [id]);
@@ -50,6 +53,7 @@ export default function EditPolicyPage() {
           requires_signoff: form.requires_signoff,
           new_version: form.version,
           bump_version: false, // editing doesn't auto-bump, version is explicitly set
+          required_signatories: requiredSignatories,
         }),
       });
       const data = await res.json();
@@ -144,20 +148,28 @@ export default function EditPolicyPage() {
           </p>
         </div>
 
-        <div className="flex items-start gap-3 p-4 bg-[#F8F6F4] rounded-xl">
-          <input
-            type="checkbox"
-            id="requires_signoff"
-            checked={form.requires_signoff}
-            onChange={(e) => setForm({ ...form, requires_signoff: e.target.checked })}
-            className="mt-0.5 w-4 h-4 rounded accent-[#223149]"
-          />
-          <div>
-            <label htmlFor="requires_signoff" className="text-sm font-semibold text-[#223149] cursor-pointer">
-              Requires staff sign-off
-            </label>
-            <p className="text-xs text-[#9BADB7] mt-0.5">Staff must acknowledge this policy</p>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-4 bg-[#F8F6F4] rounded-xl">
+            <input
+              type="checkbox"
+              id="requires_signoff"
+              checked={form.requires_signoff}
+              onChange={(e) => setForm({ ...form, requires_signoff: e.target.checked })}
+              className="mt-0.5 w-4 h-4 rounded accent-[#223149]"
+            />
+            <div>
+              <label htmlFor="requires_signoff" className="text-sm font-semibold text-[#223149] cursor-pointer">
+                Requires staff sign-off
+              </label>
+              <p className="text-xs text-[#9BADB7] mt-0.5">Staff must acknowledge this policy</p>
+            </div>
           </div>
+          {form.requires_signoff && (
+            <div>
+              <label className="block text-sm font-semibold text-[#223149] mb-2">Who needs to sign?</label>
+              <StaffSignoffSelector value={requiredSignatories} onChange={setRequiredSignatories} />
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3 pt-2">

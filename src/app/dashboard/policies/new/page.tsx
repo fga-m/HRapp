@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
+import StaffSignoffSelector from "@/components/ui/StaffSignoffSelector";
 
 export default function NewPolicyPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function NewPolicyPage() {
     requires_signoff: true,
     version: 1,
   });
+  const [requiredSignatories, setRequiredSignatories] = useState<string[] | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +27,7 @@ export default function NewPolicyPage() {
       const res = await fetch("/api/policies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, required_signatories: requiredSignatories }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create policy");
@@ -124,22 +126,30 @@ export default function NewPolicyPage() {
           <p className="text-xs text-[#9BADB7] mt-1">Start at 1, or higher if this is a pre-existing policy</p>
         </div>
 
-        <div className="flex items-start gap-3 p-4 bg-[#F8F6F4] rounded-xl">
-          <input
-            type="checkbox"
-            id="requires_signoff"
-            checked={form.requires_signoff}
-            onChange={(e) => setForm({ ...form, requires_signoff: e.target.checked })}
-            className="mt-0.5 w-4 h-4 rounded accent-[#223149]"
-          />
-          <div>
-            <label htmlFor="requires_signoff" className="text-sm font-semibold text-[#223149] cursor-pointer">
-              Requires staff sign-off
-            </label>
-            <p className="text-xs text-[#9BADB7] mt-0.5">
-              All active staff will be notified and asked to acknowledge this policy
-            </p>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-4 bg-[#F8F6F4] rounded-xl">
+            <input
+              type="checkbox"
+              id="requires_signoff"
+              checked={form.requires_signoff}
+              onChange={(e) => setForm({ ...form, requires_signoff: e.target.checked })}
+              className="mt-0.5 w-4 h-4 rounded accent-[#223149]"
+            />
+            <div>
+              <label htmlFor="requires_signoff" className="text-sm font-semibold text-[#223149] cursor-pointer">
+                Requires staff sign-off
+              </label>
+              <p className="text-xs text-[#9BADB7] mt-0.5">
+                Staff will be notified and asked to acknowledge this policy
+              </p>
+            </div>
           </div>
+          {form.requires_signoff && (
+            <div>
+              <label className="block text-sm font-semibold text-[#223149] mb-2">Who needs to sign?</label>
+              <StaffSignoffSelector value={requiredSignatories} onChange={setRequiredSignatories} />
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3 pt-2">
