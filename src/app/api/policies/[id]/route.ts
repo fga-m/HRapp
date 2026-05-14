@@ -67,7 +67,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (caller?.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const body = await req.json();
-  const { title, description, content_drive_url, requires_signoff, is_active, bump_version } = body;
+  const { title, description, content_drive_url, requires_signoff, is_active, bump_version, new_version } = body;
 
   const { data: current } = await supabaseAdmin
     .from("policies")
@@ -75,7 +75,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq("id", id)
     .single();
 
-  const newVersion = bump_version ? (current?.version || 1) + 1 : current?.version;
+  const newVersion = bump_version
+    ? (new_version && new_version > (current?.version || 1) ? new_version : (current?.version || 1) + 1)
+    : current?.version;
 
   const { data, error } = await supabaseAdmin
     .from("policies")

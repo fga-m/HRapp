@@ -14,6 +14,7 @@ export default function NewPolicyPage() {
     description: "",
     content_drive_url: "",
     requires_signoff: true,
+    version: 1,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,6 +108,20 @@ export default function NewPolicyPage() {
           <p className="text-xs text-[#9BADB7] mt-1">
             Paste the shareable link to the policy document in your Google Drive
           </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            Version Number
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={form.version}
+            onChange={(e) => setForm({ ...form, version: parseInt(e.target.value) || 1 })}
+            className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+          />
+          <p className="text-xs text-[#9BADB7] mt-1">Start at 1, or higher if this is a pre-existing policy</p>
         </div>
 
         <div className="flex items-start gap-3 p-4 bg-[#F8F6F4] rounded-xl">

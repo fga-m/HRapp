@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, description, content_drive_url, requires_signoff } = body;
+  const { title, description, content_drive_url, requires_signoff, version } = body;
 
   if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       description: description || null,
       content_drive_url: content_drive_url || null,
       requires_signoff: requires_signoff ?? true,
-      version: 1,
+      version: version && version >= 1 ? version : 1,
       created_by: caller.id,
     })
     .select()

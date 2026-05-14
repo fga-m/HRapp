@@ -18,6 +18,8 @@ export default function PolicyDetailPage() {
   const [bumpingVersion, setBumpingVersion] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [signSuccess, setSignSuccess] = useState(false);
+  const [showVersionModal, setShowVersionModal] = useState(false);
+  const [newVersionNumber, setNewVersionNumber] = useState("");
   const [error, setError] = useState("");
 
   const fetchPolicy = () => {
@@ -46,14 +48,20 @@ export default function PolicyDetailPage() {
   };
 
   const handleBumpVersion = async () => {
-    if (!confirm("This will create a new version and notify all staff to re-sign. Continue?")) return;
+    const versionNum = parseInt(newVersionNumber);
+    if (!newVersionNumber || isNaN(versionNum) || versionNum <= (data?.policy?.version || 0)) {
+      alert(`Version must be a number greater than the current version (${data?.policy?.version})`);
+      return;
+    }
     setBumpingVersion(true);
+    setShowVersionModal(false);
     await fetch(`/api/policies/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bump_version: true, requires_signoff: data.policy.requires_signoff }),
+      body: JSON.stringify({ bump_version: true, new_version: versionNum, requires_signoff: data.policy.requires_signoff }),
     });
     setBumpingVersion(false);
+    setNewVersionNumber("");
     fetchPolicy();
   };
 
@@ -142,8 +150,8 @@ export default function PolicyDetailPage() {
           </div>
         </div>
 
-        {/* Staff sign-off action */}
-        {policy.requires_signoff && role === "staff" && (
+        {/* Sign-off action — shown to everyone */}
+        {policy.requires_signoff && (
           <div className="bg-white rounded-2xl shadow-sm p-5 flex flex-col items-center justify-center text-center gap-3">
             {isSigned ? (
               <>
@@ -173,24 +181,23 @@ export default function PolicyDetailPage() {
                 </button>
               </>
             )}
-          </div>
-        )}
 
-        {/* Admin sign-off progress */}
-        {policy.requires_signoff && role === "admin" && (
-          <div className="bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-3">
-            <p className="text-sm font-semibold text-[#223149]">Sign-off Progress</p>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-[#223149]">{signedCount}</span>
-              <span className="text-sm text-[#9BADB7] mb-1">/ {totalCount} staff</span>
-            </div>
-            <div className="w-full bg-[#ECE3DF] rounded-full h-2">
-              <div
-                className="bg-[#223149] h-2 rounded-full transition-all"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <p className="text-xs text-[#9BADB7]">{progress}% complete</p>
+            {/* Admin-only: progress summary below sign-off card */}
+            {role === "admin" && (
+              <div className="w-full pt-3 border-t border-[#ECE3DF] space-y-2">
+                <div className="flex justify-between text-xs text-[#9BADB7]">
+                  <span>Team sign-off</span>
+                  <span>{signedCount} / {totalCount}</span>
+                </div>
+                <div className="w-full bg-[#ECE3DF] rounded-full h-1.5">
+                  <div
+                    className="bg-[#223149] h-1.5 rounded-full transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-[#9BADB7]">{progress}% of team signed</p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -205,7 +212,7 @@ export default function PolicyDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={handleBumpVersion}
+                onClick={() => { setNewVersionNumber(String((data?.policy?.version || 1) + 1)); setShowVersionModal(true); }}
                 disabled={bumpingVersion}
                 className="flex items-center gap-1.5 text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors"
               >
@@ -264,6 +271,44 @@ export default function PolicyDetailPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+      {/* Version Modal */}
+      {showVersionModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
+            <h2 className="text-lg font-bold text-[#223149]">Update Version</h2>
+            <p className="text-sm text-[#5F7C84]">
+              Current version: <span className="font-semibold">v{data?.policy?.version}</span>. All staff will be notified to re-sign.
+            </p>
+            <div>
+              <label className="block text-sm font-semibold text-[#223149] mb-1.5">New Version Number</label>
+              <input
+                type="number"
+                min={(data?.policy?.version || 1) + 1}
+                value={newVersionNumber}
+                onChange={(e) => setNewVersionNumber(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                placeholder={String((data?.policy?.version || 1) + 1)}
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleBumpVersion}
+                disabled={bumpingVersion}
+                className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
+              >
+                Update & Notify Staff
+              </button>
+              <button
+                onClick={() => setShowVersionModal(false)}
+                className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
