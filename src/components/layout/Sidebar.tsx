@@ -14,7 +14,9 @@ import {
   Bell,
   LogOut,
   Settings,
+  Eye,
 } from "lucide-react";
+import { enableStaffView } from "@/app/actions/view-mode";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -31,9 +33,10 @@ interface SidebarProps {
   userName?: string;
   userEmail?: string;
   notificationCount?: number;
+  viewAsStaff?: boolean;
 }
 
-export default function Sidebar({ isAdmin, userName, userEmail, notificationCount = 0 }: SidebarProps) {
+export default function Sidebar({ isAdmin, userName, userEmail, notificationCount = 0, viewAsStaff = false }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -137,6 +140,18 @@ export default function Sidebar({ isAdmin, userName, userEmail, notificationCoun
           <p className="text-white text-sm font-medium truncate">{userName}</p>
           <p className="text-[#9BADB7] text-xs truncate">{userEmail}</p>
         </div>
+        {/* Preview as staff — only visible to admins, hidden while preview is active */}
+        {isAdmin && (
+          <form action={enableStaffView}>
+            <button
+              type="submit"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#9BADB7] hover:bg-white/5 hover:text-white transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              Preview as staff
+            </button>
+          </form>
+        )}
         <a
           href="/api/auth/signout"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#9BADB7] hover:bg-white/5 hover:text-white transition-colors"
