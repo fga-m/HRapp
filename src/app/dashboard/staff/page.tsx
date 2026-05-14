@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
-import { UserPlus, Mail, Building2, Shield, User } from "lucide-react";
+import { UserPlus, Mail, Building2, Shield, User, Download } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -28,13 +28,22 @@ export default async function StaffPage() {
             {activeStaff.length} active staff member{activeStaff.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Link
-          href="/dashboard/staff/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
-        >
-          <UserPlus className="w-4 h-4" />
-          Add Staff
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/staff/import"
+            className="flex items-center gap-2 px-4 py-2.5 border border-[#223149] text-[#223149] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Import from Google
+          </Link>
+          <Link
+            href="/dashboard/staff/new"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
+          >
+            <UserPlus className="w-4 h-4" />
+            Add Staff
+          </Link>
+        </div>
       </div>
 
       {/* Active Staff */}
