@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+:root {
+  /* FGA Brand Colours */
+  --fga-navy: #223149;
+  --fga-grey: #5F7C84;
+  --fga-aqua: #9BADB7;
+  --fga-oyster: #ECE3DF;
+
+  --background: #F8F6F4;
+  --foreground: #223149;
+  --card: #ffffff;
+  --border: #E2D9D5;
+  --muted: #9BADB7;
+  --muted-foreground: #5F7C84;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-fga-navy: var(--fga-navy);
+  --color-fga-grey: var(--fga-grey);
+  --color-fga-aqua: var(--fga-aqua);
+  --color-fga-oyster: var(--fga-oyster);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-league-spartan);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-league-spartan), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--fga-oyster);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--fga-aqua);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fga-grey);
+}
