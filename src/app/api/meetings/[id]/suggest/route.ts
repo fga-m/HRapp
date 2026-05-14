@@ -37,8 +37,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (note?.created_by) {
     await supabaseAdmin.from("notifications").insert({
       staff_id: note.created_by,
-      title: "Change Suggested on Meeting Notes",
-      message: `${caller.full_name} has suggested a change to "${note?.title}": "${suggestion.trim().slice(0, 80)}${suggestion.length > 80 ? "..." : ""}"`,
+      title: `${caller.full_name} suggested changes on your meeting summary`,
+      message: `"${note?.title}" — their suggestion: "${suggestion.trim().slice(0, 100)}${suggestion.length > 100 ? "..." : ""}"`,
       type: "meeting",
       reference_id: id,
     });

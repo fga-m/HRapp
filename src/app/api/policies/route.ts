@@ -83,8 +83,8 @@ export async function POST(req: NextRequest) {
       await supabaseAdmin.from("notifications").insert(
         staffToNotify.map((s: any) => ({
           staff_id: s.id,
-          title: "New Policy Requires Your Sign-off",
-          message: `Please review and sign off on: ${title}`,
+          title: `Sign-off needed: "${title}"`,
+          message: `A new policy has been published. Please read and sign off to confirm you've seen it.`,
           type: "policy",
           reference_id: data.id,
         }))

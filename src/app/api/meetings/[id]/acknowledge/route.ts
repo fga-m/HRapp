@@ -37,8 +37,8 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   if (note?.created_by) {
     await supabaseAdmin.from("notifications").insert({
       staff_id: note.created_by,
-      title: "Meeting Notes Acknowledged",
-      message: `${caller.full_name} has acknowledged the meeting notes: "${note?.title}"`,
+      title: `${caller.full_name} acknowledged your meeting summary`,
+      message: `"${note?.title}" has been read and acknowledged.`,
       type: "meeting",
       reference_id: id,
     });

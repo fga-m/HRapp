@@ -50,14 +50,14 @@ export default function TopBar({ userName, isAdmin, notificationCount = 0 }: Top
           </h1>
         </div>
         <div className="flex items-center gap-1">
-          <button className="relative p-2 rounded-xl hover:bg-white/10 transition-colors">
+          <Link href="/dashboard/notifications" className="relative p-2 rounded-xl hover:bg-white/10 transition-colors">
             <Bell className="w-5 h-5 text-white" />
             {notificationCount > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center font-bold">
                 {notificationCount > 9 ? "9+" : notificationCount}
               </span>
             )}
-          </button>
+          </Link>
           <button
             onClick={() => setShowMore(true)}
             className="p-2 rounded-xl hover:bg-white/10 transition-colors"

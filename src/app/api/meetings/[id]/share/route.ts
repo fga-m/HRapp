@@ -53,8 +53,8 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     await supabaseAdmin.from("notifications").insert(
       note.attendees.map((staffId: string) => ({
         staff_id: staffId,
-        title: "Meeting Notes Shared With You",
-        message: `${caller.full_name} has shared meeting notes: "${note.title}". Please review and acknowledge.`,
+        title: `${caller.full_name} shared a meeting summary with you`,
+        message: `"${note.title}" — please read and acknowledge that you've received it.`,
         type: "meeting",
         reference_id: id,
       }))

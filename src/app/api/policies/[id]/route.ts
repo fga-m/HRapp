@@ -135,8 +135,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       await supabaseAdmin.from("notifications").insert(
         staffToNotify.map((s: any) => ({
           staff_id: s.id,
-          title: "Policy Updated — Re-sign Required",
-          message: `The policy "${data.title}" has been updated to v${newVersion}. Please review and sign off.`,
+          title: `Re-sign needed: "${data.title}" updated to v${newVersion}`,
+          message: `This policy has been updated. Please review the changes and sign off again.`,
           type: "policy",
           reference_id: id,
         }))
