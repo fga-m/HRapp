@@ -6,9 +6,10 @@ import { Users, Check, Search } from "lucide-react";
 interface Props {
   value: string[] | null; // null = all staff
   onChange: (value: string[] | null) => void;
+  tall?: boolean; // use a taller list height (for side-panel layout)
 }
 
-export default function StaffSignoffSelector({ value, onChange }: Props) {
+export default function StaffSignoffSelector({ value, onChange, tall = false }: Props) {
   const [staff, setStaff] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [mode, setMode] = useState<"all" | "specific">(value === null ? "all" : "specific");
@@ -112,7 +113,7 @@ export default function StaffSignoffSelector({ value, onChange }: Props) {
           </div>
 
           {/* Staff items */}
-          <div className="max-h-52 overflow-y-auto divide-y divide-[#ECE3DF]">
+          <div className={`${tall ? "max-h-[480px]" : "max-h-52"} overflow-y-auto divide-y divide-[#ECE3DF]`}>
             {filtered.map((s) => {
               const isSelected = value?.includes(s.id) ?? false;
               return (

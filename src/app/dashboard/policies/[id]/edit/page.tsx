@@ -52,7 +52,7 @@ export default function EditPolicyPage() {
           content_drive_url: form.content_drive_url,
           requires_signoff: form.requires_signoff,
           new_version: form.version,
-          bump_version: false, // editing doesn't auto-bump, version is explicitly set
+          bump_version: false,
           required_signatories: requiredSignatories,
         }),
       });
@@ -76,7 +76,7 @@ export default function EditPolicyPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-5xl">
       <div className="flex items-center gap-4">
         <Link href={`/dashboard/policies/${id}`} className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors">
           <ArrowLeft className="w-5 h-5 text-[#223149]" />
@@ -87,68 +87,69 @@ export default function EditPolicyPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>
-        )}
+      <div className={`grid gap-6 items-start ${form.requires_signoff ? "grid-cols-1 lg:grid-cols-[1fr_360px]" : "grid-cols-1 max-w-2xl"}`}>
+        {/* Left — main form fields */}
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>
+          )}
 
-        <div>
-          <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-            Policy Title <span className="text-red-400">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
-          <textarea
-            rows={3}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-[#223149] mb-1.5">Google Drive Link</label>
-          <div className="relative">
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              Policy Title <span className="text-red-400">*</span>
+            </label>
             <input
-              type="url"
-              value={form.content_drive_url}
-              onChange={(e) => setForm({ ...form, content_drive_url: e.target.value })}
-              placeholder="https://docs.google.com/..."
-              className="w-full px-4 py-2.5 pr-10 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              type="text"
+              required
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
-            {form.content_drive_url && (
-              <a href={form.content_drive_url} target="_blank" rel="noopener noreferrer"
-                className="absolute right-3 top-1/2 -translate-y-1/2">
-                <ExternalLink className="w-4 h-4 text-[#9BADB7] hover:text-[#223149]" />
-              </a>
-            )}
           </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-[#223149] mb-1.5">Version Number</label>
-          <input
-            type="number"
-            min={1}
-            value={form.version}
-            onChange={(e) => setForm({ ...form, version: parseInt(e.target.value) || 1 })}
-            className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
-          />
-          <p className="text-xs text-[#9BADB7] mt-1">
-            Changing the version here won't notify staff. Use "New Version" on the policy page to notify staff to re-sign.
-          </p>
-        </div>
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
+            <textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+            />
+          </div>
 
-        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Google Drive Link</label>
+            <div className="relative">
+              <input
+                type="url"
+                value={form.content_drive_url}
+                onChange={(e) => setForm({ ...form, content_drive_url: e.target.value })}
+                placeholder="https://docs.google.com/..."
+                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              />
+              {form.content_drive_url && (
+                <a href={form.content_drive_url} target="_blank" rel="noopener noreferrer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <ExternalLink className="w-4 h-4 text-[#9BADB7] hover:text-[#223149]" />
+                </a>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Version Number</label>
+            <input
+              type="number"
+              min={1}
+              value={form.version}
+              onChange={(e) => setForm({ ...form, version: parseInt(e.target.value) || 1 })}
+              className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+            />
+            <p className="text-xs text-[#9BADB7] mt-1">
+              Changing the version here won't notify staff. Use "New Version" on the policy page to notify staff to re-sign.
+            </p>
+          </div>
+
           <div className="flex items-start gap-3 p-4 bg-[#F8F6F4] rounded-xl">
             <input
               type="checkbox"
@@ -161,33 +162,45 @@ export default function EditPolicyPage() {
               <label htmlFor="requires_signoff" className="text-sm font-semibold text-[#223149] cursor-pointer">
                 Requires staff sign-off
               </label>
-              <p className="text-xs text-[#9BADB7] mt-0.5">Staff must acknowledge this policy</p>
+              <p className="text-xs text-[#9BADB7] mt-0.5">
+                {form.requires_signoff ? "Select who needs to sign in the panel →" : "Staff will not be asked to acknowledge this policy"}
+              </p>
             </div>
           </div>
+
+          {/* On mobile, show selector inline below the checkbox */}
           {form.requires_signoff && (
-            <div>
+            <div className="lg:hidden">
               <label className="block text-sm font-semibold text-[#223149] mb-2">Who needs to sign?</label>
               <StaffSignoffSelector value={requiredSignatories} onChange={setRequiredSignatories} />
             </div>
           )}
-        </div>
 
-        <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 px-6 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
-          <Link
-            href={`/dashboard/policies/${id}`}
-            className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
-          >
-            Cancel
-          </Link>
-        </div>
-      </form>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-6 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+            <Link
+              href={`/dashboard/policies/${id}`}
+              className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            >
+              Cancel
+            </Link>
+          </div>
+        </form>
+
+        {/* Right — staff selector panel (desktop only) */}
+        {form.requires_signoff && (
+          <div className="hidden lg:block bg-white rounded-2xl shadow-sm p-6 sticky top-6">
+            <h2 className="text-sm font-semibold text-[#223149] mb-3">Who needs to sign?</h2>
+            <StaffSignoffSelector value={requiredSignatories} onChange={setRequiredSignatories} tall />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
