@@ -42,6 +42,7 @@ export default function PolicyDetailPage() {
   const [signSuccess, setSignSuccess] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [newVersionNumber, setNewVersionNumber] = useState("");
+  const [newDriveUrl, setNewDriveUrl] = useState("");
   const [docExpanded, setDocExpanded] = useState(true);
   const [error, setError] = useState("");
 
@@ -81,10 +82,16 @@ export default function PolicyDetailPage() {
     await fetch(`/api/policies/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bump_version: true, new_version: versionNum, requires_signoff: data.policy.requires_signoff }),
+      body: JSON.stringify({
+        bump_version: true,
+        new_version: versionNum,
+        requires_signoff: data.policy.requires_signoff,
+        ...(newDriveUrl.trim() && { content_drive_url: newDriveUrl.trim() }),
+      }),
     });
     setBumpingVersion(false);
     setNewVersionNumber("");
+    setNewDriveUrl("");
     fetchPolicy();
   };
 
@@ -274,7 +281,11 @@ export default function PolicyDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => { setNewVersionNumber(String((data?.policy?.version || 1) + 1)); setShowVersionModal(true); }}
+                onClick={() => {
+                  setNewVersionNumber(String((data?.policy?.version || 1) + 1));
+                  setNewDriveUrl(data?.policy?.content_drive_url || "");
+                  setShowVersionModal(true);
+                }}
                 disabled={bumpingVersion}
                 className="flex items-center gap-1.5 text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors"
               >
@@ -354,6 +365,21 @@ export default function PolicyDetailPage() {
                 placeholder={String((data?.policy?.version || 1) + 1)}
                 autoFocus
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                Updated Drive Link
+                <span className="ml-1 text-xs font-normal text-[#9BADB7]">(optional)</span>
+              </label>
+              <input
+                type="url"
+                value={newDriveUrl}
+                onChange={(e) => setNewDriveUrl(e.target.value)}
+                placeholder="https://docs.google.com/..."
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              />
+              <p className="text-xs text-[#9BADB7] mt-1">Leave blank to keep the existing document</p>
             </div>
             <div className="flex gap-3">
               <button
