@@ -5,9 +5,31 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Shield, CheckCircle, Clock, ExternalLink,
-  Users, RefreshCw, Check, AlertCircle
+  Users, RefreshCw, Check, Maximize2, Minimize2
 } from "lucide-react";
 import { format } from "date-fns";
+
+// Convert any Google Drive/Docs share URL to an embeddable preview URL
+function getEmbedUrl(url: string): string {
+  // Google Docs: /document/d/ID/edit → /document/d/ID/preview
+  if (url.includes("docs.google.com/document")) {
+    return url.replace(/\/edit.*$/, "/preview").replace(/\/view.*$/, "/preview");
+  }
+  // Google Sheets: /spreadsheets/d/ID/edit → /spreadsheets/d/ID/preview
+  if (url.includes("docs.google.com/spreadsheets")) {
+    return url.replace(/\/edit.*$/, "/preview").replace(/\/view.*$/, "/preview");
+  }
+  // Google Slides: /presentation/d/ID/edit → /presentation/d/ID/preview
+  if (url.includes("docs.google.com/presentation")) {
+    return url.replace(/\/edit.*$/, "/preview").replace(/\/view.*$/, "/preview");
+  }
+  // Google Drive file: /file/d/ID/view → /file/d/ID/preview
+  if (url.includes("drive.google.com/file")) {
+    return url.replace(/\/view.*$/, "/preview").replace(/\/edit.*$/, "/preview");
+  }
+  // Fallback: try appending /preview
+  return url;
+}
 
 export default function PolicyDetailPage() {
   const { id } = useParams();
@@ -20,6 +42,7 @@ export default function PolicyDetailPage() {
   const [signSuccess, setSignSuccess] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [newVersionNumber, setNewVersionNumber] = useState("");
+  const [docExpanded, setDocExpanded] = useState(true);
   const [error, setError] = useState("");
 
   const fetchPolicy = () => {
@@ -117,34 +140,64 @@ export default function PolicyDetailPage() {
       {/* Document + Staff Sign-off action */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Document card */}
-        <div className="md:col-span-2 bg-white rounded-2xl shadow-sm p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[#9BADB7]" />
-            <span className="text-sm font-semibold text-[#223149]">Policy Document</span>
+        <div className="md:col-span-2 bg-white rounded-2xl shadow-sm overflow-hidden">
+          {/* Toolbar */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-[#ECE3DF]">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[#9BADB7]" />
+              <span className="text-sm font-semibold text-[#223149]">Policy Document</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {policy.content_drive_url && (
+                <>
+                  <button
+                    onClick={() => setDocExpanded((v) => !v)}
+                    className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
+                    title={docExpanded ? "Collapse" : "Expand"}
+                  >
+                    {docExpanded
+                      ? <Minimize2 className="w-4 h-4 text-[#9BADB7]" />
+                      : <Maximize2 className="w-4 h-4 text-[#9BADB7]" />}
+                  </button>
+                  <a
+                    href={policy.content_drive_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
+                    title="Open in Google Drive"
+                  >
+                    <ExternalLink className="w-4 h-4 text-[#9BADB7]" />
+                  </a>
+                </>
+              )}
+            </div>
           </div>
 
+          {/* Embedded doc */}
           {policy.content_drive_url ? (
-            <a
-              href={policy.content_drive_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-[#F8F6F4] rounded-xl hover:bg-[#ECE3DF] transition-colors group"
-            >
-              <div className="w-9 h-9 rounded-lg bg-[#223149] flex items-center justify-center flex-shrink-0">
-                <ExternalLink className="w-4 h-4 text-white" />
+            docExpanded ? (
+              <iframe
+                src={getEmbedUrl(policy.content_drive_url)}
+                className="w-full border-0"
+                style={{ height: "600px" }}
+                title={policy.title}
+                allow="autoplay"
+              />
+            ) : (
+              <div
+                className="px-5 py-4 cursor-pointer hover:bg-[#F8F6F4] transition-colors"
+                onClick={() => setDocExpanded(true)}
+              >
+                <p className="text-sm text-[#5F7C84]">Click to view document</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#223149]">Open in Google Drive</p>
-                <p className="text-xs text-[#9BADB7] truncate">{policy.content_drive_url}</p>
-              </div>
-            </a>
+            )
           ) : (
-            <div className="p-4 bg-[#F8F6F4] rounded-xl text-sm text-[#9BADB7] text-center">
+            <div className="px-5 py-12 text-sm text-[#9BADB7] text-center">
               No document linked yet.
             </div>
           )}
 
-          <div className="text-xs text-[#9BADB7] pt-1 border-t border-[#ECE3DF]">
+          <div className="px-5 py-3 border-t border-[#ECE3DF] text-xs text-[#9BADB7]">
             Created {format(new Date(policy.created_at), "d MMM yyyy")}
             {policy.created_by_staff?.full_name && ` by ${policy.created_by_staff.full_name}`}
           </div>
