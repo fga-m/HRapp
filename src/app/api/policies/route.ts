@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       description: description || null,
       content_drive_url: content_drive_url || null,
       requires_signoff: requires_signoff ?? true,
-      version: version && version >= 1 ? version : 1,
+      version: version && Number(version) >= 0.1 ? Number(version) : 1,
       created_by: caller.id,
       required_signatories: required_signatories ?? null,
     })

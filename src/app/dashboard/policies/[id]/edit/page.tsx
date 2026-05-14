@@ -140,9 +140,10 @@ export default function EditPolicyPage() {
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">Version Number</label>
             <input
               type="number"
-              min={1}
+              min={0.1}
+              step={0.1}
               value={form.version}
-              onChange={(e) => setForm({ ...form, version: parseInt(e.target.value) || 1 })}
+              onChange={(e) => setForm({ ...form, version: parseFloat(e.target.value) || 1 })}
               className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
             <p className="text-xs text-[#9BADB7] mt-1">

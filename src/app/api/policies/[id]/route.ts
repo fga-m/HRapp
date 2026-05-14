@@ -82,9 +82,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq("id", id)
     .single();
 
-  const newVersion = bump_version
-    ? (new_version && new_version > (current?.version || 1) ? new_version : (current?.version || 1) + 1)
-    : (new_version || current?.version);
+  const currentVersion = Number(current?.version || 1);
+  // When bumping without an explicit new_version, go to the next whole number (e.g. 3.1 → 4)
+  const bumpedVersion = new_version && Number(new_version) > currentVersion
+    ? Number(new_version)
+    : Math.floor(currentVersion) + 1;
+  const newVersion = bump_version ? bumpedVersion : (new_version !== undefined ? Number(new_version) : currentVersion);
 
   const { data, error } = await supabaseAdmin
     .from("policies")
