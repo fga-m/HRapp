@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, Check, UserPlus, AlertCircle } from "lucide-react";
+import { ArrowLeft, RefreshCw, Check, UserPlus, AlertCircle, Search } from "lucide-react";
 
 type GoogleUser = {
   email: string;
@@ -20,6 +20,7 @@ export default function ImportStaffPage() {
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -83,6 +84,11 @@ export default function ImportStaffPage() {
   };
 
   const available = users.filter((u) => !u.already_imported);
+  const filteredUsers = users.filter(
+    (u) =>
+      u.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -130,42 +136,48 @@ export default function ImportStaffPage() {
       {/* User List */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {/* Toolbar */}
-        <div className="px-6 py-4 border-b border-[#ECE3DF] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-[#223149]">
-              {loading ? "Loading..." : `${users.length} users found`}
-            </span>
-            {!loading && available.length > 0 && (
-              <span className="text-xs text-[#9BADB7]">
-                ({selected.size} selected)
-              </span>
-            )}
+        <div className="px-6 py-4 border-b border-[#ECE3DF] space-y-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BADB7]" />
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={fetchUsers}
-              className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
-              title="Refresh"
-            >
-              <RefreshCw className="w-4 h-4 text-[#9BADB7]" />
-            </button>
-            {!loading && available.length > 0 && (
-              <>
-                <button
-                  onClick={selectAll}
-                  className="text-xs font-semibold text-[#223149] hover:underline"
-                >
-                  Select all
-                </button>
-                <span className="text-[#9BADB7]">·</span>
-                <button
-                  onClick={clearAll}
-                  className="text-xs font-semibold text-[#5F7C84] hover:underline"
-                >
-                  Clear
-                </button>
-              </>
-            )}
+          {/* Count + actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-[#223149]">
+                {loading ? "Loading..." : `${filteredUsers.length} of ${users.length} users`}
+              </span>
+              {!loading && selected.size > 0 && (
+                <span className="text-xs text-[#9BADB7]">({selected.size} selected)</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={fetchUsers}
+                className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
+                title="Refresh"
+              >
+                <RefreshCw className="w-4 h-4 text-[#9BADB7]" />
+              </button>
+              {!loading && available.length > 0 && (
+                <>
+                  <button onClick={selectAll} className="text-xs font-semibold text-[#223149] hover:underline">
+                    Select all
+                  </button>
+                  <span className="text-[#9BADB7]">·</span>
+                  <button onClick={clearAll} className="text-xs font-semibold text-[#5F7C84] hover:underline">
+                    Clear
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -175,13 +187,13 @@ export default function ImportStaffPage() {
             <div className="inline-block w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin mb-3" />
             <p className="text-sm text-[#9BADB7]">Fetching your Google Workspace users...</p>
           </div>
-        ) : users.length === 0 && !error ? (
+        ) : filteredUsers.length === 0 && !error ? (
           <div className="px-6 py-12 text-center text-[#9BADB7] text-sm">
-            No users found in your Google Workspace.
+            {search ? `No users match "${search}"` : "No users found in your Google Workspace."}
           </div>
         ) : (
           <div className="divide-y divide-[#ECE3DF]">
-            {users.map((user) => {
+            {filteredUsers.map((user) => {
               const isSelected = selected.has(user.email);
               const isImported = user.already_imported;
               return (
