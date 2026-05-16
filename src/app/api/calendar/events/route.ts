@@ -36,3 +36,30 @@ export async function GET(req: NextRequest) {
   const body = await res.json();
   return NextResponse.json(body.items || []);
 }
+
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const token = (session as any).accessToken;
+  if (!token) return NextResponse.json({ error: "No access token" }, { status: 401 });
+
+  const { calendarId, ...body } = await req.json();
+  const calId = calendarId || "primary";
+
+  const res = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = await res.json();
+  if (!res.ok) return NextResponse.json({ error: data?.error?.message || "Failed to create event" }, { status: res.status });
+  return NextResponse.json(data, { status: 201 });
+}

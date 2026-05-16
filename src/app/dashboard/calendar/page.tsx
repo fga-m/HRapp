@@ -1,30 +1,30 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X } from "lucide-react";
 import {
   format, startOfWeek, addDays, isToday, eachDayOfInterval,
   addWeeks, subWeeks, isSameDay,
 } from "date-fns";
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const HOUR_H = 64;       // px per hour
-const START_H = 7;       // 7 am
-const END_H = 21;        // 9 pm
+const HOUR_H = 64;
+const START_H = 7;
+const END_H = 21;
 const HOURS = Array.from({ length: END_H - START_H }, (_, i) => START_H + i);
 
-// Cycling palette for staff chips & events
 const PALETTE = [
-  { chip: "bg-[#223149] text-white", event: "bg-[#223149]/90 border-[#223149]" },
-  { chip: "bg-[#5F7C84] text-white", event: "bg-[#5F7C84]/90 border-[#5F7C84]" },
-  { chip: "bg-indigo-500 text-white", event: "bg-indigo-500/90 border-indigo-500" },
-  { chip: "bg-emerald-500 text-white", event: "bg-emerald-500/90 border-emerald-500" },
-  { chip: "bg-amber-500 text-white", event: "bg-amber-500/90 border-amber-500" },
-  { chip: "bg-rose-500 text-white", event: "bg-rose-500/90 border-rose-500" },
-  { chip: "bg-violet-500 text-white", event: "bg-violet-500/90 border-violet-500" },
-  { chip: "bg-teal-500 text-white", event: "bg-teal-500/90 border-teal-500" },
+  { chip: "bg-[#223149] text-white", event: "bg-[#223149]/90 border-[#223149]", hex: "#223149" },
+  { chip: "bg-[#5F7C84] text-white", event: "bg-[#5F7C84]/90 border-[#5F7C84]", hex: "#5F7C84" },
+  { chip: "bg-indigo-500 text-white", event: "bg-indigo-500/90 border-indigo-500", hex: "#6366f1" },
+  { chip: "bg-emerald-500 text-white", event: "bg-emerald-500/90 border-emerald-500", hex: "#10b981" },
+  { chip: "bg-amber-500 text-white", event: "bg-amber-500/90 border-amber-500", hex: "#f59e0b" },
+  { chip: "bg-rose-500 text-white", event: "bg-rose-500/90 border-rose-500", hex: "#f43f5e" },
+  { chip: "bg-violet-500 text-white", event: "bg-violet-500/90 border-violet-500", hex: "#8b5cf6" },
+  { chip: "bg-teal-500 text-white", event: "bg-teal-500/90 border-teal-500", hex: "#14b8a6" },
 ];
 
+// ── Types ──────────────────────────────────────────────────────────────────
 type GEvent = {
   id: string;
   summary?: string;
@@ -33,6 +33,8 @@ type GEvent = {
   htmlLink?: string;
   location?: string;
   description?: string;
+  transparency?: string;  // "opaque" (busy, default) | "transparent" (free/available)
+  eventType?: string;     // "default" | "outOfOffice" | "focusTime" | "workingLocation"
 };
 
 type StaffMember = {
@@ -43,17 +45,26 @@ type StaffMember = {
   role: string;
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// ── Event classification ───────────────────────────────────────────────────
+function isOOO(ev: GEvent) {
+  return ev.eventType === "outOfOffice";
+}
+function isFreeEvent(ev: GEvent) {
+  return !isOOO(ev) && ev.transparency === "transparent";
+}
+function isBusyEvent(ev: GEvent) {
+  return !isOOO(ev) && !isFreeEvent(ev);
+}
+
+// ── Geometry helpers ───────────────────────────────────────────────────────
 function isAllDay(ev: GEvent) {
   return !ev.start.dateTime;
 }
-
 function eventTopPx(ev: GEvent) {
   if (isAllDay(ev)) return 0;
   const d = new Date(ev.start.dateTime!);
   return Math.max(0, (d.getHours() + d.getMinutes() / 60 - START_H) * HOUR_H);
 }
-
 function eventHeightPx(ev: GEvent) {
   if (isAllDay(ev)) return HOUR_H;
   const start = new Date(ev.start.dateTime!);
@@ -61,25 +72,20 @@ function eventHeightPx(ev: GEvent) {
   const mins = (end.getTime() - start.getTime()) / 60000;
   return Math.max(22, (mins / 60) * HOUR_H);
 }
-
 function eventsForDay(events: GEvent[], day: Date) {
   return events.filter((ev) => {
-    const dateStr = ev.start.dateTime
-      ? new Date(ev.start.dateTime)
-      : new Date(ev.start.date!);
-    return isSameDay(dateStr, day);
+    const d = ev.start.dateTime ? new Date(ev.start.dateTime) : new Date(ev.start.date!);
+    return isSameDay(d, day);
   });
 }
-
 function allDayEventsForDay(events: GEvent[], day: Date) {
   return eventsForDay(events, day).filter(isAllDay);
 }
-
 function timedEventsForDay(events: GEvent[], day: Date) {
   return eventsForDay(events, day).filter((ev) => !isAllDay(ev));
 }
 
-// Simple overlap layout: returns { left%, width% } for each event
+// Only lay out busy events — free/OOO are always full-width backgrounds
 function layoutEvents(events: GEvent[]): Map<string, { left: number; width: number }> {
   const sorted = [...events].sort(
     (a, b) => new Date(a.start.dateTime!).getTime() - new Date(b.start.dateTime!).getTime()
@@ -95,11 +101,7 @@ function layoutEvents(events: GEvent[]): Map<string, { left: number; width: numb
       const col = columns[c];
       const last = col[col.length - 1];
       const lastEnd = new Date(last.end.dateTime!).getTime();
-      if (start >= lastEnd) {
-        col.push(ev);
-        placed = true;
-        break;
-      }
+      if (start >= lastEnd) { col.push(ev); placed = true; break; }
     }
     if (!placed) columns.push([ev]);
   }
@@ -113,6 +115,160 @@ function layoutEvents(events: GEvent[]): Map<string, { left: number; width: numb
   return layout;
 }
 
+// ── Event form modal ───────────────────────────────────────────────────────
+type EventFormProps = {
+  initial?: {
+    id?: string;
+    summary: string;
+    startDateTime: string;
+    endDateTime: string;
+    transparency: string;
+  };
+  calendarId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+};
+
+function EventFormModal({ initial, calendarId, onClose, onSuccess }: EventFormProps) {
+  const isEdit = !!initial?.id;
+  const [summary, setSummary] = useState(initial?.summary ?? "");
+  const [startDateTime, setStartDateTime] = useState(
+    initial?.startDateTime ?? format(new Date(), "yyyy-MM-dd'T'HH:mm")
+  );
+  const [endDateTime, setEndDateTime] = useState(
+    initial?.endDateTime ?? format(addDays(new Date(), 0), "yyyy-MM-dd'T'HH:mm")
+  );
+  const [transparency, setTransparency] = useState(initial?.transparency ?? "opaque");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!summary.trim()) { setError("Title is required."); return; }
+    if (new Date(endDateTime) <= new Date(startDateTime)) {
+      setError("End time must be after start time.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const body = {
+        calendarId,
+        summary: summary.trim(),
+        start: { dateTime: new Date(startDateTime).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        end: { dateTime: new Date(endDateTime).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        transparency,
+      };
+      const res = isEdit
+        ? await fetch(`/api/calendar/events/${initial!.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+        : await fetch("/api/calendar/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error ?? "Failed to save event");
+      }
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message);
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/30" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[#223149]">{isEdit ? "Edit Event" : "New Event"}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
+            <X className="w-5 h-5 text-[#9BADB7]" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              autoFocus
+              placeholder="e.g. Work, Team Meeting..."
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-semibold text-[#223149] mb-1.5">Start</label>
+              <input
+                type="datetime-local"
+                value={startDateTime}
+                onChange={(e) => setStartDateTime(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-[#223149] mb-1.5">End</label>
+              <input
+                type="datetime-local"
+                value={endDateTime}
+                onChange={(e) => setEndDateTime(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Show as */}
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-2">Show as</label>
+            <div className="flex gap-3">
+              {([["opaque", "Busy"], ["transparent", "Free (Working)"]] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setTransparency(val)}
+                  className={`flex-1 px-4 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                    transparency === val
+                      ? "bg-[#223149] text-white border-[#223149]"
+                      : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-[#9BADB7] mt-1.5">
+              {transparency === "transparent"
+                ? "Shows as a working block — others can see you're available"
+                : "Shows as busy — you're in a meeting or unavailable"}
+            </p>
+          </div>
+
+          {error && <p className="text-sm text-rose-500">{error}</p>}
+
+          <div className="flex gap-3 pt-1">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
+            >
+              {saving ? "Saving..." : isEdit ? "Save Changes" : "Create Event"}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────────────────────
 export default function CalendarPage() {
   const [weekStart, setWeekStart] = useState(() =>
@@ -123,11 +279,13 @@ export default function CalendarPage() {
   const [error, setError] = useState("");
   const [role, setRole] = useState<"admin" | "staff">("staff");
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
-  const [selectedId, setSelectedId] = useState("primary"); // calendarId
+  const [selectedId, setSelectedId] = useState("primary");
   const [selectedLabel, setSelectedLabel] = useState("My Calendar");
   const gridRef = useRef<HTMLDivElement>(null);
   const [nowTop, setNowTop] = useState(0);
   const [tooltip, setTooltip] = useState<GEvent | null>(null);
+  const [editingEvent, setEditingEvent] = useState<GEvent | null>(null);
+  const [showNewEvent, setShowNewEvent] = useState(false);
 
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
 
@@ -137,12 +295,8 @@ export default function CalendarPage() {
       .then((r) => r.json())
       .then((data: StaffMember[]) => {
         if (!Array.isArray(data)) return;
-        // Determine current user's role by checking if they're in the admin list
-        // We use a separate call to get role info
-        const withCalendar = data.filter((s) => s.google_calendar_id);
-        setStaffList(withCalendar);
+        setStaffList(data.filter((s) => s.google_calendar_id));
       });
-    // Get role via policies endpoint (returns role field)
     fetch("/api/policies")
       .then((r) => r.json())
       .then((d) => { if (d.role) setRole(d.role); });
@@ -173,27 +327,44 @@ export default function CalendarPage() {
   useEffect(() => {
     const update = () => {
       const now = new Date();
-      const top = (now.getHours() + now.getMinutes() / 60 - START_H) * HOUR_H;
-      setNowTop(top);
+      setNowTop((now.getHours() + now.getMinutes() / 60 - START_H) * HOUR_H);
     };
     update();
     const t = setInterval(update, 60000);
     return () => clearInterval(t);
   }, []);
 
-  // ── Auto-scroll to current time on load ──────────────────────────────────
+  // ── Auto-scroll to current time ───────────────────────────────────────────
   useEffect(() => {
     if (gridRef.current && nowTop > 0) {
       gridRef.current.scrollTop = Math.max(0, nowTop - 120);
     }
   }, [nowTop]);
 
-  // ── Staff color map ───────────────────────────────────────────────────────
+  // ── Colours ───────────────────────────────────────────────────────────────
   const colorForIndex = (i: number) => PALETTE[i % PALETTE.length];
-  const staffColorMap = new Map(staffList.map((s, i) => [s.google_calendar_id ?? s.email, colorForIndex(i + 1)]));
+  const staffColorMap = new Map(
+    staffList.map((s, i) => [s.google_calendar_id ?? s.email, colorForIndex(i + 1)])
+  );
   const eventColor = staffColorMap.get(selectedId) ?? PALETTE[0];
 
   const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
+
+  const handleDelete = async (ev: GEvent) => {
+    if (!confirm(`Delete "${ev.summary || "this event"}"?`)) return;
+    await fetch(`/api/calendar/events/${ev.id}?calendarId=${encodeURIComponent(selectedId)}`, { method: "DELETE" });
+    setTooltip(null);
+    fetchEvents();
+  };
+
+  // Only own calendar is editable (primary = your own)
+  const isOwnCalendar = selectedId === "primary";
+
+  // Hex with alpha suffix helper
+  const hexA = (hex: string, alpha: number) => {
+    const a = Math.round(alpha * 255).toString(16).padStart(2, "0");
+    return hex + a;
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] min-h-0">
@@ -224,6 +395,15 @@ export default function CalendarPage() {
           >
             Today
           </button>
+          {isOwnCalendar && (
+            <button
+              onClick={() => setShowNewEvent(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#223149] text-white rounded-lg hover:bg-[#1a2638] transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              New Event
+            </button>
+          )}
           {loading && (
             <div className="w-4 h-4 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
           )}
@@ -260,6 +440,25 @@ export default function CalendarPage() {
             })}
           </div>
         )}
+
+        {/* Legend */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-3 rounded-sm border-l-2"
+              style={{ backgroundColor: hexA(eventColor.hex, 0.1), borderLeftColor: hexA(eventColor.hex, 0.5) }}
+            />
+            <span className="text-xs text-[#9BADB7]">Working (free)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: eventColor.hex }} />
+            <span className="text-xs text-[#9BADB7]">Busy</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm border-l-2 bg-rose-100 border-rose-400" />
+            <span className="text-xs text-[#9BADB7]">Out of office</span>
+          </div>
+        </div>
       </div>
 
       {/* ── Error ──────────────────────────────────────────────────── */}
@@ -276,8 +475,11 @@ export default function CalendarPage() {
       {/* ── Calendar grid ──────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
         {/* Day headers */}
-        <div className="flex-shrink-0 grid border-b border-[#ECE3DF]" style={{ gridTemplateColumns: "52px repeat(7, 1fr)" }}>
-          <div className="border-r border-[#ECE3DF]" /> {/* spacer */}
+        <div
+          className="flex-shrink-0 grid border-b border-[#ECE3DF]"
+          style={{ gridTemplateColumns: "52px repeat(7, 1fr)" }}
+        >
+          <div className="border-r border-[#ECE3DF]" />
           {days.map((day) => (
             <div
               key={day.toISOString()}
@@ -295,7 +497,10 @@ export default function CalendarPage() {
 
         {/* All-day row */}
         {days.some((d) => allDayEventsForDay(events, d).length > 0) && (
-          <div className="flex-shrink-0 grid border-b border-[#ECE3DF]" style={{ gridTemplateColumns: "52px repeat(7, 1fr)" }}>
+          <div
+            className="flex-shrink-0 grid border-b border-[#ECE3DF]"
+            style={{ gridTemplateColumns: "52px repeat(7, 1fr)" }}
+          >
             <div className="border-r border-[#ECE3DF] flex items-center justify-end pr-2">
               <span className="text-[10px] text-[#9BADB7]">all-day</span>
             </div>
@@ -303,14 +508,29 @@ export default function CalendarPage() {
               const allDay = allDayEventsForDay(events, day);
               return (
                 <div key={day.toISOString()} className="border-r border-[#ECE3DF] last:border-r-0 p-1 min-h-[28px]">
-                  {allDay.map((ev) => (
-                    <div
-                      key={ev.id}
-                      className={`text-[10px] font-medium px-1.5 py-0.5 rounded mb-0.5 truncate text-white ${eventColor.event.split(" ")[0]}`}
-                    >
-                      {ev.summary || "(No title)"}
-                    </div>
-                  ))}
+                  {allDay.map((ev) => {
+                    const ooo = isOOO(ev);
+                    const free = isFreeEvent(ev);
+                    const bg = ooo
+                      ? "bg-rose-100 text-rose-600"
+                      : free
+                      ? "text-white"
+                      : "text-white " + eventColor.event.split(" ")[0];
+                    return (
+                      <div
+                        key={ev.id}
+                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded mb-0.5 truncate cursor-pointer ${bg}`}
+                        style={
+                          free && !ooo
+                            ? { backgroundColor: hexA(eventColor.hex, 0.15), color: eventColor.hex }
+                            : undefined
+                        }
+                        onClick={() => setTooltip(tooltip?.id === ev.id ? null : ev)}
+                      >
+                        {ev.summary || (ooo ? "Out of Office" : "(No title)")}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
@@ -320,7 +540,7 @@ export default function CalendarPage() {
         {/* Timed events grid — scrollable */}
         <div ref={gridRef} className="flex-1 overflow-y-auto">
           <div className="grid relative" style={{ gridTemplateColumns: "52px repeat(7, 1fr)" }}>
-            {/* Time labels column */}
+            {/* Time labels */}
             <div className="border-r border-[#ECE3DF]">
               {HOURS.map((h) => (
                 <div
@@ -336,10 +556,14 @@ export default function CalendarPage() {
             </div>
 
             {/* Day columns */}
-            {days.map((day, di) => {
+            {days.map((day) => {
               const timed = timedEventsForDay(events, day);
-              const positions = layoutEvents(timed);
+              const freeEvs  = timed.filter(isFreeEvent);
+              const oooEvs   = timed.filter(isOOO);
+              const busyEvs  = timed.filter(isBusyEvent);
+              const positions = layoutEvents(busyEvs);
               const isCurrentDay = isToday(day);
+
               return (
                 <div
                   key={day.toISOString()}
@@ -355,24 +579,81 @@ export default function CalendarPage() {
                     />
                   ))}
 
+                  {/* ── Layer 1: Free / Working events (background) ── */}
+                  {freeEvs.map((ev) => {
+                    const top = eventTopPx(ev);
+                    const height = eventHeightPx(ev);
+                    const isShort = height < 32;
+                    return (
+                      <div
+                        key={ev.id}
+                        className="absolute left-0 right-0 cursor-pointer overflow-hidden"
+                        style={{
+                          top,
+                          height,
+                          backgroundColor: hexA(eventColor.hex, 0.08),
+                          borderLeft: `2px solid ${hexA(eventColor.hex, 0.35)}`,
+                          zIndex: 1,
+                        }}
+                        onClick={() => setTooltip(tooltip?.id === ev.id ? null : ev)}
+                      >
+                        {!isShort && (
+                          <p
+                            className="text-[10px] px-1.5 pt-0.5 truncate font-medium"
+                            style={{ color: hexA(eventColor.hex, 0.55) }}
+                          >
+                            {ev.summary || "Working"}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* ── Layer 2: Out of Office ── */}
+                  {oooEvs.map((ev) => {
+                    const top = eventTopPx(ev);
+                    const height = eventHeightPx(ev);
+                    const isShort = height < 32;
+                    return (
+                      <div
+                        key={ev.id}
+                        className="absolute left-0 right-0 overflow-hidden cursor-pointer"
+                        style={{
+                          top,
+                          height,
+                          backgroundColor: "rgba(251, 207, 232, 0.35)",
+                          borderLeft: "2px solid #f9a8d4",
+                          zIndex: 2,
+                        }}
+                        onClick={() => setTooltip(tooltip?.id === ev.id ? null : ev)}
+                      >
+                        {!isShort && (
+                          <p className="text-[10px] px-1.5 pt-0.5 truncate font-medium text-rose-500">
+                            {ev.summary || "Out of Office"}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+
                   {/* Current time line */}
                   {isCurrentDay && nowTop >= 0 && nowTop <= HOUR_H * HOURS.length && (
                     <div
-                      className="absolute w-full flex items-center z-10 pointer-events-none"
-                      style={{ top: nowTop }}
+                      className="absolute w-full flex items-center pointer-events-none"
+                      style={{ top: nowTop, zIndex: 10 }}
                     >
                       <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 flex-shrink-0" />
                       <div className="flex-1 border-t-2 border-red-500" />
                     </div>
                   )}
 
-                  {/* Events */}
-                  {timed.map((ev) => {
+                  {/* ── Layer 3: Busy events ── */}
+                  {busyEvs.map((ev) => {
                     const pos = positions.get(ev.id) ?? { left: 0, width: 96 };
                     const top = eventTopPx(ev);
                     const height = eventHeightPx(ev);
-                    const startLabel = format(new Date(ev.start.dateTime!), "h:mm a");
                     const isShort = height < 40;
+                    const startLabel = format(new Date(ev.start.dateTime!), "h:mm a");
                     return (
                       <div
                         key={ev.id}
@@ -402,7 +683,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* ── Event tooltip / detail ─────────────────────────────────── */}
+      {/* ── Event detail modal ─────────────────────────────────────── */}
       {tooltip && (
         <div
           className="fixed inset-0 z-40 flex items-end md:items-center justify-center p-4 bg-black/30"
@@ -412,8 +693,45 @@ export default function CalendarPage() {
             className="bg-white rounded-2xl shadow-xl p-5 w-full max-w-sm space-y-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={`w-3 h-3 rounded-full ${eventColor.event.split(" ")[0]}`} />
+            {/* Status badge + actions */}
+            <div className="flex items-center justify-between gap-2">
+              {isOOO(tooltip) ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
+                  Out of Office
+                </span>
+              ) : isFreeEvent(tooltip) ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                  Working — available
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#223149]/10 text-[#223149]">
+                  Busy
+                </span>
+              )}
+
+              {/* Edit / Delete — only on your own calendar */}
+              {isOwnCalendar && !isAllDay(tooltip) && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => { setEditingEvent(tooltip); setTooltip(null); }}
+                    className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
+                    title="Edit event"
+                  >
+                    <Pencil className="w-4 h-4 text-[#5F7C84]" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(tooltip)}
+                    className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
+                    title="Delete event"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-400" />
+                  </button>
+                </div>
+              )}
+            </div>
+
             <h3 className="text-lg font-bold text-[#223149]">{tooltip.summary || "(No title)"}</h3>
+
             <div className="space-y-1 text-sm text-[#5F7C84]">
               {tooltip.start.dateTime ? (
                 <p>
@@ -426,6 +744,7 @@ export default function CalendarPage() {
               )}
               {tooltip.location && <p>📍 {tooltip.location}</p>}
             </div>
+
             {tooltip.htmlLink && (
               <a
                 href={tooltip.htmlLink}
@@ -436,6 +755,7 @@ export default function CalendarPage() {
                 Open in Google Calendar
               </a>
             )}
+
             <button
               onClick={() => setTooltip(null)}
               className="w-full px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
@@ -444,6 +764,31 @@ export default function CalendarPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* ── Edit event modal ───────────────────────────────────────── */}
+      {editingEvent && editingEvent.start.dateTime && (
+        <EventFormModal
+          calendarId={selectedId}
+          initial={{
+            id: editingEvent.id,
+            summary: editingEvent.summary ?? "",
+            startDateTime: format(new Date(editingEvent.start.dateTime), "yyyy-MM-dd'T'HH:mm"),
+            endDateTime: format(new Date(editingEvent.end.dateTime!), "yyyy-MM-dd'T'HH:mm"),
+            transparency: editingEvent.transparency ?? "opaque",
+          }}
+          onClose={() => setEditingEvent(null)}
+          onSuccess={() => { setEditingEvent(null); fetchEvents(); }}
+        />
+      )}
+
+      {/* ── New event modal ────────────────────────────────────────── */}
+      {showNewEvent && (
+        <EventFormModal
+          calendarId={selectedId}
+          onClose={() => setShowNewEvent(false)}
+          onSuccess={() => { setShowNewEvent(false); fetchEvents(); }}
+        />
       )}
     </div>
   );

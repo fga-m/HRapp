@@ -38,7 +38,7 @@ function targetHref(n: Notification) {
   switch (n.type) {
     case "policy":    return `/dashboard/policies/${n.reference_id}`;
     case "meeting":   return `/dashboard/meetings/${n.reference_id}`;
-    case "checklist": return `/dashboard/onboarding`;
+    case "checklist": return `/dashboard/onboarding/${n.reference_id}`;
     default:          return null;
   }
 }
