@@ -64,10 +64,17 @@ export default async function DashboardPage() {
       .eq("staff_id", caller.id)
       .eq("is_read", false),
 
-    // Meeting notes this month
-    supabaseAdmin.from("meeting_notes")
-      .select("*", { count: "exact", head: true })
-      .gte("created_at", monthStart),
+    // Meeting notes this month — same filter as the meetings page
+    isAdmin
+      ? supabaseAdmin.from("meeting_notes")
+          .select("*", { count: "exact", head: true })
+          .eq("created_by", caller.id)
+          .gte("created_at", monthStart)
+      : supabaseAdmin.from("meeting_notes")
+          .select("*", { count: "exact", head: true })
+          .eq("is_shared_with_staff", true)
+          .contains("attendees", [caller.id])
+          .gte("created_at", monthStart),
   ]);
 
   // ── Compute pending sign-offs ────────────────────────────────────────────
