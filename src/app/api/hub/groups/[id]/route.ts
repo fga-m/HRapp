@@ -23,24 +23,17 @@ export async function PATCH(
   if (caller.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const { id } = await params;
-  const body = await req.json();
-  const { label, url, description, group_id } = body;
-
-  const updates: Record<string, unknown> = {};
-  if (label !== undefined) updates.label = label.trim();
-  if (url !== undefined) updates.url = url.trim();
-  if (description !== undefined) updates.description = description?.trim() || null;
-  if (group_id !== undefined) updates.group_id = group_id ?? null;
+  const { label } = await req.json();
 
   const { data, error } = await supabaseAdmin
-    .from("hub_links")
-    .update(updates)
+    .from("hub_groups")
+    .update({ label: label.trim() })
     .eq("id", id)
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!data) return NextResponse.json({ error: "Link not found" }, { status: 404 });
+  if (!data) return NextResponse.json({ error: "Group not found" }, { status: 404 });
   return NextResponse.json(data);
 }
 
@@ -57,11 +50,10 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const { error } = await supabaseAdmin
-    .from("hub_links")
-    .delete()
-    .eq("id", id);
+  // Unassign links in this group before deleting
+  await supabaseAdmin.from("hub_links").update({ group_id: null }).eq("group_id", id);
 
+  const { error } = await supabaseAdmin.from("hub_groups").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

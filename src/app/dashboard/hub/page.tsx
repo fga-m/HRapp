@@ -1,30 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink, Plus, Pencil, Trash2, X, BookOpen } from "lucide-react";
+import { ExternalLink, Plus, Pencil, Trash2, X, BookOpen, FolderPlus } from "lucide-react";
 
-type HubLink = {
-  id: string;
-  label: string;
-  url: string;
-  description: string | null;
-  order_index: number;
-};
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-// ── Link form modal ───────────────────────────────────────────────────────────
+type HubGroup = { id: string; label: string; order_index: number };
+type HubLink  = { id: string; label: string; url: string; description: string | null; group_id: string | null; order_index: number };
+
+// ── Link modal ────────────────────────────────────────────────────────────────
 
 function LinkModal({
   initial,
+  groups,
+  defaultGroupId,
   onClose,
   onSave,
 }: {
   initial?: HubLink;
+  groups: HubGroup[];
+  defaultGroupId?: string | null;
   onClose: () => void;
-  onSave: (data: { label: string; url: string; description: string }) => Promise<void>;
+  onSave: (data: { label: string; url: string; description: string; group_id: string | null }) => Promise<void>;
 }) {
   const [label, setLabel] = useState(initial?.label ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [groupId, setGroupId] = useState<string | null>(initial?.group_id ?? defaultGroupId ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,14 +34,11 @@ function LinkModal({
     e.preventDefault();
     if (!label.trim()) { setError("Label is required."); return; }
     if (!url.trim()) { setError("URL is required."); return; }
-
-    // Prepend https:// if no protocol given
     const finalUrl = url.trim().match(/^https?:\/\//) ? url.trim() : `https://${url.trim()}`;
-
     setSaving(true);
     setError("");
     try {
-      await onSave({ label: label.trim(), url: finalUrl, description: description.trim() });
+      await onSave({ label: label.trim(), url: finalUrl, description: description.trim(), group_id: groupId });
     } catch (err: any) {
       setError(err.message);
       setSaving(false);
@@ -47,18 +46,10 @@ function LinkModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[#223149]">
-            {initial ? "Edit Link" : "Add Link"}
-          </h2>
+          <h2 className="text-lg font-bold text-[#223149]">{initial ? "Edit Link" : "Add Link"}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
             <X className="w-5 h-5 text-[#9BADB7]" />
           </button>
@@ -94,8 +85,7 @@ function LinkModal({
 
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-              Description{" "}
-              <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              Description <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
             </label>
             <input
               type="text"
@@ -106,21 +96,31 @@ function LinkModal({
             />
           </div>
 
+          {groups.length > 0 && (
+            <div>
+              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                Group <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              </label>
+              <select
+                value={groupId ?? ""}
+                onChange={(e) => setGroupId(e.target.value || null)}
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] bg-white focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              >
+                <option value="">No group</option>
+                {groups.map((g) => (
+                  <option key={g.id} value={g.id}>{g.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {error && <p className="text-sm text-rose-500">{error}</p>}
 
           <div className="flex gap-3 pt-1">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
-            >
+            <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50">
               {saving ? "Saving..." : initial ? "Save Changes" : "Add Link"}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
-            >
+            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
               Cancel
             </button>
           </div>
@@ -130,64 +130,204 @@ function LinkModal({
   );
 }
 
+// ── Group modal ───────────────────────────────────────────────────────────────
+
+function GroupModal({
+  initial,
+  onClose,
+  onSave,
+}: {
+  initial?: HubGroup;
+  onClose: () => void;
+  onSave: (label: string) => Promise<void>;
+}) {
+  const [label, setLabel] = useState(initial?.label ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!label.trim()) { setError("Name is required."); return; }
+    setSaving(true);
+    setError("");
+    try {
+      await onSave(label.trim());
+    } catch (err: any) {
+      setError(err.message);
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-sm p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[#223149]">{initial ? "Rename Group" : "New Group"}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
+            <X className="w-5 h-5 text-[#9BADB7]" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            autoFocus
+            placeholder="e.g. Ministry Resources"
+            className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+          />
+          {error && <p className="text-sm text-rose-500">{error}</p>}
+          <div className="flex gap-3">
+            <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50">
+              {saving ? "Saving..." : initial ? "Save" : "Create Group"}
+            </button>
+            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Link card (compact, horizontal) ──────────────────────────────────────────
+
+function LinkCard({
+  link,
+  isAdmin,
+  onEdit,
+  onDelete,
+  deleting,
+}: {
+  link: HubLink;
+  isAdmin: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <div className="relative group/card flex-shrink-0">
+      <a
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2.5 px-4 py-3 bg-white rounded-xl shadow-sm border border-[#ECE3DF] hover:border-[#223149]/30 hover:shadow-md transition-all"
+      >
+        <ExternalLink className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-[#223149] whitespace-nowrap">{link.label}</p>
+          {link.description && (
+            <p className="text-xs text-[#9BADB7] whitespace-nowrap">{link.description}</p>
+          )}
+        </div>
+      </a>
+
+      {isAdmin && (
+        <div className="absolute -top-2 -right-2 flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => { e.preventDefault(); onEdit(); }}
+            className="p-1 bg-white rounded-lg shadow border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
+          >
+            <Pencil className="w-3 h-3 text-[#5F7C84]" />
+          </button>
+          <button
+            onClick={(e) => { e.preventDefault(); onDelete(); }}
+            disabled={deleting}
+            className="p-1 bg-white rounded-lg shadow border border-[#ECE3DF] hover:bg-rose-50 transition-colors disabled:opacity-50"
+          >
+            <Trash2 className="w-3 h-3 text-rose-400" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function StaffHubPage() {
+  const [groups, setGroups] = useState<HubGroup[]>([]);
   const [links, setLinks] = useState<HubLink[]>([]);
   const [role, setRole] = useState("staff");
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-  const [editLink, setEditLink] = useState<HubLink | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const fetchLinks = async () => {
-    const res = await fetch("/api/hub/links");
-    const data = await res.json();
-    setLinks(data.links ?? []);
-    setRole(data.role ?? "staff");
+  const [showAddLink, setShowAddLink] = useState(false);
+  const [addLinkGroupId, setAddLinkGroupId] = useState<string | null>(null);
+  const [editLink, setEditLink] = useState<HubLink | null>(null);
+  const [deletingLinkId, setDeletingLinkId] = useState<string | null>(null);
+
+  const [showAddGroup, setShowAddGroup] = useState(false);
+  const [editGroup, setEditGroup] = useState<HubGroup | null>(null);
+  const [deletingGroupId, setDeletingGroupId] = useState<string | null>(null);
+
+  const fetchAll = async () => {
+    const [linksRes, groupsRes] = await Promise.all([
+      fetch("/api/hub/links").then((r) => r.json()),
+      fetch("/api/hub/groups").then((r) => r.json()),
+    ]);
+    setLinks(linksRes.links ?? []);
+    setGroups(groupsRes.groups ?? []);
+    setRole(linksRes.role ?? groupsRes.role ?? "staff");
     setLoading(false);
   };
 
-  useEffect(() => { fetchLinks(); }, []);
+  useEffect(() => { fetchAll(); }, []);
 
   const isAdmin = role === "admin";
 
-  const handleAdd = async (body: { label: string; url: string; description: string }) => {
-    const res = await fetch("/api/hub/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const d = await res.json();
-      throw new Error(d.error ?? "Failed to add link");
-    }
-    setShowAdd(false);
-    fetchLinks();
+  // ── Link handlers ────────────────────────────────────────────────────────
+  const handleAddLink = async (body: { label: string; url: string; description: string; group_id: string | null }) => {
+    const res = await fetch("/api/hub/links", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Failed"); }
+    setShowAddLink(false);
+    fetchAll();
   };
 
-  const handleEdit = async (body: { label: string; url: string; description: string }) => {
+  const handleEditLink = async (body: { label: string; url: string; description: string; group_id: string | null }) => {
     if (!editLink) return;
-    const res = await fetch(`/api/hub/links/${editLink.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const d = await res.json();
-      throw new Error(d.error ?? "Failed to update link");
-    }
+    const res = await fetch(`/api/hub/links/${editLink.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Failed"); }
     setEditLink(null);
-    fetchLinks();
+    fetchAll();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteLink = async (id: string) => {
     if (!confirm("Remove this link?")) return;
-    setDeletingId(id);
+    setDeletingLinkId(id);
     await fetch(`/api/hub/links/${id}`, { method: "DELETE" });
-    setDeletingId(null);
-    fetchLinks();
+    setDeletingLinkId(null);
+    fetchAll();
   };
+
+  // ── Group handlers ───────────────────────────────────────────────────────
+  const handleAddGroup = async (label: string) => {
+    const res = await fetch("/api/hub/groups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label }) });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Failed"); }
+    setShowAddGroup(false);
+    fetchAll();
+  };
+
+  const handleEditGroup = async (label: string) => {
+    if (!editGroup) return;
+    const res = await fetch(`/api/hub/groups/${editGroup.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label }) });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Failed"); }
+    setEditGroup(null);
+    fetchAll();
+  };
+
+  const handleDeleteGroup = async (id: string) => {
+    if (!confirm("Delete this group? Links inside will become ungrouped.")) return;
+    setDeletingGroupId(id);
+    await fetch(`/api/hub/groups/${id}`, { method: "DELETE" });
+    setDeletingGroupId(null);
+    fetchAll();
+  };
+
+  // ── Partition links ───────────────────────────────────────────────────────
+  const linksInGroup = (groupId: string) => links.filter((l) => l.group_id === groupId);
+  const ungroupedLinks = links.filter((l) => !l.group_id);
+  const hasAnything = links.length > 0 || groups.length > 0;
 
   if (loading) {
     return (
@@ -198,7 +338,7 @@ export default function StaffHubPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-8 max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -206,92 +346,152 @@ export default function StaffHubPage() {
           <p className="text-[#5F7C84] mt-1 text-sm">Quick links and resources for the team</p>
         </div>
         {isAdmin && (
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add Link</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAddGroup(true)}
+              className="flex items-center gap-2 px-3 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            >
+              <FolderPlus className="w-4 h-4" />
+              <span className="hidden sm:inline">New Group</span>
+            </button>
+            <button
+              onClick={() => { setAddLinkGroupId(null); setShowAddLink(true); }}
+              className="flex items-center gap-2 px-3 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add Link</span>
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Links grid */}
-      {links.length === 0 ? (
+      {/* Empty state */}
+      {!hasAnything && (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
           <BookOpen className="w-12 h-12 text-[#ECE3DF] mx-auto" />
           <p className="font-semibold text-[#223149]">No links yet</p>
           <p className="text-sm text-[#9BADB7]">
-            {isAdmin
-              ? "Add links to forms, documents, and resources for your team."
-              : "Your admin hasn't added any links yet."}
+            {isAdmin ? "Create a group or add links for your team." : "Your admin hasn't added any links yet."}
           </p>
           {isAdmin && (
-            <button
-              onClick={() => setShowAdd(true)}
-              className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Link
-            </button>
+            <div className="flex justify-center gap-2 mt-2">
+              <button onClick={() => setShowAddGroup(true)} className="inline-flex items-center gap-2 px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
+                <FolderPlus className="w-4 h-4" /> New Group
+              </button>
+              <button onClick={() => { setAddLinkGroupId(null); setShowAddLink(true); }} className="inline-flex items-center gap-2 px-4 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors">
+                <Plus className="w-4 h-4" /> Add Link
+              </button>
+            </div>
           )}
         </div>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {links.map((link) => (
-            <div key={link.id} className="relative group">
-              <a
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-start gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow h-full"
-              >
-                <div className="w-10 h-10 rounded-xl bg-[#ECE3DF] flex items-center justify-center flex-shrink-0 group-hover:bg-[#223149] transition-colors">
-                  <ExternalLink className="w-4 h-4 text-[#223149] group-hover:text-white transition-colors" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[#223149] leading-tight">{link.label}</p>
-                  {link.description && (
-                    <p className="text-xs text-[#9BADB7] mt-1 line-clamp-2">{link.description}</p>
-                  )}
-                </div>
-              </a>
+      )}
 
-              {/* Admin actions — appear on hover */}
+      {/* Groups */}
+      {groups.map((group) => {
+        const groupLinks = linksInGroup(group.id);
+        return (
+          <div key={group.id} className="space-y-3">
+            {/* Group heading */}
+            <div className="flex items-center gap-3">
+              <h2 className="text-sm font-bold text-[#223149] uppercase tracking-widest">{group.label}</h2>
+              <div className="flex-1 h-px bg-[#ECE3DF]" />
               {isAdmin && (
-                <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1">
                   <button
-                    onClick={(e) => { e.preventDefault(); setEditLink(link); }}
-                    className="p-1.5 bg-white rounded-lg shadow-sm border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
-                    title="Edit link"
+                    onClick={() => { setAddLinkGroupId(group.id); setShowAddLink(true); }}
+                    className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
+                    title="Add link to group"
                   >
-                    <Pencil className="w-3.5 h-3.5 text-[#5F7C84]" />
+                    <Plus className="w-3.5 h-3.5 text-[#9BADB7]" />
                   </button>
                   <button
-                    onClick={(e) => { e.preventDefault(); handleDelete(link.id); }}
-                    disabled={deletingId === link.id}
-                    className="p-1.5 bg-white rounded-lg shadow-sm border border-[#ECE3DF] hover:bg-rose-50 transition-colors disabled:opacity-50"
-                    title="Remove link"
+                    onClick={() => setEditGroup(group)}
+                    className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
+                    title="Rename group"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                    <Pencil className="w-3.5 h-3.5 text-[#9BADB7]" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteGroup(group.id)}
+                    disabled={deletingGroupId === group.id}
+                    className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50"
+                    title="Delete group"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-300" />
                   </button>
                 </div>
               )}
             </div>
-          ))}
+
+            {/* Links row */}
+            {groupLinks.length === 0 ? (
+              <p className="text-sm text-[#9BADB7] italic pl-1">
+                No links yet.{isAdmin && " Click + to add one."}
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {groupLinks.map((link) => (
+                  <LinkCard
+                    key={link.id}
+                    link={link}
+                    isAdmin={isAdmin}
+                    onEdit={() => setEditLink(link)}
+                    onDelete={() => handleDeleteLink(link.id)}
+                    deleting={deletingLinkId === link.id}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Ungrouped links */}
+      {ungroupedLinks.length > 0 && (
+        <div className="space-y-3">
+          {groups.length > 0 && (
+            <div className="flex items-center gap-3">
+              <h2 className="text-sm font-bold text-[#223149] uppercase tracking-widest">General</h2>
+              <div className="flex-1 h-px bg-[#ECE3DF]" />
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {ungroupedLinks.map((link) => (
+              <LinkCard
+                key={link.id}
+                link={link}
+                isAdmin={isAdmin}
+                onEdit={() => setEditLink(link)}
+                onDelete={() => handleDeleteLink(link.id)}
+                deleting={deletingLinkId === link.id}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       {/* Modals */}
-      {showAdd && (
-        <LinkModal onClose={() => setShowAdd(false)} onSave={handleAdd} />
+      {showAddLink && (
+        <LinkModal
+          groups={groups}
+          defaultGroupId={addLinkGroupId}
+          onClose={() => setShowAddLink(false)}
+          onSave={handleAddLink}
+        />
       )}
       {editLink && (
         <LinkModal
           initial={editLink}
+          groups={groups}
           onClose={() => setEditLink(null)}
-          onSave={handleEdit}
+          onSave={handleEditLink}
         />
+      )}
+      {showAddGroup && (
+        <GroupModal onClose={() => setShowAddGroup(false)} onSave={handleAddGroup} />
+      )}
+      {editGroup && (
+        <GroupModal initial={editGroup} onClose={() => setEditGroup(null)} onSave={handleEditGroup} />
       )}
     </div>
   );

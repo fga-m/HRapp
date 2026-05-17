@@ -19,13 +19,13 @@ export async function GET() {
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { data, error } = await supabaseAdmin
-    .from("hub_links")
+    .from("hub_groups")
     .select("*")
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ links: data ?? [], role: caller.role });
+  return NextResponse.json({ groups: data ?? [], role: caller.role });
 }
 
 export async function POST(req: NextRequest) {
@@ -36,29 +36,20 @@ export async function POST(req: NextRequest) {
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (caller.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
-  const body = await req.json();
-  const { label, url, description, group_id } = body;
-
+  const { label } = await req.json();
   if (!label?.trim()) return NextResponse.json({ error: "Label is required" }, { status: 400 });
-  if (!url?.trim()) return NextResponse.json({ error: "URL is required" }, { status: 400 });
 
-  // Get max order_index
   const { data: existing } = await supabaseAdmin
-    .from("hub_links")
+    .from("hub_groups")
     .select("order_index")
     .order("order_index", { ascending: false })
     .limit(1);
 
-  const nextOrder = (existing?.[0]?.order_index ?? -1) + 1;
-
   const { data, error } = await supabaseAdmin
-    .from("hub_links")
+    .from("hub_groups")
     .insert({
       label: label.trim(),
-      url: url.trim(),
-      description: description?.trim() || null,
-      group_id: group_id ?? null,
-      order_index: nextOrder,
+      order_index: (existing?.[0]?.order_index ?? -1) + 1,
       created_by: caller.id,
     })
     .select()
