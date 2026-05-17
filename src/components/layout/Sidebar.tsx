@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   Bell,
   LogOut,
-  Settings,
   Eye,
 } from "lucide-react";
 import { enableStaffView } from "@/app/actions/view-mode";
@@ -127,15 +126,7 @@ export default function Sidebar({ isAdmin, userName, userEmail, notificationCoun
             </span>
           )}
         </Link>
-        {isAdmin && (
-          <Link
-            href="/dashboard/settings"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#9BADB7] hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </Link>
-        )}
+
         <div className="px-3 py-2 mt-2">
           <p className="text-white text-sm font-medium truncate">{userName}</p>
           <p className="text-[#9BADB7] text-xs truncate">{userEmail}</p>
