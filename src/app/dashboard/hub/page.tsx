@@ -207,18 +207,18 @@ function LinkCard({
   deleting: boolean;
 }) {
   return (
-    <div className="relative group/card flex-shrink-0">
+    <div className="relative group/card w-52">
       <a
         href={link.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2.5 px-4 py-3 bg-white rounded-xl shadow-sm border border-[#ECE3DF] hover:border-[#223149]/30 hover:shadow-md transition-all"
+        className="flex items-start gap-2.5 px-4 py-3 bg-white rounded-xl shadow-sm border border-[#ECE3DF] hover:border-[#223149]/30 hover:shadow-md transition-all h-full"
       >
-        <ExternalLink className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" />
-        <div>
-          <p className="text-sm font-semibold text-[#223149] whitespace-nowrap">{link.label}</p>
+        <ExternalLink className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0 mt-0.5" />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-[#223149]">{link.label}</p>
           {link.description && (
-            <p className="text-xs text-[#9BADB7] whitespace-nowrap">{link.description}</p>
+            <p className="text-xs text-[#9BADB7] leading-relaxed">{link.description}</p>
           )}
         </div>
       </a>
