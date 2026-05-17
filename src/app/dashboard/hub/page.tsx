@@ -1,7 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink, Plus, Pencil, Trash2, X, BookOpen, FolderPlus } from "lucide-react";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  BookOpen,
+  ExternalLink,
+  FolderPlus,
+  GripHorizontal,
+  GripVertical,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -39,8 +65,8 @@ function LinkModal({
     setError("");
     try {
       await onSave({ label: label.trim(), url: finalUrl, description: description.trim(), group_id: groupId });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed");
       setSaving(false);
     }
   };
@@ -54,7 +80,6 @@ function LinkModal({
             <X className="w-5 h-5 text-[#9BADB7]" />
           </button>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
@@ -69,7 +94,6 @@ function LinkModal({
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               URL <span className="text-rose-500">*</span>
@@ -82,7 +106,6 @@ function LinkModal({
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Description <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
@@ -95,7 +118,6 @@ function LinkModal({
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
-
           {groups.length > 0 && (
             <div>
               <label className="block text-sm font-semibold text-[#223149] mb-1.5">
@@ -113,9 +135,7 @@ function LinkModal({
               </select>
             </div>
           )}
-
           {error && <p className="text-sm text-rose-500">{error}</p>}
-
           <div className="flex gap-3 pt-1">
             <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50">
               {saving ? "Saving..." : initial ? "Save Changes" : "Add Link"}
@@ -152,8 +172,8 @@ function GroupModal({
     setError("");
     try {
       await onSave(label.trim());
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed");
       setSaving(false);
     }
   };
@@ -191,9 +211,9 @@ function GroupModal({
   );
 }
 
-// ── Link card (compact, horizontal) ──────────────────────────────────────────
+// ── Sortable link card ────────────────────────────────────────────────────────
 
-function LinkCard({
+function SortableLinkCard({
   link,
   isAdmin,
   onEdit,
@@ -206,8 +226,38 @@ function LinkCard({
   onDelete: () => void;
   deleting: boolean;
 }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: link.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
   return (
-    <div className="relative group/card w-52">
+    <div ref={setNodeRef} style={style} {...attributes} className="relative group/card w-52">
+      {/* Admin drag handle */}
+      {isAdmin && (
+        <button
+          ref={setActivatorNodeRef}
+          {...listeners}
+          className="absolute -top-2 left-1/2 -translate-x-1/2 p-1 bg-white rounded-lg shadow border border-[#ECE3DF] cursor-grab active:cursor-grabbing opacity-0 group-hover/card:opacity-100 transition-opacity z-10"
+          title="Drag to reorder"
+          onClick={(e) => e.preventDefault()}
+        >
+          <GripHorizontal className="w-3 h-3 text-[#9BADB7]" />
+        </button>
+      )}
+
       <a
         href={link.url}
         target="_blank"
@@ -223,8 +273,9 @@ function LinkCard({
         </div>
       </a>
 
+      {/* Admin edit/delete */}
       {isAdmin && (
-        <div className="absolute -top-2 -right-2 flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
+        <div className="absolute -bottom-2 -right-2 flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity z-10">
           <button
             onClick={(e) => { e.preventDefault(); onEdit(); }}
             className="p-1 bg-white rounded-lg shadow border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
@@ -239,6 +290,132 @@ function LinkCard({
             <Trash2 className="w-3 h-3 text-rose-400" />
           </button>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ── Sortable group row ────────────────────────────────────────────────────────
+
+function SortableGroupSection({
+  group,
+  groupLinks,
+  isAdmin,
+  sensors,
+  deletingGroupId,
+  deletingLinkId,
+  onAddLink,
+  onEditGroup,
+  onDeleteGroup,
+  onEditLink,
+  onDeleteLink,
+  onLinksReorder,
+}: {
+  group: HubGroup;
+  groupLinks: HubLink[];
+  isAdmin: boolean;
+  sensors: ReturnType<typeof useSensors>;
+  deletingGroupId: string | null;
+  deletingLinkId: string | null;
+  onAddLink: () => void;
+  onEditGroup: () => void;
+  onDeleteGroup: () => void;
+  onEditLink: (link: HubLink) => void;
+  onDeleteLink: (id: string) => void;
+  onLinksReorder: (groupId: string, newOrder: HubLink[]) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: group.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  const handleLinkDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = groupLinks.findIndex((l) => l.id === active.id);
+    const newIndex = groupLinks.findIndex((l) => l.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    onLinksReorder(group.id, arrayMove(groupLinks, oldIndex, newIndex));
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="space-y-3">
+      {/* Group heading */}
+      <div className="flex items-center gap-2">
+        {isAdmin && (
+          <button
+            ref={setActivatorNodeRef}
+            {...attributes}
+            {...listeners}
+            className="p-1 rounded cursor-grab active:cursor-grabbing text-[#C5CDD0] hover:text-[#9BADB7] transition-colors flex-shrink-0"
+            title="Drag to reorder group"
+          >
+            <GripVertical className="w-4 h-4" />
+          </button>
+        )}
+        <h2 className="text-sm font-bold text-[#223149] uppercase tracking-widest">{group.label}</h2>
+        <div className="flex-1 h-px bg-[#ECE3DF]" />
+        {isAdmin && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onAddLink}
+              className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
+              title="Add link to group"
+            >
+              <Plus className="w-3.5 h-3.5 text-[#9BADB7]" />
+            </button>
+            <button
+              onClick={onEditGroup}
+              className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
+              title="Rename group"
+            >
+              <Pencil className="w-3.5 h-3.5 text-[#9BADB7]" />
+            </button>
+            <button
+              onClick={onDeleteGroup}
+              disabled={deletingGroupId === group.id}
+              className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50"
+              title="Delete group"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-300" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Links row with its own DnD context */}
+      {groupLinks.length === 0 ? (
+        <p className="text-sm text-[#9BADB7] italic pl-1">
+          No links yet.{isAdmin && " Click + to add one."}
+        </p>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleLinkDragEnd}>
+          <SortableContext items={groupLinks.map((l) => l.id)} strategy={horizontalListSortingStrategy}>
+            <div className="flex flex-wrap gap-2 pt-2">
+              {groupLinks.map((link) => (
+                <SortableLinkCard
+                  key={link.id}
+                  link={link}
+                  isAdmin={isAdmin}
+                  onEdit={() => onEditLink(link)}
+                  onDelete={() => onDeleteLink(link.id)}
+                  deleting={deletingLinkId === link.id}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
@@ -261,6 +438,10 @@ export default function StaffHubPage() {
   const [editGroup, setEditGroup] = useState<HubGroup | null>(null);
   const [deletingGroupId, setDeletingGroupId] = useState<string | null>(null);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+  );
+
   const fetchAll = async () => {
     const [linksRes, groupsRes] = await Promise.all([
       fetch("/api/hub/links").then((r) => r.json()),
@@ -276,7 +457,7 @@ export default function StaffHubPage() {
 
   const isAdmin = role === "admin";
 
-  // ── Link handlers ────────────────────────────────────────────────────────
+  // ── Link handlers ─────────────────────────────────────────────────────────
   const handleAddLink = async (body: { label: string; url: string; description: string; group_id: string | null }) => {
     const res = await fetch("/api/hub/links", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Failed"); }
@@ -300,7 +481,7 @@ export default function StaffHubPage() {
     fetchAll();
   };
 
-  // ── Group handlers ───────────────────────────────────────────────────────
+  // ── Group handlers ────────────────────────────────────────────────────────
   const handleAddGroup = async (label: string) => {
     const res = await fetch("/api/hub/groups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label }) });
     if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Failed"); }
@@ -322,6 +503,47 @@ export default function StaffHubPage() {
     await fetch(`/api/hub/groups/${id}`, { method: "DELETE" });
     setDeletingGroupId(null);
     fetchAll();
+  };
+
+  // ── Reorder handlers ──────────────────────────────────────────────────────
+  const handleGroupDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = groups.findIndex((g) => g.id === active.id);
+    const newIndex = groups.findIndex((g) => g.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const newGroups = arrayMove(groups, oldIndex, newIndex);
+    setGroups(newGroups);
+    fetch("/api/hub/groups/reorder", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: newGroups.map((g) => g.id) }),
+    });
+  };
+
+  const handleLinksReorder = (groupId: string, newOrderedLinks: HubLink[]) => {
+    // Update local state for this group's links
+    setLinks((prev) => {
+      const otherLinks = prev.filter((l) => l.group_id !== groupId);
+      return [...otherLinks, ...newOrderedLinks];
+    });
+    fetch("/api/hub/links/reorder", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: newOrderedLinks.map((l) => l.id) }),
+    });
+  };
+
+  const handleUngroupedLinksReorder = (newOrderedLinks: HubLink[]) => {
+    setLinks((prev) => {
+      const grouped = prev.filter((l) => l.group_id !== null);
+      return [...grouped, ...newOrderedLinks];
+    });
+    fetch("/api/hub/links/reorder", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: newOrderedLinks.map((l) => l.id) }),
+    });
   };
 
   // ── Partition links ───────────────────────────────────────────────────────
@@ -386,65 +608,32 @@ export default function StaffHubPage() {
         </div>
       )}
 
-      {/* Groups */}
-      {groups.map((group) => {
-        const groupLinks = linksInGroup(group.id);
-        return (
-          <div key={group.id} className="space-y-3">
-            {/* Group heading */}
-            <div className="flex items-center gap-3">
-              <h2 className="text-sm font-bold text-[#223149] uppercase tracking-widest">{group.label}</h2>
-              <div className="flex-1 h-px bg-[#ECE3DF]" />
-              {isAdmin && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => { setAddLinkGroupId(group.id); setShowAddLink(true); }}
-                    className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
-                    title="Add link to group"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-[#9BADB7]" />
-                  </button>
-                  <button
-                    onClick={() => setEditGroup(group)}
-                    className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
-                    title="Rename group"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-[#9BADB7]" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteGroup(group.id)}
-                    disabled={deletingGroupId === group.id}
-                    className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50"
-                    title="Delete group"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-rose-300" />
-                  </button>
-                </div>
-              )}
+      {/* Groups — outer DnD context for group reordering */}
+      {groups.length > 0 && (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
+          <SortableContext items={groups.map((g) => g.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-8">
+              {groups.map((group) => (
+                <SortableGroupSection
+                  key={group.id}
+                  group={group}
+                  groupLinks={linksInGroup(group.id)}
+                  isAdmin={isAdmin}
+                  sensors={sensors}
+                  deletingGroupId={deletingGroupId}
+                  deletingLinkId={deletingLinkId}
+                  onAddLink={() => { setAddLinkGroupId(group.id); setShowAddLink(true); }}
+                  onEditGroup={() => setEditGroup(group)}
+                  onDeleteGroup={() => handleDeleteGroup(group.id)}
+                  onEditLink={setEditLink}
+                  onDeleteLink={handleDeleteLink}
+                  onLinksReorder={handleLinksReorder}
+                />
+              ))}
             </div>
-
-            {/* Links row */}
-            {groupLinks.length === 0 ? (
-              <p className="text-sm text-[#9BADB7] italic pl-1">
-                No links yet.{isAdmin && " Click + to add one."}
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {groupLinks.map((link) => (
-                  <LinkCard
-                    key={link.id}
-                    link={link}
-                    isAdmin={isAdmin}
-                    onEdit={() => setEditLink(link)}
-                    onDelete={() => handleDeleteLink(link.id)}
-                    deleting={deletingLinkId === link.id}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+          </SortableContext>
+        </DndContext>
+      )}
 
       {/* Ungrouped links */}
       {ungroupedLinks.length > 0 && (
@@ -455,18 +644,33 @@ export default function StaffHubPage() {
               <div className="flex-1 h-px bg-[#ECE3DF]" />
             </div>
           )}
-          <div className="flex flex-wrap gap-2">
-            {ungroupedLinks.map((link) => (
-              <LinkCard
-                key={link.id}
-                link={link}
-                isAdmin={isAdmin}
-                onEdit={() => setEditLink(link)}
-                onDelete={() => handleDeleteLink(link.id)}
-                deleting={deletingLinkId === link.id}
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(event) => {
+              const { active, over } = event;
+              if (!over || active.id === over.id) return;
+              const oldIndex = ungroupedLinks.findIndex((l) => l.id === active.id);
+              const newIndex = ungroupedLinks.findIndex((l) => l.id === over.id);
+              if (oldIndex === -1 || newIndex === -1) return;
+              handleUngroupedLinksReorder(arrayMove(ungroupedLinks, oldIndex, newIndex));
+            }}
+          >
+            <SortableContext items={ungroupedLinks.map((l) => l.id)} strategy={horizontalListSortingStrategy}>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {ungroupedLinks.map((link) => (
+                  <SortableLinkCard
+                    key={link.id}
+                    link={link}
+                    isAdmin={isAdmin}
+                    onEdit={() => setEditLink(link)}
+                    onDelete={() => handleDeleteLink(link.id)}
+                    deleting={deletingLinkId === link.id}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       )}
 
