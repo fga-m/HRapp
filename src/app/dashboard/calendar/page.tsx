@@ -295,7 +295,7 @@ export default function CalendarPage() {
       .then((r) => r.json())
       .then((data: StaffMember[]) => {
         if (!Array.isArray(data)) return;
-        setStaffList(data.filter((s) => s.google_calendar_id));
+        setStaffList(data);
       });
     fetch("/api/policies")
       .then((r) => r.json())
@@ -344,7 +344,7 @@ export default function CalendarPage() {
   // ── Colours ───────────────────────────────────────────────────────────────
   const colorForIndex = (i: number) => PALETTE[i % PALETTE.length];
   const staffColorMap = new Map(
-    staffList.map((s, i) => [s.google_calendar_id ?? s.email, colorForIndex(i + 1)])
+    staffList.map((s, i) => [s.email, colorForIndex(i + 1)])
   );
   const eventColor = staffColorMap.get(selectedId) ?? PALETTE[0];
 
@@ -423,7 +423,7 @@ export default function CalendarPage() {
               My Calendar
             </button>
             {staffList.map((s, i) => {
-              const calId = s.google_calendar_id ?? s.email;
+              const calId = s.email;
               const active = selectedId === calId;
               const colors = colorForIndex(i + 1);
               return (
