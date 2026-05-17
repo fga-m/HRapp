@@ -244,7 +244,7 @@ function SortableLinkCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} className="relative group/card w-52">
+    <div ref={setNodeRef} style={style} {...attributes} className="relative group/card w-full sm:w-52">
       {/* Admin drag handle */}
       {isAdmin && (
         <button
