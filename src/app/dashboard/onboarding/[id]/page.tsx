@@ -15,6 +15,7 @@ import {
   X,
   User,
   ClipboardList,
+  Minus,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -306,6 +307,7 @@ export default function ChecklistDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [showAddItem, setShowAddItem] = useState(false);
   const [deletingChecklist, setDeletingChecklist] = useState(false);
 
@@ -361,6 +363,14 @@ export default function ChecklistDetailPage() {
     } finally {
       setTogglingId(null);
     }
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!confirm("Remove this item from the checklist?")) return;
+    setDeletingItemId(itemId);
+    await fetch(`/api/checklists/assigned/${id}/items/${itemId}`, { method: "DELETE" });
+    setDeletingItemId(null);
+    fetchData();
   };
 
   const handleDeleteChecklist = async () => {
@@ -526,7 +536,7 @@ export default function ChecklistDetailPage() {
                     return (
                       <div
                         key={item.id}
-                        className={`flex items-start gap-4 px-6 py-4 transition-colors ${
+                        className={`flex items-start gap-4 px-6 py-4 transition-colors group/item ${
                           isDone ? "bg-[#F8F6F4]/60" : "hover:bg-[#F8F6F4]/40"
                         }`}
                       >
@@ -591,7 +601,19 @@ export default function ChecklistDetailPage() {
                             </p>
                           )}
 
-                          {/* Completion meta */}
+                          {/* Admin delete button */}
+                          {isAdmin && (
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              disabled={deletingItemId === item.id}
+                              className="opacity-0 group-hover/item:opacity-100 transition-opacity mt-1 p-1 rounded-lg hover:bg-rose-50 disabled:opacity-50"
+                              title="Remove item"
+                            >
+                              <Minus className="w-3.5 h-3.5 text-rose-400" />
+                            </button>
+                          )}
+
+                        {/* Completion meta */}
                           {isDone && completion && (
                             <p className="text-xs text-emerald-600 mt-1">
                               {completion.completed_by_staff?.full_name
