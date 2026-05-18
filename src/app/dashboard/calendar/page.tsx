@@ -371,16 +371,20 @@ export default function CalendarPage() {
   const [showNewEvent, setShowNewEvent] = useState(false);
 
   // ── Drag state ───────────────────────────────────────────────────────────
-  const dragStateRef = useRef<{ event: GEvent; offsetY: number } | null>(null);
+  const dragStateRef = useRef<{
+    event: GEvent;
+    offsetY: number;
+    preview: { eventId: string; dayIndex: number; topPx: number } | null;
+  } | null>(null);
   const [dragPreview, setDragPreview] = useState<{ eventId: string; dayIndex: number; topPx: number } | null>(null);
-  const dragPreviewRef = useRef(dragPreview);
-  useEffect(() => { dragPreviewRef.current = dragPreview; }, [dragPreview]);
 
   // ── Resize state ─────────────────────────────────────────────────────────
-  const resizeStateRef = useRef<{ event: GEvent; edge: "top" | "bottom" } | null>(null);
+  const resizeStateRef = useRef<{
+    event: GEvent;
+    edge: "top" | "bottom";
+    preview: { eventId: string; topPx: number; height: number } | null;
+  } | null>(null);
   const [resizePreview, setResizePreview] = useState<{ eventId: string; topPx: number; height: number } | null>(null);
-  const resizePreviewRef = useRef(resizePreview);
-  useEffect(() => { resizePreviewRef.current = resizePreview; }, [resizePreview]);
 
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
 
@@ -451,30 +455,35 @@ export default function CalendarPage() {
     e.stopPropagation();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const offsetY = e.clientY - rect.top;
-    dragStateRef.current = { event: ev, offsetY };
     const daysArr = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
     const dayIndex = daysArr.findIndex((d) => isSameDay(d, new Date(ev.start.dateTime!)));
-    setDragPreview({ eventId: ev.id, dayIndex: Math.max(0, dayIndex), topPx: eventTopPx(ev) });
+    const initialPreview = { eventId: ev.id, dayIndex: Math.max(0, dayIndex), topPx: eventTopPx(ev) };
+    dragStateRef.current = { event: ev, offsetY, preview: initialPreview };
+    setDragPreview(initialPreview);
     document.body.style.cursor = "grabbing";
     document.body.style.userSelect = "none";
   }, [weekStart]);
 
   useEffect(() => {
-    if (!dragPreview) return;
     const onMove = (e: MouseEvent) => {
       const drag = dragStateRef.current;
       if (!drag) return;
       const result = getTargetFromMouse(e.clientX, e.clientY, drag.offsetY);
-      if (result) setDragPreview((prev) => prev ? { ...prev, ...result } : null);
+      if (result) {
+        const next = { eventId: drag.event.id, ...result };
+        drag.preview = next; // sync update — no stale closure
+        setDragPreview(next);
+      }
     };
     const onUp = async () => {
       const drag = dragStateRef.current;
-      const preview = dragPreviewRef.current;
+      if (!drag) return;
+      const preview = drag.preview; // always current — updated synchronously in onMove
       dragStateRef.current = null;
       setDragPreview(null);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
-      if (!drag || !preview) return;
+      if (!preview) return;
 
       const origStart = new Date(drag.event.start.dateTime!);
       const origEnd = new Date(drag.event.end.dateTime!);
@@ -512,20 +521,20 @@ export default function CalendarPage() {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
-  }, [dragPreview, weekStart, selectedId, getTargetFromMouse, fetchEvents]);
+  }, [weekStart, selectedId, getTargetFromMouse, fetchEvents]);
 
   // ── Resize handlers ───────────────────────────────────────────────────────
   const handleResizeMouseDown = useCallback((e: React.MouseEvent, ev: GEvent, edge: "top" | "bottom") => {
     e.preventDefault();
     e.stopPropagation();
-    resizeStateRef.current = { event: ev, edge };
-    setResizePreview({ eventId: ev.id, topPx: eventTopPx(ev), height: eventHeightPx(ev) });
+    const initialPreview = { eventId: ev.id, topPx: eventTopPx(ev), height: eventHeightPx(ev) };
+    resizeStateRef.current = { event: ev, edge, preview: initialPreview };
+    setResizePreview(initialPreview);
     document.body.style.cursor = "ns-resize";
     document.body.style.userSelect = "none";
   }, []);
 
   useEffect(() => {
-    if (!resizePreview) return;
     const getY = (clientY: number) => {
       if (!gridRef.current) return 0;
       const rect = gridRef.current.getBoundingClientRect();
@@ -541,22 +550,26 @@ export default function CalendarPage() {
       const origTopPx = eventTopPx(resize.event);
       const origHeight = eventHeightPx(resize.event);
       const minH = HOUR_H / 4; // 15 min
+      let next: { eventId: string; topPx: number; height: number };
       if (resize.edge === "bottom") {
-        setResizePreview({ eventId: resize.event.id, topPx: origTopPx, height: Math.max(minH, snappedPx - origTopPx) });
+        next = { eventId: resize.event.id, topPx: origTopPx, height: Math.max(minH, snappedPx - origTopPx) };
       } else {
         const endPx = origTopPx + origHeight;
         const newTop = Math.min(endPx - minH, snappedPx);
-        setResizePreview({ eventId: resize.event.id, topPx: newTop, height: endPx - newTop });
+        next = { eventId: resize.event.id, topPx: newTop, height: endPx - newTop };
       }
+      resize.preview = next; // sync update — no stale closure
+      setResizePreview(next);
     };
     const onUp = async () => {
       const resize = resizeStateRef.current;
-      const preview = resizePreviewRef.current;
+      if (!resize) return;
+      const preview = resize.preview; // always current — updated synchronously in onMove
       resizeStateRef.current = null;
       setResizePreview(null);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
-      if (!resize || !preview) return;
+      if (!preview) return;
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const origStart = new Date(resize.event.start.dateTime!);
       const origEnd = new Date(resize.event.end.dateTime!);
@@ -585,7 +598,7 @@ export default function CalendarPage() {
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
     return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-  }, [resizePreview, selectedId, fetchEvents]);
+  }, [selectedId, fetchEvents]);
 
   // ── Auto-scroll to current time ───────────────────────────────────────────
   useEffect(() => {
