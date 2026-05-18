@@ -463,12 +463,22 @@ export default function CalendarPage() {
 
       {/* ── Error ──────────────────────────────────────────────────── */}
       {error && (
-        <div className="flex-shrink-0 mb-3 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
-          {error.includes("401") || error.includes("token")
-            ? "Your session has expired. Please sign out and sign back in."
-            : error.includes("403") || error.includes("forbidden") || error.includes("notFound")
-            ? `No access to ${selectedLabel}'s calendar. They may need to share it with you in Google Calendar.`
-            : error}
+        <div className="flex-shrink-0 mb-3 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 flex items-center justify-between gap-3">
+          <span>
+            {error.includes("401") || error.includes("token")
+              ? "Your Google session has expired."
+              : error.includes("403") || error.includes("forbidden") || error.includes("notFound")
+              ? `No access to ${selectedLabel}'s calendar. They may need to share it with you in Google Calendar.`
+              : error}
+          </span>
+          {(error.includes("401") || error.includes("token")) && (
+            <a
+              href="/api/auth/signin"
+              className="flex-shrink-0 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Re-connect Google
+            </a>
+          )}
         </div>
       )}
 
