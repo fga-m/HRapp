@@ -370,8 +370,16 @@ export default function CalendarPage() {
   const [duplicatingEvent, setDuplicatingEvent] = useState<GEvent | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
-  const [freeHover, setFreeHover] = useState<{ event: GEvent; x: number; y: number } | null>(null);
-  const freeHoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hoverPopup, setHoverPopup] = useState<{ event: GEvent; x: number; y: number } | null>(null);
+  const hoverPopupTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showPopup = (ev: GEvent, e: React.MouseEvent) => {
+    if (hoverPopupTimeout.current) clearTimeout(hoverPopupTimeout.current);
+    setHoverPopup({ event: ev, x: e.clientX, y: e.clientY });
+  };
+  const hidePopup = () => {
+    hoverPopupTimeout.current = setTimeout(() => setHoverPopup(null), 200);
+  };
 
   // ── Drag state ───────────────────────────────────────────────────────────
   const dragStateRef = useRef<{
@@ -887,13 +895,8 @@ export default function CalendarPage() {
                           borderLeft: `2px solid ${hexA(eventColor.hex, 0.35)}`,
                           zIndex: 1,
                         }}
-                        onMouseEnter={(e) => {
-                          if (freeHoverTimeout.current) clearTimeout(freeHoverTimeout.current);
-                          setFreeHover({ event: ev, x: e.clientX, y: e.clientY });
-                        }}
-                        onMouseLeave={() => {
-                          freeHoverTimeout.current = setTimeout(() => setFreeHover(null), 200);
-                        }}
+                        onMouseEnter={(e) => showPopup(ev, e)}
+                        onMouseLeave={hidePopup}
                         onMouseDown={isOwnCalendar ? (e) => handleEventMouseDown(e, ev) : undefined}
                         onClick={() => { if (!dragStateRef.current && !resizeStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
                       >
@@ -959,6 +962,8 @@ export default function CalendarPage() {
                           borderLeft: "2px solid #f9a8d4",
                           zIndex: 2,
                         }}
+                        onMouseEnter={(e) => showPopup(ev, e)}
+                        onMouseLeave={hidePopup}
                         onClick={() => setTooltip(tooltip?.id === ev.id ? null : ev)}
                       >
                         {!isShort && (
@@ -1013,8 +1018,8 @@ export default function CalendarPage() {
                         key={ev.id}
                         className={`absolute group/ev rounded-lg border-l-2 overflow-hidden transition-opacity ${eventColor.event} ${isOwnCalendar ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-30" : "hover:brightness-95"}`}
                         style={{ top, height, left: `${pos.left}%`, width: `${pos.width}%`, zIndex: hoveredEventId === ev.id ? 15 : 5 }}
-                        onMouseEnter={() => setHoveredEventId(ev.id)}
-                        onMouseLeave={() => setHoveredEventId(null)}
+                        onMouseEnter={(e) => { setHoveredEventId(ev.id); showPopup(ev, e); }}
+                        onMouseLeave={() => { setHoveredEventId(null); hidePopup(); }}
                         onMouseDown={isOwnCalendar ? (e) => handleEventMouseDown(e, ev) : undefined}
                         onClick={() => { if (!dragStateRef.current && !resizeStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
                       >
@@ -1111,52 +1116,69 @@ export default function CalendarPage() {
         </div>{/* end min-w wrapper */}
       </div>
 
-      {/* ── Free event hover popup ────────────────────────────────── */}
-      {freeHover && (
-        <div
-          className="fixed z-50 bg-white rounded-xl shadow-xl border border-[#ECE3DF] p-3 w-56 pointer-events-auto"
-          style={{
-            left: Math.min(freeHover.x + 14, (typeof window !== "undefined" ? window.innerWidth : 800) - 240),
-            top: Math.max(8, freeHover.y - 50),
-          }}
-          onMouseEnter={() => { if (freeHoverTimeout.current) clearTimeout(freeHoverTimeout.current); }}
-          onMouseLeave={() => { freeHoverTimeout.current = setTimeout(() => setFreeHover(null), 200); }}
-        >
-          <div className="flex items-start justify-between gap-2 mb-1.5">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
-              Working — available
-            </span>
-            <button onClick={() => setFreeHover(null)} className="text-[#9BADB7] hover:text-[#223149]">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-          <p className="text-sm font-semibold text-[#223149] truncate">{freeHover.event.summary || "Working"}</p>
-          {freeHover.event.start.dateTime && (
-            <p className="text-xs text-[#9BADB7] mt-0.5">
-              {format(new Date(freeHover.event.start.dateTime), "h:mm")}–{format(new Date(freeHover.event.end.dateTime!), "h:mm a")}
-            </p>
-          )}
-          {freeHover.event.location && (
-            <p className="text-xs text-[#9BADB7] mt-0.5 truncate">📍 {freeHover.event.location}</p>
-          )}
-          {isOwnCalendar && (
+      {/* ── Hover popup (all event types) ─────────────────────────── */}
+      {hoverPopup && (() => {
+        const ev = hoverPopup.event;
+        const ooo = isOOO(ev);
+        const free = isFreeEvent(ev);
+        const badge = ooo
+          ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">Out of Office</span>
+          : free
+          ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Working — available</span>
+          : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#223149]/10 text-[#223149]">Busy</span>;
+        const timeLabel = ev.start.dateTime
+          ? `${format(new Date(ev.start.dateTime), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`
+          : null;
+        const canEdit = isOwnCalendar && !ooo && !isAllDay(ev);
+        return (
+          <div
+            className="fixed z-50 bg-white rounded-xl shadow-xl border border-[#ECE3DF] p-3 w-56 pointer-events-auto"
+            style={{
+              left: Math.min(hoverPopup.x + 14, (typeof window !== "undefined" ? window.innerWidth : 800) - 240),
+              top: Math.max(8, hoverPopup.y - 50),
+            }}
+            onMouseEnter={() => { if (hoverPopupTimeout.current) clearTimeout(hoverPopupTimeout.current); }}
+            onMouseLeave={() => { hoverPopupTimeout.current = setTimeout(() => setHoverPopup(null), 200); }}
+          >
+            <div className="flex items-start justify-between gap-2 mb-1.5">
+              {badge}
+              <button onClick={() => setHoverPopup(null)} className="text-[#9BADB7] hover:text-[#223149] flex-shrink-0">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <p className="text-sm font-semibold text-[#223149] truncate">{ev.summary || (ooo ? "Out of Office" : "(No title)")}</p>
+            {timeLabel && <p className="text-xs text-[#9BADB7] mt-0.5">{timeLabel}</p>}
+            {ev.location && <p className="text-xs text-[#9BADB7] mt-0.5 truncate">📍 {ev.location}</p>}
+            {ev.attendees && ev.attendees.length > 0 && (
+              <p className="text-xs text-[#9BADB7] mt-0.5">👥 {ev.attendees.length} attendee{ev.attendees.length !== 1 ? "s" : ""}</p>
+            )}
             <div className="flex gap-1.5 mt-2">
               <button
                 className="flex-1 text-xs text-[#223149] font-semibold py-1.5 rounded-lg border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
-                onClick={() => { setTooltip(freeHover.event); setFreeHover(null); }}
+                onClick={() => { setTooltip(ev); setHoverPopup(null); }}
               >
                 View
               </button>
-              <button
-                className="flex-1 text-xs text-[#223149] font-semibold py-1.5 rounded-lg border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
-                onClick={() => { setEditingEvent(freeHover.event); setFreeHover(null); }}
-              >
-                Edit
-              </button>
+              {canEdit && (
+                <button
+                  className="flex-1 text-xs text-[#223149] font-semibold py-1.5 rounded-lg border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
+                  onClick={() => { setEditingEvent(ev); setHoverPopup(null); }}
+                >
+                  Edit
+                </button>
+              )}
+              {canEdit && (
+                <button
+                  className="flex-1 text-xs text-[#223149] font-semibold py-1.5 rounded-lg border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
+                  onClick={() => { setDuplicatingEvent(ev); setHoverPopup(null); }}
+                >
+                  Copy
+                </button>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* ── Event detail modal ─────────────────────────────────────── */}
       {tooltip && (
