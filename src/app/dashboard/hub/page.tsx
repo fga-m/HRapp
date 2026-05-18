@@ -12,7 +12,7 @@ import {
 import {
   SortableContext,
   arrayMove,
-  horizontalListSortingStrategy,
+  rectSortingStrategy,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -244,7 +244,7 @@ function SortableLinkCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} className="relative group/card w-full sm:w-52">
+    <div ref={setNodeRef} style={style} {...attributes} className="relative group/card">
       {/* Admin drag handle */}
       {isAdmin && (
         <button
@@ -401,8 +401,8 @@ function SortableGroupSection({
         </p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleLinkDragEnd}>
-          <SortableContext items={groupLinks.map((l) => l.id)} strategy={horizontalListSortingStrategy}>
-            <div className="flex flex-wrap gap-2 pt-2">
+          <SortableContext items={groupLinks.map((l) => l.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pt-2">
               {groupLinks.map((link) => (
                 <SortableLinkCard
                   key={link.id}
@@ -656,8 +656,8 @@ export default function StaffHubPage() {
               handleUngroupedLinksReorder(arrayMove(ungroupedLinks, oldIndex, newIndex));
             }}
           >
-            <SortableContext items={ungroupedLinks.map((l) => l.id)} strategy={horizontalListSortingStrategy}>
-              <div className="flex flex-wrap gap-2 pt-2">
+            <SortableContext items={ungroupedLinks.map((l) => l.id)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pt-2">
                 {ungroupedLinks.map((link) => (
                   <SortableLinkCard
                     key={link.id}
