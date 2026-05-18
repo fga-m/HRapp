@@ -870,9 +870,10 @@ export default function CalendarPage() {
                         style={{
                           top,
                           height,
-                          backgroundColor: hoveredEventId === ev.id ? hexA(eventColor.hex, 0.15) : hexA(eventColor.hex, 0.08),
-                          borderLeft: `2px solid ${hexA(eventColor.hex, 0.35)}`,
+                          backgroundColor: hoveredEventId === ev.id ? eventColor.hex : hexA(eventColor.hex, 0.08),
+                          borderLeft: `2px solid ${hoveredEventId === ev.id ? eventColor.hex : hexA(eventColor.hex, 0.35)}`,
                           zIndex: hoveredEventId === ev.id ? 15 : 1,
+                          transition: "background-color 0.1s, border-color 0.1s",
                         }}
                         onMouseEnter={() => setHoveredEventId(ev.id)}
                         onMouseLeave={() => setHoveredEventId(null)}
@@ -885,14 +886,14 @@ export default function CalendarPage() {
                             className="absolute top-0 left-0 right-0 h-2.5 flex items-center justify-center opacity-0 group-hover/ev:opacity-100 cursor-ns-resize z-10"
                             onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, ev, "top"); }}
                           >
-                            <div className="w-5 h-0.5 rounded-full" style={{ backgroundColor: hexA(eventColor.hex, 0.5) }} />
+                            <div className="w-5 h-0.5 rounded-full bg-white/70" />
                           </div>
                         )}
 
                         {!isShort && (
                           <p
                             className="text-[10px] px-1.5 pt-0.5 truncate font-medium"
-                            style={{ color: hexA(eventColor.hex, 0.55) }}
+                            style={{ color: hoveredEventId === ev.id ? "rgba(255,255,255,0.9)" : hexA(eventColor.hex, 0.55) }}
                           >
                             {ev.summary || "Working"}
                           </p>
@@ -904,7 +905,7 @@ export default function CalendarPage() {
                             className="absolute bottom-0 left-0 right-0 h-2.5 flex items-center justify-center opacity-0 group-hover/ev:opacity-100 cursor-ns-resize z-10"
                             onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, ev, "bottom"); }}
                           >
-                            <div className="w-5 h-0.5 rounded-full" style={{ backgroundColor: hexA(eventColor.hex, 0.5) }} />
+                            <div className="w-5 h-0.5 rounded-full bg-white/70" />
                           </div>
                         )}
                       </div>
