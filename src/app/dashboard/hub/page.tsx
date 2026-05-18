@@ -110,12 +110,12 @@ function LinkModal({
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Description <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
             </label>
-            <input
-              type="text"
+            <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of what this link is for"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              rows={3}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
             />
           </div>
           {groups.length > 0 && (
