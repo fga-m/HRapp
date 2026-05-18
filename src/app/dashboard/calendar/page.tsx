@@ -369,6 +369,7 @@ export default function CalendarPage() {
   const [editingEvent, setEditingEvent] = useState<GEvent | null>(null);
   const [duplicatingEvent, setDuplicatingEvent] = useState<GEvent | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
+  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
 
   // ── Drag state ───────────────────────────────────────────────────────────
   const dragStateRef = useRef<{
@@ -968,7 +969,9 @@ export default function CalendarPage() {
                       <div
                         key={ev.id}
                         className={`absolute group/ev rounded-lg border-l-2 overflow-hidden transition-opacity ${eventColor.event} ${isOwnCalendar ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-30" : "hover:brightness-95"}`}
-                        style={{ top, height, left: `${pos.left}%`, width: `${pos.width}%`, zIndex: 5 }}
+                        style={{ top, height, left: `${pos.left}%`, width: `${pos.width}%`, zIndex: hoveredEventId === ev.id ? 15 : 5 }}
+                        onMouseEnter={() => setHoveredEventId(ev.id)}
+                        onMouseLeave={() => setHoveredEventId(null)}
                         onMouseDown={isOwnCalendar ? (e) => handleEventMouseDown(e, ev) : undefined}
                         onClick={() => { if (!dragStateRef.current && !resizeStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
                       >
