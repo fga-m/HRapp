@@ -35,7 +35,7 @@ type GEvent = {
   description?: string;
   transparency?: string;  // "opaque" (busy, default) | "transparent" (free/available)
   eventType?: string;     // "default" | "outOfOffice" | "focusTime" | "workingLocation"
-  attendees?: { email: string; displayName?: string; responseStatus?: string }[];
+  attendees?: { email: string; displayName?: string; responseStatus?: string; self?: boolean; organizer?: boolean }[];
 };
 
 type StaffMember = {
@@ -372,6 +372,8 @@ export default function CalendarPage() {
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [hoverPopup, setHoverPopup] = useState<{ event: GEvent; x: number; y: number } | null>(null);
+  const [pendingInvites, setPendingInvites] = useState<GEvent[]>([]);
+  const [showPendingInvites, setShowPendingInvites] = useState(true);
   const hoverPopupTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [rsvpLoading, setRsvpLoading] = useState<string | null>(null);
@@ -388,7 +390,7 @@ export default function CalendarPage() {
     if (!ev.attendees) return;
     setRsvpLoading(responseStatus);
     const updatedAttendees = ev.attendees.map((a) =>
-      a.email === userEmail ? { ...a, responseStatus } : a
+      (a.self || a.email === userEmail) ? { ...a, responseStatus } : a
     );
     // Optimistic updates
     setHoverPopup((prev) =>
@@ -397,6 +399,8 @@ export default function CalendarPage() {
     setEvents((prev) =>
       prev.map((e) => e.id === ev.id ? { ...e, attendees: updatedAttendees } : e)
     );
+    // Remove from pending invites since user has now responded
+    setPendingInvites((prev) => prev.filter((e) => e.id !== ev.id));
     try {
       const res = await fetch(`/api/calendar/events/${ev.id}`, {
         method: "PATCH",
@@ -406,6 +410,32 @@ export default function CalendarPage() {
       if (!res.ok) fetchEvents();
     } catch { fetchEvents(); }
     setRsvpLoading(null);
+  };
+
+  const handleRsvpFromPanel = async (ev: GEvent, responseStatus: "accepted" | "declined" | "tentative") => {
+    if (!ev.attendees) return;
+    const updatedAttendees = ev.attendees.map((a) =>
+      (a.self || a.email === userEmail) ? { ...a, responseStatus } : a
+    );
+    // Optimistic: remove from panel immediately
+    setPendingInvites((prev) => prev.filter((e) => e.id !== ev.id));
+    // Also update the main events list if the event is in the current week view
+    setEvents((prev) =>
+      prev.map((e) => e.id === ev.id ? { ...e, attendees: updatedAttendees } : e)
+    );
+    try {
+      const res = await fetch(`/api/calendar/events/${ev.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ calendarId: "primary", attendees: updatedAttendees }),
+      });
+      if (!res.ok) {
+        // Revert: add back to pending
+        setPendingInvites((prev) => [ev, ...prev]);
+      }
+    } catch {
+      setPendingInvites((prev) => [ev, ...prev]);
+    }
   };
 
   // ── Drag state ───────────────────────────────────────────────────────────
@@ -440,6 +470,23 @@ export default function CalendarPage() {
         if (d.role) setRole(d.role);
         if (d.email) setUserEmail(d.email);
       });
+  }, []);
+
+  // ── Fetch pending invites (next 30 days, self + needsAction) ─────────────
+  useEffect(() => {
+    const timeMin = new Date().toISOString();
+    const timeMax = new Date(Date.now() + 30 * 86400000).toISOString();
+    fetch(`/api/calendar/events?calendarId=primary&timeMin=${timeMin}&timeMax=${timeMax}`)
+      .then((r) => r.json())
+      .then((items) => {
+        if (!Array.isArray(items)) return;
+        setPendingInvites(
+          items.filter((ev) =>
+            ev.attendees?.some((a: any) => a.self && a.responseStatus === "needsAction")
+          )
+        );
+      })
+      .catch(() => {});
   }, []);
 
   // ── Fetch events ─────────────────────────────────────────────────────────
@@ -767,6 +814,75 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Pending invites panel ──────────────────────────────────── */}
+      {pendingInvites.length > 0 && (
+        <div className="flex-shrink-0 mb-3">
+          <button
+            onClick={() => setShowPendingInvites((v) => !v)}
+            className="flex items-center gap-2 text-xs font-semibold text-[#223149] mb-2 group"
+          >
+            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">
+              {pendingInvites.length}
+            </span>
+            <span>Pending invite{pendingInvites.length !== 1 ? "s" : ""}</span>
+            <svg
+              className={`w-3.5 h-3.5 text-[#9BADB7] transition-transform ${showPendingInvites ? "rotate-180" : ""}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showPendingInvites && (
+            <div className="bg-white rounded-2xl shadow-sm border border-amber-100 divide-y divide-[#F8F6F4] overflow-hidden">
+              {pendingInvites.map((ev) => {
+                const dateLabel = ev.start.dateTime
+                  ? format(new Date(ev.start.dateTime), "EEE d MMM, h:mm")
+                  + "–" + format(new Date(ev.end.dateTime!), "h:mm a")
+                  : ev.start.date
+                  ? format(new Date(ev.start.date), "EEE d MMM") + " · All day"
+                  : "";
+                const organiser = ev.attendees?.find((a) => a.organizer);
+                const organiserStaff = organiser ? staffList.find((s) => s.email === organiser.email) : null;
+                const organiserName = organiserStaff?.full_name ?? organiser?.email?.split("@")[0];
+                return (
+                  <div key={ev.id} className="flex items-center gap-3 px-4 py-3 flex-wrap sm:flex-nowrap">
+                    {/* Event info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#223149] truncate">{ev.summary || "(No title)"}</p>
+                      <p className="text-xs text-[#9BADB7] mt-0.5">{dateLabel}</p>
+                      {organiserName && (
+                        <p className="text-xs text-[#9BADB7]">From {organiserName}</p>
+                      )}
+                    </div>
+                    {/* RSVP buttons */}
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      {(["accepted", "tentative", "declined"] as const).map((status) => {
+                        const labels = { accepted: "✓ Yes", tentative: "~ Maybe", declined: "✗ No" };
+                        const colours = {
+                          accepted: "border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400",
+                          tentative: "border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-400",
+                          declined: "border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-400",
+                        };
+                        return (
+                          <button
+                            key={status}
+                            onClick={() => handleRsvpFromPanel(ev, status)}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${colours[status]}`}
+                          >
+                            {labels[status]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Error ──────────────────────────────────────────────────── */}
       {error && (
