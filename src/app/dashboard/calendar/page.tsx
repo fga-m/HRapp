@@ -376,6 +376,12 @@ export default function CalendarPage() {
   const dragPreviewRef = useRef(dragPreview);
   useEffect(() => { dragPreviewRef.current = dragPreview; }, [dragPreview]);
 
+  // ── Resize state ─────────────────────────────────────────────────────────
+  const resizeStateRef = useRef<{ event: GEvent; edge: "top" | "bottom" } | null>(null);
+  const [resizePreview, setResizePreview] = useState<{ eventId: string; topPx: number; height: number } | null>(null);
+  const resizePreviewRef = useRef(resizePreview);
+  useEffect(() => { resizePreviewRef.current = resizePreview; }, [resizePreview]);
+
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
 
   // ── Fetch staff + role ──────────────────────────────────────────────────
@@ -507,6 +513,79 @@ export default function CalendarPage() {
       window.removeEventListener("mouseup", onUp);
     };
   }, [dragPreview, weekStart, selectedId, getTargetFromMouse, fetchEvents]);
+
+  // ── Resize handlers ───────────────────────────────────────────────────────
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent, ev: GEvent, edge: "top" | "bottom") => {
+    e.preventDefault();
+    e.stopPropagation();
+    resizeStateRef.current = { event: ev, edge };
+    setResizePreview({ eventId: ev.id, topPx: eventTopPx(ev), height: eventHeightPx(ev) });
+    document.body.style.cursor = "ns-resize";
+    document.body.style.userSelect = "none";
+  }, []);
+
+  useEffect(() => {
+    if (!resizePreview) return;
+    const getY = (clientY: number) => {
+      if (!gridRef.current) return 0;
+      const rect = gridRef.current.getBoundingClientRect();
+      const relY = clientY - rect.top + gridRef.current.scrollTop;
+      const rawH = Math.max(START_H, Math.min(END_H, relY / HOUR_H + START_H));
+      const snappedH = Math.floor(rawH) + Math.round((rawH % 1) * 4) / 4;
+      return (Math.max(START_H, Math.min(END_H, snappedH)) - START_H) * HOUR_H;
+    };
+    const onMove = (e: MouseEvent) => {
+      const resize = resizeStateRef.current;
+      if (!resize) return;
+      const snappedPx = getY(e.clientY);
+      const origTopPx = eventTopPx(resize.event);
+      const origHeight = eventHeightPx(resize.event);
+      const minH = HOUR_H / 4; // 15 min
+      if (resize.edge === "bottom") {
+        setResizePreview({ eventId: resize.event.id, topPx: origTopPx, height: Math.max(minH, snappedPx - origTopPx) });
+      } else {
+        const endPx = origTopPx + origHeight;
+        const newTop = Math.min(endPx - minH, snappedPx);
+        setResizePreview({ eventId: resize.event.id, topPx: newTop, height: endPx - newTop });
+      }
+    };
+    const onUp = async () => {
+      const resize = resizeStateRef.current;
+      const preview = resizePreviewRef.current;
+      resizeStateRef.current = null;
+      setResizePreview(null);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      if (!resize || !preview) return;
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const origStart = new Date(resize.event.start.dateTime!);
+      const origEnd = new Date(resize.event.end.dateTime!);
+      const toTime = (px: number) => { const h = px / HOUR_H + START_H; return { h: Math.floor(h), m: Math.round((h % 1) * 60) }; };
+      let newStart = origStart, newEnd = origEnd;
+      if (resize.edge === "bottom") {
+        const t = toTime(preview.topPx + preview.height);
+        newEnd = new Date(origStart); newEnd.setHours(t.h, t.m, 0, 0);
+      } else {
+        const t = toTime(preview.topPx);
+        newStart = new Date(origStart); newStart.setHours(t.h, t.m, 0, 0);
+      }
+      if (newStart.getTime() === origStart.getTime() && newEnd.getTime() === origEnd.getTime()) return;
+      setEvents((prev) => prev.map((ev) =>
+        ev.id === resize.event.id ? { ...ev, start: { dateTime: newStart.toISOString() }, end: { dateTime: newEnd.toISOString() } } : ev
+      ));
+      try {
+        const res = await fetch(`/api/calendar/events/${resize.event.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ calendarId: selectedId, start: { dateTime: newStart.toISOString(), timeZone: tz }, end: { dateTime: newEnd.toISOString(), timeZone: tz } }),
+        });
+        if (!res.ok) fetchEvents();
+      } catch { fetchEvents(); }
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+  }, [resizePreview, selectedId, fetchEvents]);
 
   // ── Auto-scroll to current time ───────────────────────────────────────────
   useEffect(() => {
@@ -834,30 +913,47 @@ export default function CalendarPage() {
                   {/* ── Layer 3: Busy events ── */}
                   {busyEvs.map((ev) => {
                     const pos = positions.get(ev.id) ?? { left: 0, width: 96 };
-                    const top = eventTopPx(ev);
-                    const height = eventHeightPx(ev);
+                    const isResizing = resizePreview?.eventId === ev.id;
+                    const isDragging = dragPreview?.eventId === ev.id;
+                    const top = isResizing ? resizePreview!.topPx : eventTopPx(ev);
+                    const height = isResizing ? resizePreview!.height : eventHeightPx(ev);
                     const isShort = height < 40;
                     const startLabel = format(new Date(ev.start.dateTime!), "h:mm a");
-                    const isDragging = dragPreview?.eventId === ev.id;
                     return (
                       <div
                         key={ev.id}
-                        className={`absolute rounded-lg border-l-2 px-1.5 py-1 overflow-hidden transition-opacity ${eventColor.event} ${isOwnCalendar ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-30" : "hover:brightness-95"}`}
-                        style={{
-                          top,
-                          height,
-                          left: `${pos.left}%`,
-                          width: `${pos.width}%`,
-                          zIndex: 5,
-                        }}
+                        className={`absolute group/ev rounded-lg border-l-2 overflow-hidden transition-opacity ${eventColor.event} ${isOwnCalendar ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-30" : "hover:brightness-95"}`}
+                        style={{ top, height, left: `${pos.left}%`, width: `${pos.width}%`, zIndex: 5 }}
                         onMouseDown={isOwnCalendar ? (e) => handleEventMouseDown(e, ev) : undefined}
-                        onClick={() => { if (!dragStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
+                        onClick={() => { if (!dragStateRef.current && !resizeStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
                       >
-                        <p className="text-[11px] font-semibold text-white leading-tight truncate">
-                          {ev.summary || "(No title)"}
-                        </p>
-                        {!isShort && (
-                          <p className="text-[10px] text-white/80 leading-tight">{startLabel}</p>
+                        {/* Top resize handle */}
+                        {isOwnCalendar && (
+                          <div
+                            className="absolute top-0 left-0 right-0 h-2.5 flex items-center justify-center opacity-0 group-hover/ev:opacity-100 cursor-ns-resize z-10"
+                            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, ev, "top"); }}
+                          >
+                            <div className="w-5 h-0.5 rounded-full bg-white/70" />
+                          </div>
+                        )}
+
+                        <div className="px-1.5 py-1">
+                          <p className="text-[11px] font-semibold text-white leading-tight truncate">
+                            {ev.summary || "(No title)"}
+                          </p>
+                          {!isShort && (
+                            <p className="text-[10px] text-white/80 leading-tight">{startLabel}</p>
+                          )}
+                        </div>
+
+                        {/* Bottom resize handle */}
+                        {isOwnCalendar && (
+                          <div
+                            className="absolute bottom-0 left-0 right-0 h-2.5 flex items-center justify-center opacity-0 group-hover/ev:opacity-100 cursor-ns-resize z-10"
+                            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, ev, "bottom"); }}
+                          >
+                            <div className="w-5 h-0.5 rounded-full bg-white/70" />
+                          </div>
                         )}
                       </div>
                     );
