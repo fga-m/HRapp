@@ -35,6 +35,7 @@ type GEvent = {
   description?: string;
   transparency?: string;  // "opaque" (busy, default) | "transparent" (free/available)
   eventType?: string;     // "default" | "outOfOffice" | "focusTime" | "workingLocation"
+  attendees?: { email: string; displayName?: string; responseStatus?: string }[];
 };
 
 type StaffMember = {
@@ -123,13 +124,15 @@ type EventFormProps = {
     startDateTime: string;
     endDateTime: string;
     transparency: string;
+    attendees?: string[];
   };
   calendarId: string;
+  staffList?: StaffMember[];
   onClose: () => void;
   onSuccess: () => void;
 };
 
-function EventFormModal({ initial, calendarId, onClose, onSuccess }: EventFormProps) {
+function EventFormModal({ initial, calendarId, staffList = [], onClose, onSuccess }: EventFormProps) {
   const isEdit = !!initial?.id;
   const [summary, setSummary] = useState(initial?.summary ?? "");
   const [startDateTime, setStartDateTime] = useState(
@@ -139,8 +142,27 @@ function EventFormModal({ initial, calendarId, onClose, onSuccess }: EventFormPr
     initial?.endDateTime ?? format(addDays(new Date(), 0), "yyyy-MM-dd'T'HH:mm")
   );
   const [transparency, setTransparency] = useState(initial?.transparency ?? "opaque");
+  const [attendees, setAttendees] = useState<string[]>(initial?.attendees ?? []);
+  const [attendeeInput, setAttendeeInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const suggestions = staffList.filter(
+    (s) => s.email && !attendees.includes(s.email) &&
+      (s.full_name.toLowerCase().includes(attendeeInput.toLowerCase()) ||
+       s.email.toLowerCase().includes(attendeeInput.toLowerCase()))
+  );
+
+  const addAttendee = (email: string) => {
+    const e = email.trim().toLowerCase();
+    if (!e || attendees.includes(e)) return;
+    setAttendees((prev) => [...prev, e]);
+    setAttendeeInput("");
+    setShowSuggestions(false);
+  };
+
+  const removeAttendee = (email: string) => setAttendees((prev) => prev.filter((a) => a !== email));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,6 +180,7 @@ function EventFormModal({ initial, calendarId, onClose, onSuccess }: EventFormPr
         start: { dateTime: new Date(startDateTime).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
         end: { dateTime: new Date(endDateTime).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
         transparency,
+        attendees: attendees.map((email) => ({ email })),
       };
       const res = isEdit
         ? await fetch(`/api/calendar/events/${initial!.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
@@ -243,6 +266,65 @@ function EventFormModal({ initial, calendarId, onClose, onSuccess }: EventFormPr
                 ? "Shows as a working block — others can see you're available"
                 : "Shows as busy — you're in a meeting or unavailable"}
             </p>
+          </div>
+
+          {/* Attendees */}
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              Invite people <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+            </label>
+            {/* Chips */}
+            {attendees.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {attendees.map((email) => {
+                  const staff = staffList.find((s) => s.email === email);
+                  return (
+                    <span key={email} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#223149]/10 text-[#223149] rounded-full text-xs font-medium">
+                      {staff ? staff.full_name : email}
+                      <button type="button" onClick={() => removeAttendee(email)} className="hover:text-rose-500 transition-colors">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {/* Input + suggestions */}
+            <div className="relative">
+              <input
+                type="text"
+                value={attendeeInput}
+                onChange={(e) => { setAttendeeInput(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); addAttendee(attendeeInput); }
+                  if (e.key === "," || e.key === " ") { e.preventDefault(); addAttendee(attendeeInput); }
+                }}
+                placeholder="Search name or type email, press Enter to add"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              />
+              {showSuggestions && (attendeeInput.length > 0) && suggestions.length > 0 && (
+                <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-[#ECE3DF] rounded-xl shadow-lg overflow-hidden">
+                  {suggestions.slice(0, 5).map((s) => (
+                    <button
+                      key={s.email}
+                      type="button"
+                      onMouseDown={() => addAttendee(s.email)}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[#F8F6F4] transition-colors"
+                    >
+                      <div className="w-7 h-7 rounded-full bg-[#223149]/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-[#223149]">{s.full_name[0]}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-[#223149]">{s.full_name}</p>
+                        <p className="text-xs text-[#9BADB7]">{s.email}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {error && <p className="text-sm text-rose-500">{error}</p>}
@@ -761,6 +843,21 @@ export default function CalendarPage() {
                 <p>{format(new Date(tooltip.start.date!), "EEE d MMM")} · All day</p>
               )}
               {tooltip.location && <p>📍 {tooltip.location}</p>}
+              {tooltip.attendees && tooltip.attendees.length > 0 && (
+                <div className="pt-1">
+                  <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1">Attendees</p>
+                  <div className="flex flex-wrap gap-1">
+                    {tooltip.attendees.map((a) => {
+                      const staff = staffList.find((s) => s.email === a.email);
+                      return (
+                        <span key={a.email} className="inline-flex items-center px-2 py-0.5 bg-[#F8F6F4] rounded-full text-xs text-[#223149]">
+                          {staff ? staff.full_name : a.email}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {tooltip.htmlLink && (
@@ -788,12 +885,14 @@ export default function CalendarPage() {
       {editingEvent && editingEvent.start.dateTime && (
         <EventFormModal
           calendarId={selectedId}
+          staffList={staffList}
           initial={{
             id: editingEvent.id,
             summary: editingEvent.summary ?? "",
             startDateTime: format(new Date(editingEvent.start.dateTime), "yyyy-MM-dd'T'HH:mm"),
             endDateTime: format(new Date(editingEvent.end.dateTime!), "yyyy-MM-dd'T'HH:mm"),
             transparency: editingEvent.transparency ?? "opaque",
+            attendees: editingEvent.attendees?.map((a) => a.email) ?? [],
           }}
           onClose={() => setEditingEvent(null)}
           onSuccess={() => { setEditingEvent(null); fetchEvents(); }}
@@ -804,12 +903,13 @@ export default function CalendarPage() {
       {duplicatingEvent && duplicatingEvent.start.dateTime && (
         <EventFormModal
           calendarId={selectedId}
+          staffList={staffList}
           initial={{
-            // no id — creates a new event
             summary: `${duplicatingEvent.summary ?? ""} (copy)`,
             startDateTime: format(new Date(duplicatingEvent.start.dateTime), "yyyy-MM-dd'T'HH:mm"),
             endDateTime: format(new Date(duplicatingEvent.end.dateTime!), "yyyy-MM-dd'T'HH:mm"),
             transparency: duplicatingEvent.transparency ?? "opaque",
+            attendees: duplicatingEvent.attendees?.map((a) => a.email) ?? [],
           }}
           onClose={() => setDuplicatingEvent(null)}
           onSuccess={() => { setDuplicatingEvent(null); fetchEvents(); }}
@@ -820,6 +920,7 @@ export default function CalendarPage() {
       {showNewEvent && (
         <EventFormModal
           calendarId={selectedId}
+          staffList={staffList}
           onClose={() => setShowNewEvent(false)}
           onSuccess={() => { setShowNewEvent(false); fetchEvents(); }}
         />
