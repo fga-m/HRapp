@@ -870,10 +870,12 @@ export default function CalendarPage() {
                         style={{
                           top,
                           height,
-                          backgroundColor: hexA(eventColor.hex, 0.08),
+                          backgroundColor: hoveredEventId === ev.id ? hexA(eventColor.hex, 0.15) : hexA(eventColor.hex, 0.08),
                           borderLeft: `2px solid ${hexA(eventColor.hex, 0.35)}`,
-                          zIndex: 1,
+                          zIndex: hoveredEventId === ev.id ? 15 : 1,
                         }}
+                        onMouseEnter={() => setHoveredEventId(ev.id)}
+                        onMouseLeave={() => setHoveredEventId(null)}
                         onMouseDown={isOwnCalendar ? (e) => handleEventMouseDown(e, ev) : undefined}
                         onClick={() => { if (!dragStateRef.current && !resizeStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
                       >
