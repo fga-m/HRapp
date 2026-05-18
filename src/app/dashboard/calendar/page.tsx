@@ -864,6 +864,7 @@ export default function CalendarPage() {
                     const height = isResizing ? resizePreview!.height : eventHeightPx(ev);
                     const isShort = height < 32;
                     const isTall = height >= 44;
+                    const isExtraTall = height >= 60;
                     const isHovered = hoveredEventId === ev.id;
                     // Live time — updates during resize
                     const freeStartH = top / HOUR_H + START_H;
@@ -910,6 +911,11 @@ export default function CalendarPage() {
                                 {freeTimeLabel}
                               </p>
                             )}
+                            {isExtraTall && ev.location && (
+                              <p className="text-[10px] truncate leading-tight" style={{ color: isHovered ? "rgba(255,255,255,0.6)" : hexA(eventColor.hex, 0.35) }}>
+                                📍 {ev.location}
+                              </p>
+                            )}
                           </div>
                         )}
 
@@ -932,6 +938,7 @@ export default function CalendarPage() {
                     const height = eventHeightPx(ev);
                     const isShort = height < 32;
                     const isTall = height >= 44;
+                    const isExtraTall = height >= 60;
                     const oooTimeLabel = ev.start.dateTime
                       ? `${format(new Date(ev.start.dateTime), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`
                       : null;
@@ -955,6 +962,9 @@ export default function CalendarPage() {
                             </p>
                             {isTall && oooTimeLabel && (
                               <p className="text-[10px] truncate text-rose-400 leading-tight">{oooTimeLabel}</p>
+                            )}
+                            {isExtraTall && ev.location && (
+                              <p className="text-[10px] truncate text-rose-300 leading-tight">📍 {ev.location}</p>
                             )}
                           </div>
                         )}
@@ -981,6 +991,7 @@ export default function CalendarPage() {
                     const top = isResizing ? resizePreview!.topPx : eventTopPx(ev);
                     const height = isResizing ? resizePreview!.height : eventHeightPx(ev);
                     const isTall = height >= 44;
+                    const isExtraTall = height >= 60;
                     // Live time label — updates during resize
                     const liveStartH = top / HOUR_H + START_H;
                     const liveEndH = (top + height) / HOUR_H + START_H;
@@ -1017,6 +1028,9 @@ export default function CalendarPage() {
                           </p>
                           {isTall && (
                             <p className="text-[10px] text-white/80 leading-tight truncate">{timeLabel}</p>
+                          )}
+                          {isExtraTall && ev.location && (
+                            <p className="text-[10px] text-white/60 leading-tight truncate">📍 {ev.location}</p>
                           )}
                         </div>
 
