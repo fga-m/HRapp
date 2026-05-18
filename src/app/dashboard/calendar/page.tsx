@@ -954,7 +954,16 @@ export default function CalendarPage() {
                     const top = isResizing ? resizePreview!.topPx : eventTopPx(ev);
                     const height = isResizing ? resizePreview!.height : eventHeightPx(ev);
                     const isShort = height < 40;
-                    const startLabel = format(new Date(ev.start.dateTime!), "h:mm a");
+                    // Live time label — updates during resize
+                    const liveStartH = top / HOUR_H + START_H;
+                    const liveEndH = (top + height) / HOUR_H + START_H;
+                    const liveStart = new Date(ev.start.dateTime!);
+                    liveStart.setHours(Math.floor(liveStartH), Math.round((liveStartH % 1) * 60), 0, 0);
+                    const liveEnd = new Date(ev.start.dateTime!);
+                    liveEnd.setHours(Math.floor(liveEndH), Math.round((liveEndH % 1) * 60), 0, 0);
+                    const startLabel = isResizing
+                      ? `${format(liveStart, "h:mm")}–${format(liveEnd, "h:mm a")}`
+                      : format(new Date(ev.start.dateTime!), "h:mm a");
                     return (
                       <div
                         key={ev.id}
@@ -1001,9 +1010,17 @@ export default function CalendarPage() {
                     if (!dragEv) return null;
                     const height = eventHeightPx(dragEv);
                     const isFree = isFreeEvent(dragEv);
+                    const isShortGhost = height < 40;
+                    // Compute live start/end from current drag position
+                    const ghostH = dragPreview.topPx / HOUR_H + START_H;
+                    const ghostStart = new Date(days[dragPreview.dayIndex]);
+                    ghostStart.setHours(Math.floor(ghostH), Math.round((ghostH % 1) * 60), 0, 0);
+                    const duration = new Date(dragEv.end.dateTime!).getTime() - new Date(dragEv.start.dateTime!).getTime();
+                    const ghostEnd = new Date(ghostStart.getTime() + duration);
+                    const ghostTimeLabel = `${format(ghostStart, "h:mm")}–${format(ghostEnd, "h:mm a")}`;
                     return isFree ? (
                       <div
-                        className="absolute left-0 right-0 pointer-events-none"
+                        className="absolute left-0 right-0 pointer-events-none overflow-hidden"
                         style={{
                           top: dragPreview.topPx,
                           height,
@@ -1015,15 +1032,25 @@ export default function CalendarPage() {
                         <p className="text-[10px] px-1.5 pt-0.5 truncate font-medium" style={{ color: hexA(eventColor.hex, 0.7) }}>
                           {dragEv.summary || "Working"}
                         </p>
+                        {!isShortGhost && (
+                          <p className="text-[10px] px-1.5 truncate" style={{ color: hexA(eventColor.hex, 0.55) }}>
+                            {ghostTimeLabel}
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div
-                        className={`absolute left-1 right-1 rounded-lg border-2 border-dashed pointer-events-none ${eventColor.event}`}
+                        className={`absolute left-1 right-1 rounded-lg border-2 border-dashed pointer-events-none overflow-hidden ${eventColor.event}`}
                         style={{ top: dragPreview.topPx, height, zIndex: 20, opacity: 0.85 }}
                       >
-                        <p className="text-[11px] font-semibold text-white px-1.5 py-1 truncate">
-                          {dragEv.summary || "(No title)"}
-                        </p>
+                        <div className="px-1.5 py-1">
+                          <p className="text-[11px] font-semibold text-white leading-tight truncate">
+                            {dragEv.summary || "(No title)"}
+                          </p>
+                          {!isShortGhost && (
+                            <p className="text-[10px] text-white/80 leading-tight">{ghostTimeLabel}</p>
+                          )}
+                        </div>
                       </div>
                     );
                   })()}
