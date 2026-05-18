@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, Plus, Pencil, Trash2, X } from "lucide-react";
 import {
   format, startOfWeek, addDays, isToday, eachDayOfInterval,
   addWeeks, subWeeks, isSameDay,
@@ -285,6 +285,7 @@ export default function CalendarPage() {
   const [nowTop, setNowTop] = useState(0);
   const [tooltip, setTooltip] = useState<GEvent | null>(null);
   const [editingEvent, setEditingEvent] = useState<GEvent | null>(null);
+  const [duplicatingEvent, setDuplicatingEvent] = useState<GEvent | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
 
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
@@ -719,7 +720,7 @@ export default function CalendarPage() {
                 </span>
               )}
 
-              {/* Edit / Delete — only on your own calendar */}
+              {/* Edit / Duplicate / Delete — only on your own calendar */}
               {isOwnCalendar && !isAllDay(tooltip) && (
                 <div className="flex items-center gap-1">
                   <button
@@ -728,6 +729,13 @@ export default function CalendarPage() {
                     title="Edit event"
                   >
                     <Pencil className="w-4 h-4 text-[#5F7C84]" />
+                  </button>
+                  <button
+                    onClick={() => { setDuplicatingEvent(tooltip); setTooltip(null); }}
+                    className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
+                    title="Duplicate event"
+                  >
+                    <Copy className="w-4 h-4 text-[#5F7C84]" />
                   </button>
                   <button
                     onClick={() => handleDelete(tooltip)}
@@ -789,6 +797,22 @@ export default function CalendarPage() {
           }}
           onClose={() => setEditingEvent(null)}
           onSuccess={() => { setEditingEvent(null); fetchEvents(); }}
+        />
+      )}
+
+      {/* ── Duplicate event modal ─────────────────────────────────── */}
+      {duplicatingEvent && duplicatingEvent.start.dateTime && (
+        <EventFormModal
+          calendarId={selectedId}
+          initial={{
+            // no id — creates a new event
+            summary: `${duplicatingEvent.summary ?? ""} (copy)`,
+            startDateTime: format(new Date(duplicatingEvent.start.dateTime), "yyyy-MM-dd'T'HH:mm"),
+            endDateTime: format(new Date(duplicatingEvent.end.dateTime!), "yyyy-MM-dd'T'HH:mm"),
+            transparency: duplicatingEvent.transparency ?? "opaque",
+          }}
+          onClose={() => setDuplicatingEvent(null)}
+          onSuccess={() => { setDuplicatingEvent(null); fetchEvents(); }}
         />
       )}
 
