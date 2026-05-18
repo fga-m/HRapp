@@ -634,7 +634,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] min-h-0">
+    <div className="flex flex-col h-[calc(100vh-180px)] md:h-[calc(100vh-120px)] min-h-0">
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="flex-shrink-0 space-y-3 mb-3">
         {/* Week nav */}
@@ -750,7 +750,8 @@ export default function CalendarPage() {
       )}
 
       {/* ── Calendar grid ──────────────────────────────────────────── */}
-      <div className="flex-1 min-h-0 bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 bg-white rounded-2xl shadow-sm overflow-x-auto flex flex-col">
+        <div className="flex flex-col flex-1 min-h-0 min-w-[560px]">
         {/* Day headers */}
         <div
           className="flex-shrink-0 grid border-b border-[#ECE3DF]"
@@ -1102,6 +1103,7 @@ export default function CalendarPage() {
             })}
           </div>
         </div>
+        </div>{/* end min-w wrapper */}
       </div>
 
       {/* ── Event detail modal ─────────────────────────────────────── */}
