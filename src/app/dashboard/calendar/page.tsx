@@ -980,7 +980,7 @@ export default function CalendarPage() {
                     const isDragging = dragPreview?.eventId === ev.id;
                     const top = isResizing ? resizePreview!.topPx : eventTopPx(ev);
                     const height = isResizing ? resizePreview!.height : eventHeightPx(ev);
-                    const isShort = height < 40;
+                    const isTall = height >= 44;
                     // Live time label — updates during resize
                     const liveStartH = top / HOUR_H + START_H;
                     const liveEndH = (top + height) / HOUR_H + START_H;
@@ -988,9 +988,9 @@ export default function CalendarPage() {
                     liveStart.setHours(Math.floor(liveStartH), Math.round((liveStartH % 1) * 60), 0, 0);
                     const liveEnd = new Date(ev.start.dateTime!);
                     liveEnd.setHours(Math.floor(liveEndH), Math.round((liveEndH % 1) * 60), 0, 0);
-                    const startLabel = isResizing
+                    const timeLabel = isResizing
                       ? `${format(liveStart, "h:mm")}–${format(liveEnd, "h:mm a")}`
-                      : format(new Date(ev.start.dateTime!), "h:mm a");
+                      : `${format(new Date(ev.start.dateTime!), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`;
                     return (
                       <div
                         key={ev.id}
@@ -1015,8 +1015,8 @@ export default function CalendarPage() {
                           <p className="text-[11px] font-semibold text-white leading-tight truncate">
                             {ev.summary || "(No title)"}
                           </p>
-                          {!isShort && (
-                            <p className="text-[10px] text-white/80 leading-tight">{startLabel}</p>
+                          {isTall && (
+                            <p className="text-[10px] text-white/80 leading-tight truncate">{timeLabel}</p>
                           )}
                         </div>
 
