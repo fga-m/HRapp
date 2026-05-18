@@ -370,6 +370,12 @@ export default function CalendarPage() {
   const [duplicatingEvent, setDuplicatingEvent] = useState<GEvent | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
 
+  // ── Drag state ───────────────────────────────────────────────────────────
+  const dragStateRef = useRef<{ event: GEvent; offsetY: number } | null>(null);
+  const [dragPreview, setDragPreview] = useState<{ eventId: string; dayIndex: number; topPx: number } | null>(null);
+  const dragPreviewRef = useRef(dragPreview);
+  useEffect(() => { dragPreviewRef.current = dragPreview; }, [dragPreview]);
+
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
 
   // ── Fetch staff + role ──────────────────────────────────────────────────
@@ -416,6 +422,91 @@ export default function CalendarPage() {
     const t = setInterval(update, 60000);
     return () => clearInterval(t);
   }, []);
+
+  // ── Drag helpers ─────────────────────────────────────────────────────────
+  const getTargetFromMouse = useCallback((clientX: number, clientY: number, offsetY = 0) => {
+    if (!gridRef.current) return null;
+    const rect = gridRef.current.getBoundingClientRect();
+    const scrollTop = gridRef.current.scrollTop;
+    const relX = clientX - rect.left;
+    const relY = clientY - rect.top + scrollTop - offsetY;
+    const colWidth = (rect.width - 52) / 7;
+    const dayIndex = Math.max(0, Math.min(6, Math.floor((relX - 52) / colWidth)));
+    const rawHours = relY / HOUR_H + START_H;
+    // Snap to 15-minute intervals
+    const snappedH = Math.floor(rawHours) + Math.round((rawHours % 1) * 4) / 4;
+    const clampedH = Math.max(START_H, Math.min(END_H - 0.25, snappedH));
+    return { dayIndex, topPx: (clampedH - START_H) * HOUR_H };
+  }, []);
+
+  const handleEventMouseDown = useCallback((e: React.MouseEvent, ev: GEvent) => {
+    if (isAllDay(ev)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    dragStateRef.current = { event: ev, offsetY };
+    const daysArr = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+    const dayIndex = daysArr.findIndex((d) => isSameDay(d, new Date(ev.start.dateTime!)));
+    setDragPreview({ eventId: ev.id, dayIndex: Math.max(0, dayIndex), topPx: eventTopPx(ev) });
+    document.body.style.cursor = "grabbing";
+    document.body.style.userSelect = "none";
+  }, [weekStart]);
+
+  useEffect(() => {
+    if (!dragPreview) return;
+    const onMove = (e: MouseEvent) => {
+      const drag = dragStateRef.current;
+      if (!drag) return;
+      const result = getTargetFromMouse(e.clientX, e.clientY, drag.offsetY);
+      if (result) setDragPreview((prev) => prev ? { ...prev, ...result } : null);
+    };
+    const onUp = async () => {
+      const drag = dragStateRef.current;
+      const preview = dragPreviewRef.current;
+      dragStateRef.current = null;
+      setDragPreview(null);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      if (!drag || !preview) return;
+
+      const origStart = new Date(drag.event.start.dateTime!);
+      const origEnd = new Date(drag.event.end.dateTime!);
+      const duration = origEnd.getTime() - origStart.getTime();
+      const daysArr = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+      const targetDay = daysArr[preview.dayIndex];
+      const hours = preview.topPx / HOUR_H + START_H;
+      const newStart = new Date(targetDay);
+      newStart.setHours(Math.floor(hours), Math.round((hours % 1) * 60), 0, 0);
+      const newEnd = new Date(newStart.getTime() + duration);
+      if (newStart.getTime() === origStart.getTime()) return;
+
+      // Optimistic update
+      setEvents((prev) => prev.map((ev) =>
+        ev.id === drag.event.id
+          ? { ...ev, start: { dateTime: newStart.toISOString() }, end: { dateTime: newEnd.toISOString() } }
+          : ev
+      ));
+      try {
+        const res = await fetch(`/api/calendar/events/${drag.event.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            calendarId: selectedId,
+            start: { dateTime: newStart.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+            end: { dateTime: newEnd.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+          }),
+        });
+        if (!res.ok) fetchEvents(); // revert on failure
+      } catch { fetchEvents(); }
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [dragPreview, weekStart, selectedId, getTargetFromMouse, fetchEvents]);
 
   // ── Auto-scroll to current time ───────────────────────────────────────────
   useEffect(() => {
@@ -747,10 +838,11 @@ export default function CalendarPage() {
                     const height = eventHeightPx(ev);
                     const isShort = height < 40;
                     const startLabel = format(new Date(ev.start.dateTime!), "h:mm a");
+                    const isDragging = dragPreview?.eventId === ev.id;
                     return (
                       <div
                         key={ev.id}
-                        className={`absolute rounded-lg border-l-2 px-1.5 py-1 cursor-pointer hover:brightness-95 transition-all overflow-hidden ${eventColor.event}`}
+                        className={`absolute rounded-lg border-l-2 px-1.5 py-1 overflow-hidden transition-opacity ${eventColor.event} ${isOwnCalendar ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-30" : "hover:brightness-95"}`}
                         style={{
                           top,
                           height,
@@ -758,7 +850,8 @@ export default function CalendarPage() {
                           width: `${pos.width}%`,
                           zIndex: 5,
                         }}
-                        onClick={() => setTooltip(tooltip?.id === ev.id ? null : ev)}
+                        onMouseDown={isOwnCalendar ? (e) => handleEventMouseDown(e, ev) : undefined}
+                        onClick={() => { if (!dragStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
                       >
                         <p className="text-[11px] font-semibold text-white leading-tight truncate">
                           {ev.summary || "(No title)"}
@@ -769,6 +862,23 @@ export default function CalendarPage() {
                       </div>
                     );
                   })}
+
+                  {/* ── Drag preview ghost ── */}
+                  {dragPreview && dragPreview.dayIndex === days.indexOf(day) && (() => {
+                    const dragEv = events.find((ev) => ev.id === dragPreview.eventId);
+                    if (!dragEv) return null;
+                    const height = eventHeightPx(dragEv);
+                    return (
+                      <div
+                        className={`absolute left-1 right-1 rounded-lg border-2 border-dashed pointer-events-none ${eventColor.event}`}
+                        style={{ top: dragPreview.topPx, height, zIndex: 20, opacity: 0.85 }}
+                      >
+                        <p className="text-[11px] font-semibold text-white px-1.5 py-1 truncate">
+                          {dragEv.summary || "(No title)"}
+                        </p>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}
