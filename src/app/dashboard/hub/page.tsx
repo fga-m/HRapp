@@ -32,7 +32,7 @@ import {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type HubGroup = { id: string; label: string; order_index: number };
-type HubLink  = { id: string; label: string; url: string; description: string | null; group_id: string | null; order_index: number };
+type HubLink  = { id: string; label: string; url: string; description: string | null; icon: string | null; group_id: string | null; order_index: number };
 
 // ── Link modal ────────────────────────────────────────────────────────────────
 
@@ -47,7 +47,7 @@ function LinkModal({
   groups: HubGroup[];
   defaultGroupId?: string | null;
   onClose: () => void;
-  onSave: (data: { label: string; url: string; description: string; group_id: string | null }) => Promise<void>;
+  onSave: (data: { label: string; url: string; description: string; group_id: string | null; icon: string | null }) => Promise<void>;
 }) {
   const [label, setLabel] = useState(initial?.label ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
@@ -55,6 +55,42 @@ function LinkModal({
   const [groupId, setGroupId] = useState<string | null>(initial?.group_id ?? defaultGroupId ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  // Icon state
+  const [iconMode, setIconMode] = useState<"none" | "emoji" | "image">(
+    initial?.icon ? (initial.icon.startsWith("http") ? "image" : "emoji") : "none"
+  );
+  const [iconEmoji, setIconEmoji] = useState(
+    initial?.icon && !initial.icon.startsWith("http") ? initial.icon : ""
+  );
+  const [iconImageUrl, setIconImageUrl] = useState(
+    initial?.icon?.startsWith("http") ? initial.icon : ""
+  );
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const res = await fetch("/api/hub/upload-icon", { method: "POST", body: form });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error ?? "Upload failed");
+      setIconImageUrl(d.url);
+      setIconMode("image");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const resolvedIcon = iconMode === "emoji" ? (iconEmoji.trim() || null)
+    : iconMode === "image" ? (iconImageUrl || null)
+    : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +100,7 @@ function LinkModal({
     setSaving(true);
     setError("");
     try {
-      await onSave({ label: label.trim(), url: finalUrl, description: description.trim(), group_id: groupId });
+      await onSave({ label: label.trim(), url: finalUrl, description: description.trim(), group_id: groupId, icon: resolvedIcon });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed");
       setSaving(false);
@@ -118,6 +154,50 @@ function LinkModal({
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
             />
           </div>
+          {/* Icon picker */}
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              Icon <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+            </label>
+            <div className="flex items-center gap-2 mb-2">
+              {/* Preview */}
+              <div className="w-10 h-10 rounded-xl border border-[#ECE3DF] bg-[#F8F6F4] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {iconMode === "emoji" && iconEmoji ? (
+                  <span className="text-xl">{iconEmoji}</span>
+                ) : iconMode === "image" && iconImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={iconImageUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[#C5CDD0] text-xs">None</span>
+                )}
+              </div>
+              {/* Mode buttons */}
+              <button type="button" onClick={() => setIconMode("emoji")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${iconMode === "emoji" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"}`}>
+                😊 Emoji
+              </button>
+              <label className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${iconMode === "image" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"}`}>
+                {uploading ? "Uploading…" : "📷 Image"}
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+              </label>
+              {iconMode !== "none" && (
+                <button type="button" onClick={() => { setIconMode("none"); setIconEmoji(""); setIconImageUrl(""); }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#ECE3DF] text-rose-400 hover:bg-rose-50 transition-colors">
+                  Remove
+                </button>
+              )}
+            </div>
+            {iconMode === "emoji" && (
+              <input
+                type="text"
+                value={iconEmoji}
+                onChange={(e) => setIconEmoji(e.target.value)}
+                placeholder="Paste or type an emoji, e.g. 📅"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors text-lg"
+              />
+            )}
+          </div>
+
           {groups.length > 0 && (
             <div>
               <label className="block text-sm font-semibold text-[#223149] mb-1.5">
@@ -262,9 +342,19 @@ function SortableLinkCard({
         href={link.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-start gap-2.5 px-4 py-3 bg-white rounded-xl shadow-sm border border-[#ECE3DF] hover:border-[#223149]/30 hover:shadow-md transition-all h-full"
+        className="flex items-start gap-3 px-4 py-3 bg-white rounded-xl shadow-sm border border-[#ECE3DF] hover:border-[#223149]/30 hover:shadow-md transition-all h-full"
       >
-        <ExternalLink className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0 mt-0.5" />
+        {/* Icon */}
+        <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden bg-[#F8F6F4]">
+          {link.icon && link.icon.startsWith("http") ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={link.icon} alt="" className="w-full h-full object-cover" />
+          ) : link.icon ? (
+            <span className="text-lg leading-none">{link.icon}</span>
+          ) : (
+            <ExternalLink className="w-3.5 h-3.5 text-[#9BADB7]" />
+          )}
+        </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-[#223149]">{link.label}</p>
           {link.description && (
@@ -458,14 +548,14 @@ export default function StaffHubPage() {
   const isAdmin = role === "admin";
 
   // ── Link handlers ─────────────────────────────────────────────────────────
-  const handleAddLink = async (body: { label: string; url: string; description: string; group_id: string | null }) => {
+  const handleAddLink = async (body: { label: string; url: string; description: string; group_id: string | null; icon: string | null }) => {
     const res = await fetch("/api/hub/links", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Failed"); }
     setShowAddLink(false);
     fetchAll();
   };
 
-  const handleEditLink = async (body: { label: string; url: string; description: string; group_id: string | null }) => {
+  const handleEditLink = async (body: { label: string; url: string; description: string; group_id: string | null; icon: string | null }) => {
     if (!editLink) return;
     const res = await fetch(`/api/hub/links/${editLink.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Failed"); }

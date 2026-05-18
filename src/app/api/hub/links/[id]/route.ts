@@ -24,13 +24,14 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { label, url, description, group_id } = body;
+  const { label, url, description, group_id, icon } = body;
 
   const updates: Record<string, unknown> = {};
   if (label !== undefined) updates.label = label.trim();
   if (url !== undefined) updates.url = url.trim();
   if (description !== undefined) updates.description = description?.trim() || null;
   if (group_id !== undefined) updates.group_id = group_id ?? null;
+  if (icon !== undefined) updates.icon = icon ?? null;
 
   const { data, error } = await supabaseAdmin
     .from("hub_links")

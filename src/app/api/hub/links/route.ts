@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (caller.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const body = await req.json();
-  const { label, url, description, group_id } = body;
+  const { label, url, description, group_id, icon } = body;
 
   if (!label?.trim()) return NextResponse.json({ error: "Label is required" }, { status: 400 });
   if (!url?.trim()) return NextResponse.json({ error: "URL is required" }, { status: 400 });
@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       url: url.trim(),
       description: description?.trim() || null,
       group_id: group_id ?? null,
+      icon: icon ?? null,
       order_index: nextOrder,
       created_by: caller.id,
     })
