@@ -370,6 +370,8 @@ export default function CalendarPage() {
   const [duplicatingEvent, setDuplicatingEvent] = useState<GEvent | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
+  const [freeHover, setFreeHover] = useState<{ event: GEvent; x: number; y: number } | null>(null);
+  const freeHoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Drag state ───────────────────────────────────────────────────────────
   const dragStateRef = useRef<{
@@ -866,7 +868,6 @@ export default function CalendarPage() {
                     const isShort = height < 32;
                     const isTall = height >= 44;
                     const isExtraTall = height >= 60;
-                    const isHovered = hoveredEventId === ev.id;
                     // Live time — updates during resize
                     const freeStartH = top / HOUR_H + START_H;
                     const freeEndH = (top + height) / HOUR_H + START_H;
@@ -882,13 +883,17 @@ export default function CalendarPage() {
                         style={{
                           top,
                           height,
-                          backgroundColor: isHovered ? eventColor.hex : hexA(eventColor.hex, 0.08),
-                          borderLeft: `2px solid ${isHovered ? eventColor.hex : hexA(eventColor.hex, 0.35)}`,
-                          zIndex: isHovered ? 15 : 1,
-                          transition: "background-color 0.1s, border-color 0.1s",
+                          backgroundColor: hexA(eventColor.hex, 0.08),
+                          borderLeft: `2px solid ${hexA(eventColor.hex, 0.35)}`,
+                          zIndex: 1,
                         }}
-                        onMouseEnter={() => setHoveredEventId(ev.id)}
-                        onMouseLeave={() => setHoveredEventId(null)}
+                        onMouseEnter={(e) => {
+                          if (freeHoverTimeout.current) clearTimeout(freeHoverTimeout.current);
+                          setFreeHover({ event: ev, x: e.clientX, y: e.clientY });
+                        }}
+                        onMouseLeave={() => {
+                          freeHoverTimeout.current = setTimeout(() => setFreeHover(null), 200);
+                        }}
                         onMouseDown={isOwnCalendar ? (e) => handleEventMouseDown(e, ev) : undefined}
                         onClick={() => { if (!dragStateRef.current && !resizeStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
                       >
@@ -904,16 +909,16 @@ export default function CalendarPage() {
 
                         {!isShort && (
                           <div className="px-1.5 pt-0.5">
-                            <p className="text-[10px] truncate font-medium leading-tight" style={{ color: isHovered ? "rgba(255,255,255,0.95)" : hexA(eventColor.hex, 0.65) }}>
+                            <p className="text-[10px] truncate font-medium leading-tight" style={{ color: hexA(eventColor.hex, 0.65) }}>
                               {ev.summary || "Working"}
                             </p>
                             {isTall && (
-                              <p className="text-[10px] truncate leading-tight" style={{ color: isHovered ? "rgba(255,255,255,0.75)" : hexA(eventColor.hex, 0.45) }}>
+                              <p className="text-[10px] truncate leading-tight" style={{ color: hexA(eventColor.hex, 0.45) }}>
                                 {freeTimeLabel}
                               </p>
                             )}
                             {isExtraTall && ev.location && (
-                              <p className="text-[10px] truncate leading-tight" style={{ color: isHovered ? "rgba(255,255,255,0.6)" : hexA(eventColor.hex, 0.35) }}>
+                              <p className="text-[10px] truncate leading-tight" style={{ color: hexA(eventColor.hex, 0.35) }}>
                                 📍 {ev.location}
                               </p>
                             )}
@@ -1105,6 +1110,53 @@ export default function CalendarPage() {
         </div>
         </div>{/* end min-w wrapper */}
       </div>
+
+      {/* ── Free event hover popup ────────────────────────────────── */}
+      {freeHover && (
+        <div
+          className="fixed z-50 bg-white rounded-xl shadow-xl border border-[#ECE3DF] p-3 w-56 pointer-events-auto"
+          style={{
+            left: Math.min(freeHover.x + 14, (typeof window !== "undefined" ? window.innerWidth : 800) - 240),
+            top: Math.max(8, freeHover.y - 50),
+          }}
+          onMouseEnter={() => { if (freeHoverTimeout.current) clearTimeout(freeHoverTimeout.current); }}
+          onMouseLeave={() => { freeHoverTimeout.current = setTimeout(() => setFreeHover(null), 200); }}
+        >
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+              Working — available
+            </span>
+            <button onClick={() => setFreeHover(null)} className="text-[#9BADB7] hover:text-[#223149]">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <p className="text-sm font-semibold text-[#223149] truncate">{freeHover.event.summary || "Working"}</p>
+          {freeHover.event.start.dateTime && (
+            <p className="text-xs text-[#9BADB7] mt-0.5">
+              {format(new Date(freeHover.event.start.dateTime), "h:mm")}–{format(new Date(freeHover.event.end.dateTime!), "h:mm a")}
+            </p>
+          )}
+          {freeHover.event.location && (
+            <p className="text-xs text-[#9BADB7] mt-0.5 truncate">📍 {freeHover.event.location}</p>
+          )}
+          {isOwnCalendar && (
+            <div className="flex gap-1.5 mt-2">
+              <button
+                className="flex-1 text-xs text-[#223149] font-semibold py-1.5 rounded-lg border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
+                onClick={() => { setTooltip(freeHover.event); setFreeHover(null); }}
+              >
+                View
+              </button>
+              <button
+                className="flex-1 text-xs text-[#223149] font-semibold py-1.5 rounded-lg border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
+                onClick={() => { setEditingEvent(freeHover.event); setFreeHover(null); }}
+              >
+                Edit
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Event detail modal ─────────────────────────────────────── */}
       {tooltip && (
