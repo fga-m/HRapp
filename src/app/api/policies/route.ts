@@ -26,7 +26,7 @@ export async function GET() {
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ policies: data, role: caller.role, staffId: caller.id });
+  return NextResponse.json({ policies: data, role: caller.role, staffId: caller.id, email: session.user?.email ?? "" });
 }
 
 export async function POST(req: NextRequest) {

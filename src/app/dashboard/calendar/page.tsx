@@ -360,6 +360,7 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [role, setRole] = useState<"admin" | "staff">("staff");
+  const [userEmail, setUserEmail] = useState("");
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [selectedId, setSelectedId] = useState("primary");
   const [selectedLabel, setSelectedLabel] = useState("My Calendar");
@@ -373,12 +374,38 @@ export default function CalendarPage() {
   const [hoverPopup, setHoverPopup] = useState<{ event: GEvent; x: number; y: number } | null>(null);
   const hoverPopupTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [rsvpLoading, setRsvpLoading] = useState<string | null>(null);
+
   const showPopup = (ev: GEvent, e: React.MouseEvent) => {
     if (hoverPopupTimeout.current) clearTimeout(hoverPopupTimeout.current);
     setHoverPopup({ event: ev, x: e.clientX, y: e.clientY });
   };
   const hidePopup = () => {
     hoverPopupTimeout.current = setTimeout(() => setHoverPopup(null), 200);
+  };
+
+  const handleRsvp = async (ev: GEvent, responseStatus: "accepted" | "declined" | "tentative") => {
+    if (!ev.attendees) return;
+    setRsvpLoading(responseStatus);
+    const updatedAttendees = ev.attendees.map((a) =>
+      a.email === userEmail ? { ...a, responseStatus } : a
+    );
+    // Optimistic updates
+    setHoverPopup((prev) =>
+      prev ? { ...prev, event: { ...prev.event, attendees: updatedAttendees } } : prev
+    );
+    setEvents((prev) =>
+      prev.map((e) => e.id === ev.id ? { ...e, attendees: updatedAttendees } : e)
+    );
+    try {
+      const res = await fetch(`/api/calendar/events/${ev.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ calendarId: "primary", attendees: updatedAttendees }),
+      });
+      if (!res.ok) fetchEvents();
+    } catch { fetchEvents(); }
+    setRsvpLoading(null);
   };
 
   // ── Drag state ───────────────────────────────────────────────────────────
@@ -409,7 +436,10 @@ export default function CalendarPage() {
       });
     fetch("/api/policies")
       .then((r) => r.json())
-      .then((d) => { if (d.role) setRole(d.role); });
+      .then((d) => {
+        if (d.role) setRole(d.role);
+        if (d.email) setUserEmail(d.email);
+      });
   }, []);
 
   // ── Fetch events ─────────────────────────────────────────────────────────
@@ -1132,9 +1162,9 @@ export default function CalendarPage() {
         const canEdit = isOwnCalendar && !ooo && !isAllDay(ev);
         return (
           <div
-            className="fixed z-50 bg-white rounded-xl shadow-xl border border-[#ECE3DF] p-3 w-56 pointer-events-auto"
+            className="fixed z-50 bg-white rounded-xl shadow-xl border border-[#ECE3DF] p-3 w-64 pointer-events-auto"
             style={{
-              left: Math.min(hoverPopup.x + 14, (typeof window !== "undefined" ? window.innerWidth : 800) - 240),
+              left: Math.min(hoverPopup.x + 14, (typeof window !== "undefined" ? window.innerWidth : 800) - 268),
               top: Math.max(8, hoverPopup.y - 50),
             }}
             onMouseEnter={() => { if (hoverPopupTimeout.current) clearTimeout(hoverPopupTimeout.current); }}
@@ -1149,9 +1179,78 @@ export default function CalendarPage() {
             <p className="text-sm font-semibold text-[#223149] truncate">{ev.summary || (ooo ? "Out of Office" : "(No title)")}</p>
             {timeLabel && <p className="text-xs text-[#9BADB7] mt-0.5">{timeLabel}</p>}
             {ev.location && <p className="text-xs text-[#9BADB7] mt-0.5 truncate">📍 {ev.location}</p>}
+
+            {/* Attendees list with response status */}
             {ev.attendees && ev.attendees.length > 0 && (
-              <p className="text-xs text-[#9BADB7] mt-0.5">👥 {ev.attendees.length} attendee{ev.attendees.length !== 1 ? "s" : ""}</p>
+              <div className="mt-2 space-y-1">
+                <p className="text-[10px] font-semibold text-[#9BADB7] uppercase tracking-wide">Attendees</p>
+                {ev.attendees.slice(0, 5).map((a) => {
+                  const staff = staffList.find((s) => s.email === a.email);
+                  const name = staff ? staff.full_name : a.email.split("@")[0];
+                  const statusIcon =
+                    a.responseStatus === "accepted" ? "✓"
+                    : a.responseStatus === "declined" ? "✗"
+                    : a.responseStatus === "tentative" ? "~"
+                    : "·";
+                  const statusColor =
+                    a.responseStatus === "accepted" ? "text-emerald-500"
+                    : a.responseStatus === "declined" ? "text-rose-500"
+                    : a.responseStatus === "tentative" ? "text-amber-500"
+                    : "text-[#9BADB7]";
+                  return (
+                    <div key={a.email} className="flex items-center gap-1.5 min-w-0">
+                      <span className={`text-xs font-bold w-3 text-center flex-shrink-0 ${statusColor}`}>{statusIcon}</span>
+                      <span className="text-xs text-[#223149] truncate">{name}</span>
+                      {a.email === userEmail && <span className="text-[10px] text-[#9BADB7] ml-auto flex-shrink-0">(you)</span>}
+                    </div>
+                  );
+                })}
+                {ev.attendees.length > 5 && (
+                  <p className="text-[10px] text-[#9BADB7]">+{ev.attendees.length - 5} more</p>
+                )}
+              </div>
             )}
+
+            {/* RSVP buttons — shown when user is an attendee */}
+            {ev.attendees?.some((a) => a.email === userEmail) && (() => {
+              const myRsvp = ev.attendees!.find((a) => a.email === userEmail)?.responseStatus;
+              return (
+                <div className="mt-2 pt-2 border-t border-[#ECE3DF]">
+                  <p className="text-[10px] font-semibold text-[#9BADB7] uppercase tracking-wide mb-1.5">Your response</p>
+                  <div className="flex gap-1">
+                    {(["accepted", "tentative", "declined"] as const).map((status) => {
+                      const labels = { accepted: "✓ Yes", tentative: "~ Maybe", declined: "✗ No" };
+                      const activeClass = {
+                        accepted: "bg-emerald-500 text-white border-emerald-500",
+                        tentative: "bg-amber-500 text-white border-amber-500",
+                        declined: "bg-rose-500 text-white border-rose-500",
+                      };
+                      const hoverClass = {
+                        accepted: "hover:bg-emerald-50 hover:border-emerald-300",
+                        tentative: "hover:bg-amber-50 hover:border-amber-300",
+                        declined: "hover:bg-rose-50 hover:border-rose-300",
+                      };
+                      const isActive = myRsvp === status;
+                      return (
+                        <button
+                          key={status}
+                          disabled={rsvpLoading !== null}
+                          onClick={() => handleRsvp(ev, status)}
+                          className={`flex-1 text-[10px] font-semibold py-1.5 rounded-lg border transition-colors disabled:opacity-60 ${
+                            isActive
+                              ? activeClass[status]
+                              : `border-[#ECE3DF] text-[#5F7C84] ${hoverClass[status]}`
+                          }`}
+                        >
+                          {rsvpLoading === status ? "…" : labels[status]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="flex gap-1.5 mt-2">
               <button
                 className="flex-1 text-xs text-[#223149] font-semibold py-1.5 rounded-lg border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
