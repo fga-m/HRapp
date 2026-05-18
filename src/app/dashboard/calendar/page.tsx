@@ -857,13 +857,15 @@ export default function CalendarPage() {
 
                   {/* ── Layer 1: Free / Working events (background) ── */}
                   {freeEvs.map((ev) => {
-                    const top = eventTopPx(ev);
-                    const height = eventHeightPx(ev);
+                    const isResizing = resizePreview?.eventId === ev.id;
+                    const isDragging = dragPreview?.eventId === ev.id;
+                    const top = isResizing ? resizePreview!.topPx : eventTopPx(ev);
+                    const height = isResizing ? resizePreview!.height : eventHeightPx(ev);
                     const isShort = height < 32;
                     return (
                       <div
                         key={ev.id}
-                        className="absolute left-0 right-0 cursor-pointer overflow-hidden"
+                        className={`absolute left-0 right-0 group/ev overflow-hidden ${isOwnCalendar ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-30" : ""}`}
                         style={{
                           top,
                           height,
@@ -871,8 +873,19 @@ export default function CalendarPage() {
                           borderLeft: `2px solid ${hexA(eventColor.hex, 0.35)}`,
                           zIndex: 1,
                         }}
-                        onClick={() => setTooltip(tooltip?.id === ev.id ? null : ev)}
+                        onMouseDown={isOwnCalendar ? (e) => handleEventMouseDown(e, ev) : undefined}
+                        onClick={() => { if (!dragStateRef.current && !resizeStateRef.current) setTooltip(tooltip?.id === ev.id ? null : ev); }}
                       >
+                        {/* Top resize handle */}
+                        {isOwnCalendar && (
+                          <div
+                            className="absolute top-0 left-0 right-0 h-2.5 flex items-center justify-center opacity-0 group-hover/ev:opacity-100 cursor-ns-resize z-10"
+                            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, ev, "top"); }}
+                          >
+                            <div className="w-5 h-0.5 rounded-full" style={{ backgroundColor: hexA(eventColor.hex, 0.5) }} />
+                          </div>
+                        )}
+
                         {!isShort && (
                           <p
                             className="text-[10px] px-1.5 pt-0.5 truncate font-medium"
@@ -880,6 +893,16 @@ export default function CalendarPage() {
                           >
                             {ev.summary || "Working"}
                           </p>
+                        )}
+
+                        {/* Bottom resize handle */}
+                        {isOwnCalendar && (
+                          <div
+                            className="absolute bottom-0 left-0 right-0 h-2.5 flex items-center justify-center opacity-0 group-hover/ev:opacity-100 cursor-ns-resize z-10"
+                            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, ev, "bottom"); }}
+                          >
+                            <div className="w-5 h-0.5 rounded-full" style={{ backgroundColor: hexA(eventColor.hex, 0.5) }} />
+                          </div>
                         )}
                       </div>
                     );
@@ -977,7 +1000,23 @@ export default function CalendarPage() {
                     const dragEv = events.find((ev) => ev.id === dragPreview.eventId);
                     if (!dragEv) return null;
                     const height = eventHeightPx(dragEv);
-                    return (
+                    const isFree = isFreeEvent(dragEv);
+                    return isFree ? (
+                      <div
+                        className="absolute left-0 right-0 pointer-events-none"
+                        style={{
+                          top: dragPreview.topPx,
+                          height,
+                          backgroundColor: hexA(eventColor.hex, 0.2),
+                          borderLeft: `2px dashed ${hexA(eventColor.hex, 0.6)}`,
+                          zIndex: 20,
+                        }}
+                      >
+                        <p className="text-[10px] px-1.5 pt-0.5 truncate font-medium" style={{ color: hexA(eventColor.hex, 0.7) }}>
+                          {dragEv.summary || "Working"}
+                        </p>
+                      </div>
+                    ) : (
                       <div
                         className={`absolute left-1 right-1 rounded-lg border-2 border-dashed pointer-events-none ${eventColor.event}`}
                         style={{ top: dragPreview.topPx, height, zIndex: 20, opacity: 0.85 }}
