@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 // Emoji picker must be client-only (uses browser APIs)
@@ -74,20 +74,7 @@ function LinkModal({
     initial?.icon?.startsWith("http") ? initial.icon : ""
   );
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [uploading, setUploading] = useState(false);
-
-  // Close emoji picker on outside click
-  useEffect(() => {
-    if (!showEmojiPicker) return;
-    const handler = (e: MouseEvent) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
-        setShowEmojiPicker(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showEmojiPicker]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -193,28 +180,13 @@ function LinkModal({
                 )}
               </div>
               {/* Mode buttons */}
-              <div className="relative" ref={emojiPickerRef}>
-                <button
-                  type="button"
-                  onClick={() => { setIconMode("emoji"); setShowEmojiPicker((v) => !v); }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${iconMode === "emoji" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
-                >
-                  😊 Emoji
-                </button>
-                {showEmojiPicker && (
-                  <div className="absolute left-0 top-9 z-50">
-                    <EmojiPicker
-                      onEmojiSelect={(e: { native: string }) => {
-                        setIconEmoji(e.native);
-                        setShowEmojiPicker(false);
-                      }}
-                      theme="light"
-                      previewPosition="none"
-                      skinTonePosition="none"
-                    />
-                  </div>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => { setIconMode("emoji"); setShowEmojiPicker((v) => !v); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${iconMode === "emoji" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+              >
+                😊 Emoji
+              </button>
               <label className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${iconMode === "image" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"}`}>
                 {uploading ? "Uploading…" : "📷 Image"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
@@ -226,6 +198,21 @@ function LinkModal({
                 </button>
               )}
             </div>
+            {/* Inline emoji picker — renders inside the scrollable modal so nothing gets clipped */}
+            {showEmojiPicker && (
+              <div className="mt-2 flex justify-center">
+                <EmojiPicker
+                  onEmojiSelect={(e: { native: string }) => {
+                    setIconEmoji(e.native);
+                    setShowEmojiPicker(false);
+                  }}
+                  theme="light"
+                  previewPosition="none"
+                  skinTonePosition="none"
+                  perLine={8}
+                />
+              </div>
+            )}
           </div>
 
           {groups.length > 0 && (
