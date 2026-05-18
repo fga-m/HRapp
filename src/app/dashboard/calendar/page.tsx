@@ -863,6 +863,16 @@ export default function CalendarPage() {
                     const top = isResizing ? resizePreview!.topPx : eventTopPx(ev);
                     const height = isResizing ? resizePreview!.height : eventHeightPx(ev);
                     const isShort = height < 32;
+                    const isTall = height >= 44;
+                    const isHovered = hoveredEventId === ev.id;
+                    // Live time — updates during resize
+                    const freeStartH = top / HOUR_H + START_H;
+                    const freeEndH = (top + height) / HOUR_H + START_H;
+                    const freeStartD = new Date(ev.start.dateTime!); freeStartD.setHours(Math.floor(freeStartH), Math.round((freeStartH % 1) * 60), 0, 0);
+                    const freeEndD = new Date(ev.start.dateTime!); freeEndD.setHours(Math.floor(freeEndH), Math.round((freeEndH % 1) * 60), 0, 0);
+                    const freeTimeLabel = isResizing
+                      ? `${format(freeStartD, "h:mm")}–${format(freeEndD, "h:mm a")}`
+                      : `${format(new Date(ev.start.dateTime!), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`;
                     return (
                       <div
                         key={ev.id}
@@ -870,9 +880,9 @@ export default function CalendarPage() {
                         style={{
                           top,
                           height,
-                          backgroundColor: hoveredEventId === ev.id ? eventColor.hex : hexA(eventColor.hex, 0.08),
-                          borderLeft: `2px solid ${hoveredEventId === ev.id ? eventColor.hex : hexA(eventColor.hex, 0.35)}`,
-                          zIndex: hoveredEventId === ev.id ? 15 : 1,
+                          backgroundColor: isHovered ? eventColor.hex : hexA(eventColor.hex, 0.08),
+                          borderLeft: `2px solid ${isHovered ? eventColor.hex : hexA(eventColor.hex, 0.35)}`,
+                          zIndex: isHovered ? 15 : 1,
                           transition: "background-color 0.1s, border-color 0.1s",
                         }}
                         onMouseEnter={() => setHoveredEventId(ev.id)}
@@ -891,12 +901,16 @@ export default function CalendarPage() {
                         )}
 
                         {!isShort && (
-                          <p
-                            className="text-[10px] px-1.5 pt-0.5 truncate font-medium"
-                            style={{ color: hoveredEventId === ev.id ? "rgba(255,255,255,0.9)" : hexA(eventColor.hex, 0.55) }}
-                          >
-                            {ev.summary || "Working"}
-                          </p>
+                          <div className="px-1.5 pt-0.5">
+                            <p className="text-[10px] truncate font-medium leading-tight" style={{ color: isHovered ? "rgba(255,255,255,0.95)" : hexA(eventColor.hex, 0.65) }}>
+                              {ev.summary || "Working"}
+                            </p>
+                            {isTall && (
+                              <p className="text-[10px] truncate leading-tight" style={{ color: isHovered ? "rgba(255,255,255,0.75)" : hexA(eventColor.hex, 0.45) }}>
+                                {freeTimeLabel}
+                              </p>
+                            )}
+                          </div>
                         )}
 
                         {/* Bottom resize handle */}
@@ -917,6 +931,10 @@ export default function CalendarPage() {
                     const top = eventTopPx(ev);
                     const height = eventHeightPx(ev);
                     const isShort = height < 32;
+                    const isTall = height >= 44;
+                    const oooTimeLabel = ev.start.dateTime
+                      ? `${format(new Date(ev.start.dateTime), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`
+                      : null;
                     return (
                       <div
                         key={ev.id}
@@ -931,9 +949,14 @@ export default function CalendarPage() {
                         onClick={() => setTooltip(tooltip?.id === ev.id ? null : ev)}
                       >
                         {!isShort && (
-                          <p className="text-[10px] px-1.5 pt-0.5 truncate font-medium text-rose-500">
-                            {ev.summary || "Out of Office"}
-                          </p>
+                          <div className="px-1.5 pt-0.5">
+                            <p className="text-[10px] truncate font-medium text-rose-500 leading-tight">
+                              {ev.summary || "Out of Office"}
+                            </p>
+                            {isTall && oooTimeLabel && (
+                              <p className="text-[10px] truncate text-rose-400 leading-tight">{oooTimeLabel}</p>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
