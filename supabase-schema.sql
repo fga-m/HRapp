@@ -58,6 +58,17 @@ create table if not exists meeting_notes (
   updated_at timestamptz default now()
 );
 
+-- MEETING TEMPLATES
+create table if not exists meeting_templates (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  meeting_type text not null check (meeting_type in ('1on1', 'team', 'performance_review', 'projects_goals')),
+  content text not null default '',
+  created_by uuid references staff(id),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 -- ONBOARDING CHECKLISTS (templates)
 create table if not exists checklist_templates (
   id uuid primary key default gen_random_uuid(),

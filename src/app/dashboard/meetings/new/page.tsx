@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 
 const MEETING_TYPES = [
   { value: "1on1", label: "1-on-1" },
@@ -12,11 +12,14 @@ const MEETING_TYPES = [
   { value: "projects_goals", label: "Projects & Goals" },
 ];
 
+type Template = { id: string; title: string; content: string };
+
 export default function NewMeetingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [staff, setStaff] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [form, setForm] = useState({
     title: "",
     meeting_type: "1on1",
@@ -28,6 +31,14 @@ export default function NewMeetingPage() {
   useEffect(() => {
     fetch("/api/staff").then((r) => r.json()).then(setStaff);
   }, []);
+
+  // Fetch templates for the selected meeting type
+  useEffect(() => {
+    fetch(`/api/meetings/templates?meeting_type=${form.meeting_type}`)
+      .then((r) => r.json())
+      .then((d) => setTemplates(d.templates || []))
+      .catch(() => setTemplates([]));
+  }, [form.meeting_type]);
 
   const toggleAttendee = (id: string) => {
     setForm((f) => ({
@@ -110,6 +121,42 @@ export default function NewMeetingPage() {
               ))}
             </div>
           </div>
+
+          {/* Template picker */}
+          {templates.length > 0 && (
+            <div>
+              <label className="block text-sm font-semibold text-[#223149] mb-2">
+                Start from a template{" "}
+                <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {templates.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, content: t.content }))}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                      form.content === t.content
+                        ? "bg-[#223149] text-white border-[#223149]"
+                        : "border-[#ECE3DF] text-[#5F7C84] hover:border-[#223149] hover:text-[#223149]"
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    {t.title}
+                  </button>
+                ))}
+                {form.content && (
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, content: "" }))}
+                    className="px-3 py-2 rounded-xl border border-[#ECE3DF] text-xs text-[#9BADB7] hover:border-rose-300 hover:text-rose-500 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Date */}
           <div>

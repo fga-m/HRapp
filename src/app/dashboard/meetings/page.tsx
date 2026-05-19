@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, FileText, ChevronRight, CheckCircle, Clock } from "lucide-react";
+import { Plus, FileText, ChevronRight, CheckCircle, Clock, LayoutTemplate } from "lucide-react";
 import { format } from "date-fns";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -52,13 +52,22 @@ export default function MeetingsPage() {
           </p>
         </div>
         {role === "admin" && (
-          <Link
-            href="/dashboard/meetings/new"
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Meeting Note
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/meetings/templates"
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            >
+              <LayoutTemplate className="w-4 h-4" />
+              Templates
+            </Link>
+            <Link
+              href="/dashboard/meetings/new"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              New Meeting Note
+            </Link>
+          </div>
         )}
       </div>
 

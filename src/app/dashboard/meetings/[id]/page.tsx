@@ -7,6 +7,7 @@ import {
   ArrowLeft, FileText, ExternalLink, CheckCircle,
   Clock, Send, Users, MessageSquare, Share2
 } from "lucide-react";
+import { MarkdownContent } from "@/components/MarkdownContent";
 import { format } from "date-fns";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -180,10 +181,8 @@ export default function MeetingDetailPage() {
           {/* Notes content */}
           {note.content && (
             <div className="bg-white rounded-2xl shadow-sm p-5">
-              <p className="text-sm font-semibold text-[#223149] mb-3">Notes</p>
-              <pre className="text-sm text-[#5F7C84] whitespace-pre-wrap font-sans leading-relaxed">
-                {note.content}
-              </pre>
+              <p className="text-sm font-semibold text-[#223149] mb-4">Notes</p>
+              <MarkdownContent content={note.content} />
             </div>
           )}
 
