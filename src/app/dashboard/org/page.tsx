@@ -307,6 +307,7 @@ export default function OrgChartPage() {
   const [addParentId, setAddParentId] = useState<string | null>(null);
   const [addTitle, setAddTitle] = useState("");
   const [addDescription, setAddDescription] = useState("");
+  const [addStaffIds, setAddStaffIds] = useState<string[]>([]);
   const [addLoading, setAddLoading] = useState(false);
 
   // Edit role modal
@@ -358,7 +359,9 @@ export default function OrgChartPage() {
     setAddParentId(parentId);
     setAddTitle("");
     setAddDescription("");
+    setAddStaffIds([]);
     setShowAddModal(true);
+    fetchAllStaff();
   };
 
   // ─── Add role ──────────────────────────────────────────────────────────────
@@ -376,6 +379,19 @@ export default function OrgChartPage() {
       }),
     });
     if (res.ok) {
+      const newRole = await res.json();
+      // Assign any selected staff in parallel
+      if (addStaffIds.length > 0) {
+        await Promise.all(
+          addStaffIds.map((staffId) =>
+            fetch(`/api/org/${newRole.id}/staff`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ staff_id: staffId }),
+            })
+          )
+        );
+      }
       setShowAddModal(false);
       await fetchData();
     }
@@ -605,6 +621,48 @@ export default function OrgChartPage() {
                 rows={3}
                 className="w-full border border-[#ECE3DF] rounded-xl px-3 py-2 text-sm text-[#223149] placeholder-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#5F7C84]/30 focus:border-[#5F7C84] resize-none"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#223149] mb-1">
+                Assign staff{" "}
+                <span className="text-[#9BADB7] font-normal">(optional)</span>
+              </label>
+              {/* Selected staff chips */}
+              {addStaffIds.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {addStaffIds.map((sid) => {
+                    const member = allStaff.find((s) => s.id === sid);
+                    if (!member) return null;
+                    return (
+                      <span key={sid} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#223149] text-white text-xs font-medium">
+                        {member.full_name}
+                        <button
+                          onClick={() => setAddStaffIds((prev) => prev.filter((id) => id !== sid))}
+                          className="ml-0.5 hover:opacity-70 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+              <select
+                value=""
+                onChange={(e) => {
+                  if (e.target.value && !addStaffIds.includes(e.target.value)) {
+                    setAddStaffIds((prev) => [...prev, e.target.value]);
+                  }
+                }}
+                className="w-full border border-[#ECE3DF] rounded-xl px-3 py-2 text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#5F7C84]/30 focus:border-[#5F7C84]"
+              >
+                <option value="">Select staff member…</option>
+                {allStaff
+                  .filter((s) => !addStaffIds.includes(s.id))
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>{s.full_name}</option>
+                  ))}
+              </select>
             </div>
             <div className="flex gap-2 pt-2">
               <button
