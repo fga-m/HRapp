@@ -24,12 +24,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   if (error || !policy) return NextResponse.json({ error: "Policy not found" }, { status: 404 });
 
-  // Get all signoffs for this policy
+  const currentYear = new Date().getFullYear();
+
+  // Get sign-offs for current version AND current year (yearly renewal)
   const { data: signoffs } = await supabaseAdmin
     .from("policy_signoffs")
     .select(`*, staff:staff(full_name, email, avatar_url)`)
     .eq("policy_id", id)
-    .eq("policy_version", policy.version);
+    .eq("policy_version", policy.version)
+    .eq("signoff_year", currentYear);
+
+  // Also fetch all-time sign-off history for admin view (all years)
+  const { data: signoffHistory } = await supabaseAdmin
+    .from("policy_signoffs")
+    .select(`*, staff:staff(full_name, email)`)
+    .eq("policy_id", id)
+    .order("signed_at", { ascending: false });
 
   // Get staff who need to sign (null = all active, array = specific people)
   const requiredIds: string[] | null = policy.required_signatories ?? null;
@@ -53,10 +63,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({
     policy,
     signoffs: signoffs || [],
+    signoffHistory: signoffHistory || [],
     unsigned,
     mySignoff: mySignoff || null,
     role: caller.role,
     staffId: caller.id,
+    currentYear,
   });
 }
 

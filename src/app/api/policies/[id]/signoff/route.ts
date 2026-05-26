@@ -30,6 +30,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       policy_id: id,
       staff_id: caller.id,
       policy_version: policy.version,
+      signoff_year: new Date().getFullYear(),
     })
     .select()
     .single();

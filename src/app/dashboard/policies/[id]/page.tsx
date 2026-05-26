@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Shield, CheckCircle, Clock, ExternalLink,
-  Users, RefreshCw, Check, Maximize2, Minimize2, Edit
+  Users, RefreshCw, Check, Maximize2, Minimize2, Edit, History, ChevronDown, ChevronUp
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -34,6 +34,7 @@ export default function PolicyDetailPage() {
   const [newVersionNumber, setNewVersionNumber] = useState("");
   const [newDriveUrl, setNewDriveUrl] = useState("");
   const [docExpanded, setDocExpanded] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState("");
 
   const fetchPolicy = () => {
@@ -107,7 +108,7 @@ export default function PolicyDetailPage() {
 
   if (!data?.policy) return <div className="text-[#9BADB7]">Policy not found.</div>;
 
-  const { policy, signoffs, unsigned, mySignoff, role } = data;
+  const { policy, signoffs, signoffHistory, unsigned, mySignoff, role, currentYear } = data;
   const signedCount = signoffs.length;
   const totalCount = signedCount + unsigned.length;
   const progress = totalCount > 0 ? Math.round((signedCount / totalCount) * 100) : 0;
@@ -219,7 +220,7 @@ export default function PolicyDetailPage() {
                   <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-green-500" />
                   </div>
-                  <p className="font-semibold text-[#223149] text-sm">You've signed off</p>
+                  <p className="font-semibold text-[#223149] text-sm">Signed for {currentYear}</p>
                   <p className="text-xs text-[#9BADB7]">
                     {format(new Date(mySignoff.signed_at), "d MMM yyyy, h:mm a")}
                   </p>
@@ -333,6 +334,43 @@ export default function PolicyDetailPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sign-off History (admin only) */}
+          {role === "admin" && signoffHistory && signoffHistory.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <button
+                onClick={() => setShowHistory((v) => !v)}
+                className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-[#F8F6F4] transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <History className="w-4 h-4 text-[#9BADB7]" />
+                  <span className="font-semibold text-[#223149] text-sm">Sign-off History</span>
+                  <span className="text-xs text-[#9BADB7]">({signoffHistory.length})</span>
+                </div>
+                {showHistory
+                  ? <ChevronUp className="w-4 h-4 text-[#9BADB7]" />
+                  : <ChevronDown className="w-4 h-4 text-[#9BADB7]" />}
+              </button>
+              {showHistory && (
+                <div className="px-5 pb-4 space-y-2 border-t border-[#ECE3DF] pt-3">
+                  {signoffHistory.map((s: any) => (
+                    <div key={s.id} className="flex items-center gap-2.5">
+                      <div className="w-6 h-6 rounded-full bg-[#F8F6F4] flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 text-[#5F7C84]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#223149] truncate">{s.staff?.full_name}</p>
+                        <p className="text-xs text-[#9BADB7]">v{s.policy_version} · {s.signoff_year}</p>
+                      </div>
+                      <p className="text-xs text-[#9BADB7] flex-shrink-0">
+                        {format(new Date(s.signed_at), "d MMM yy")}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
