@@ -73,14 +73,14 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { staff_id, title, content } = body;
 
-  if (!staff_id || !title) {
-    return NextResponse.json({ error: "staff_id and title are required" }, { status: 400 });
+  if (!title) {
+    return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
 
   const { data: pd, error } = await supabaseAdmin
     .from("position_descriptions")
     .insert({
-      staff_id,
+      staff_id: staff_id || null,
       title,
       content: content || "",
       version: 1,
@@ -92,14 +92,16 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Notify the assigned staff
-  await supabaseAdmin.from("notifications").insert({
-    staff_id,
-    title: "Position Description Assigned",
-    message: "Your position description has been shared. Please review and acknowledge it.",
-    type: "general",
-    reference_id: pd.id,
-  });
+  // Notify the assigned staff (only if a specific staff member was assigned)
+  if (staff_id) {
+    await supabaseAdmin.from("notifications").insert({
+      staff_id,
+      title: "Position Description Assigned",
+      message: "Your position description has been shared. Please review and acknowledge it.",
+      type: "general",
+      reference_id: pd.id,
+    });
+  }
 
   return NextResponse.json(pd, { status: 201 });
 }

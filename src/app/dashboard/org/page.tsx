@@ -2,14 +2,17 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Network,
   Pencil,
   Plus,
   Trash2,
   X,
-  ChevronRight,
   UserMinus,
+  FileText,
+  Link2,
+  Link2Off,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -28,6 +31,8 @@ interface OrgRole {
   description?: string | null;
   parent_id?: string | null;
   order_index: number;
+  pd_id?: string | null;
+  pd?: { id: string; title: string } | null;
   org_role_staff: { staff: StaffMember }[];
 }
 
@@ -167,6 +172,18 @@ function RoleCard({
             );
           })}
         </div>
+      )}
+
+      {/* Position description link */}
+      {role.pd && (
+        <Link
+          href={`/dashboard/position-descriptions/${role.pd.id}`}
+          className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#F8F6F4] text-[#5F7C84] hover:bg-[#ECE3DF] hover:text-[#223149] text-xs font-medium transition-colors"
+          title="View position description"
+        >
+          <FileText className="w-3 h-3 flex-shrink-0" />
+          <span className="truncate max-w-[160px]">{role.pd.title}</span>
+        </Link>
       )}
 
       {/* Add child button (edit mode) */}
@@ -322,6 +339,11 @@ export default function OrgChartPage() {
   const [selectedStaffId, setSelectedStaffId] = useState("");
   const [staffLoading, setStaffLoading] = useState(false);
 
+  // PD linking within edit modal
+  const [allPds, setAllPds] = useState<{ id: string; title: string }[]>([]);
+  const [selectedPdId, setSelectedPdId] = useState("");
+  const [pdLoading, setPdLoading] = useState(false);
+
   const fetchData = useCallback(async () => {
     const res = await fetch("/api/org");
     if (res.ok) {
@@ -341,8 +363,16 @@ export default function OrgChartPage() {
     if (res.ok) {
       const json = await res.json();
       const list: StaffMember[] = Array.isArray(json) ? json : json.staff ?? [];
-      // Only show active staff in the assignment dropdown
       setAllStaff(list.filter((s: any) => s.is_active !== false));
+    }
+  }, []);
+
+  // Fetch all position descriptions for the PD dropdown
+  const fetchAllPds = useCallback(async () => {
+    const res = await fetch("/api/position-descriptions");
+    if (res.ok) {
+      const json = await res.json();
+      setAllPds((json.pds ?? []).map((p: any) => ({ id: p.id, title: p.title })));
     }
   }, []);
 
@@ -351,8 +381,10 @@ export default function OrgChartPage() {
     setEditTitle(role.title);
     setEditDescription(role.description ?? "");
     setSelectedStaffId("");
+    setSelectedPdId("");
     setShowEditModal(true);
     fetchAllStaff();
+    fetchAllPds();
   };
 
   const openAddModal = (parentId: string | null) => {
@@ -449,6 +481,47 @@ export default function OrgChartPage() {
       }
     }
     setStaffLoading(false);
+  };
+
+  const handleLinkPd = async () => {
+    if (!editRole || !selectedPdId) return;
+    setPdLoading(true);
+    const res = await fetch(`/api/org/${editRole.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pd_id: selectedPdId }),
+    });
+    if (res.ok) {
+      setSelectedPdId("");
+      const refreshed = await fetch("/api/org");
+      if (refreshed.ok) {
+        const json: OrgData = await refreshed.json();
+        setData(json);
+        const updated = json.roles.find((r) => r.id === editRole.id);
+        if (updated) setEditRole(updated);
+      }
+    }
+    setPdLoading(false);
+  };
+
+  const handleUnlinkPd = async () => {
+    if (!editRole) return;
+    setPdLoading(true);
+    const res = await fetch(`/api/org/${editRole.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pd_id: null }),
+    });
+    if (res.ok) {
+      const refreshed = await fetch("/api/org");
+      if (refreshed.ok) {
+        const json: OrgData = await refreshed.json();
+        setData(json);
+        const updated = json.roles.find((r) => r.id === editRole.id);
+        if (updated) setEditRole(updated);
+      }
+    }
+    setPdLoading(false);
   };
 
   const handleRemoveStaff = async (staffId: string) => {
@@ -772,6 +845,64 @@ export default function OrgChartPage() {
                     <Plus className="w-4 h-4" />
                     Add
                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* Position description */}
+            <div>
+              <p className="text-sm font-medium text-[#223149] mb-2">Position Description</p>
+              {editRole.pd ? (
+                <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F8F6F4]">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="w-4 h-4 text-[#5F7C84] flex-shrink-0" />
+                    <Link
+                      href={`/dashboard/position-descriptions/${editRole.pd.id}`}
+                      className="text-sm text-[#223149] font-medium truncate hover:underline"
+                      target="_blank"
+                    >
+                      {editRole.pd.title}
+                    </Link>
+                  </div>
+                  <button
+                    onClick={handleUnlinkPd}
+                    disabled={pdLoading}
+                    className="flex items-center gap-1 text-xs text-[#9BADB7] hover:text-red-500 transition-colors flex-shrink-0 ml-2"
+                    title="Unlink position description"
+                  >
+                    <Link2Off className="w-3.5 h-3.5" />
+                    Unlink
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedPdId}
+                      onChange={(e) => setSelectedPdId(e.target.value)}
+                      className="flex-1 border border-[#ECE3DF] rounded-xl px-3 py-2 text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#5F7C84]/30 focus:border-[#5F7C84]"
+                    >
+                      <option value="">Select a position description…</option>
+                      {allPds.map((pd) => (
+                        <option key={pd.id} value={pd.id}>{pd.title}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleLinkPd}
+                      disabled={!selectedPdId || pdLoading}
+                      className="px-3 py-2 rounded-xl bg-[#5F7C84] text-white text-sm font-medium hover:bg-[#4e6b72] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    >
+                      <Link2 className="w-4 h-4" />
+                      Link
+                    </button>
+                  </div>
+                  <p className="text-xs text-[#9BADB7]">
+                    Don&apos;t see it?{" "}
+                    <Link href="/dashboard/position-descriptions" className="underline hover:text-[#5F7C84]">
+                      Create one first
+                    </Link>
+                    , then come back to link it.
+                  </p>
                 </div>
               )}
             </div>

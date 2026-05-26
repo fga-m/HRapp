@@ -22,6 +22,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.title !== undefined) updatePayload.title = body.title;
   if (body.description !== undefined) updatePayload.description = body.description;
   if ("parent_id" in body) updatePayload.parent_id = body.parent_id; // allow explicit null
+  if ("pd_id" in body) updatePayload.pd_id = body.pd_id; // allow null to unlink
   if (body.order_index !== undefined) updatePayload.order_index = body.order_index;
 
   const { data, error } = await supabaseAdmin

@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest) {
 
   const { data: roles, error } = await supabaseAdmin
     .from("org_roles")
-    .select(`*, org_role_staff(staff:staff(id, full_name, email, avatar_url, position))`)
+    .select(`*, org_role_staff(staff:staff(id, full_name, email, avatar_url, position)), pd:position_descriptions(id, title)`)
     .order("order_index", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
