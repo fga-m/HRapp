@@ -14,6 +14,7 @@ import {
   Bell,
   LogOut,
   Eye,
+  Briefcase,
 } from "lucide-react";
 import { enableStaffView } from "@/app/actions/view-mode";
 
@@ -24,6 +25,7 @@ const navItems = [
   { label: "Policies", href: "/dashboard/policies", icon: Shield },
   { label: "Onboarding", href: "/dashboard/onboarding", icon: CheckSquare },
   { label: "Staff Hub", href: "/dashboard/hub", icon: BookOpen },
+  { label: "My Role", href: "/dashboard/position-descriptions", icon: Briefcase },
   { label: "Staff", href: "/dashboard/staff", icon: Users, adminOnly: true },
 ];
 
