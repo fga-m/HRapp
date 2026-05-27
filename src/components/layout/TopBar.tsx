@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature } from "lucide-react";
+import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -19,6 +19,7 @@ interface TopBarProps {
 
 const moreItems = [
   { label: "Calendars",     href: "/dashboard/calendar",              icon: Calendar },
+  { label: "Performance",  href: "/dashboard/performance",           icon: TrendingUp },
   { label: "Team Schedule", href: "/dashboard/schedule",              icon: CalendarDays, permission: "view_team_schedule" },
   { label: "Onboarding",   href: "/dashboard/onboarding",            icon: CheckSquare },
   { label: "Contracts",   href: "/dashboard/contracts",             icon: FileSignature },
@@ -87,6 +88,7 @@ export default function TopBar({
     "/dashboard/position-descriptions": "My Role",
     "/dashboard/access": "Access Levels",
     "/dashboard/contracts": "Contracts",
+    "/dashboard/performance": "Performance",
   };
 
   const title = Object.entries(pageTitle)
