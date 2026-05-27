@@ -1,7 +1,9 @@
 import { supabaseAdmin } from "@/lib/supabase";
+import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Building2, User, Calendar, Shield, Edit } from "lucide-react";
+import ScheduleCard from "@/components/staff/ScheduleCard";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,18 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
   const { id } = await params;
   const member = await getStaffMember(id);
   if (!member) notFound();
+
+  const session = await auth();
+  const { data: caller } = await supabaseAdmin
+    .from("staff")
+    .select("id, role")
+    .eq("email", session?.user?.email ?? "")
+    .single();
+
+  const canEditSchedule =
+    caller?.id === id ||
+    caller?.role === "admin" ||
+    caller?.role === "manager";
 
   const initials = member.full_name
     .split(" ")
@@ -144,6 +158,9 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
           <span className="text-sm font-semibold text-[#223149]">Meeting Notes</span>
         </Link>
       </div>
+
+      {/* Work Schedule */}
+      <ScheduleCard staffId={member.id} canEdit={canEditSchedule} />
     </div>
   );
 }

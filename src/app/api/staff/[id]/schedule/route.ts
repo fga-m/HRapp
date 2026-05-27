@@ -1,0 +1,88 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase";
+
+const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+export const DEFAULT_SCHEDULE = Object.fromEntries(
+  DAYS.map((day) => [
+    day,
+    {
+      enabled: ["monday", "tuesday", "wednesday", "thursday", "friday"].includes(day),
+      start: "09:00",
+      end: "17:00",
+    },
+  ])
+);
+
+async function canEdit(callerRole: string, callerId: string, targetId: string): Promise<boolean> {
+  if (callerId === targetId) return true;
+  if (callerRole === "admin") return true;
+  if (callerRole === "manager") {
+    const { data } = await supabaseAdmin
+      .from("role_permissions")
+      .select("enabled")
+      .eq("role", "manager")
+      .eq("feature", "manage_staff")
+      .single();
+    return data?.enabled ?? false;
+  }
+  return false;
+}
+
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+
+  const { data } = await supabaseAdmin
+    .from("staff_schedules")
+    .select("schedule, updated_at")
+    .eq("staff_id", id)
+    .single();
+
+  return NextResponse.json({
+    schedule: data?.schedule ?? DEFAULT_SCHEDULE,
+    updated_at: data?.updated_at ?? null,
+  });
+}
+
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+
+  const { data: caller } = await supabaseAdmin
+    .from("staff")
+    .select("id, role")
+    .eq("email", session.user?.email)
+    .single();
+
+  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!(await canEdit(caller.role, caller.id, id))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await req.json();
+  const { schedule } = body;
+
+  if (!schedule || typeof schedule !== "object") {
+    return NextResponse.json({ error: "Invalid schedule" }, { status: 400 });
+  }
+
+  // Upsert — one row per staff member
+  const { data, error } = await supabaseAdmin
+    .from("staff_schedules")
+    .upsert(
+      { staff_id: id, schedule, updated_at: new Date().toISOString() },
+      { onConflict: "staff_id" }
+    )
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json(data);
+}
