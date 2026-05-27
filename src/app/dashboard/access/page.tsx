@@ -185,7 +185,7 @@ interface RoleCardProps {
   badgeColor: string;
   permMap: PermissionsMap;
   saving: string | null;
-  onToggle: (role: "manager" | "staff", feature: string) => void;
+  onToggle: (role: "manager" | "finance" | "staff", feature: string) => void;
 }
 
 function RoleCard({ role, label, badgeColor, permMap, saving, onToggle }: RoleCardProps) {

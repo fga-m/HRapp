@@ -95,9 +95,9 @@ export default function ContractDetailPage() {
   const openAssignModal = async () => {
     const res = await fetch("/api/staff");
     const staff = await res.json();
-    const assignedIds = new Set((data?.assignments ?? []).map((a: any) => a.staff_id));
+    const assignedIds = new Set<string>((data?.assignments ?? []).map((a: any) => a.staff_id as string));
     setAllStaff(Array.isArray(staff) ? staff.filter((s: any) => s.is_active) : []);
-    setSelectedIds(new Set(assignedIds));
+    setSelectedIds(assignedIds);
     setShowAssign(true);
   };
 
