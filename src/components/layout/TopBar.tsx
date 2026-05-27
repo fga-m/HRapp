@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, Menu, LogOut, Settings, Calendar, CheckSquare, Users } from "lucide-react";
+import { Bell, X, Menu, LogOut, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -14,10 +14,13 @@ interface TopBarProps {
 }
 
 const moreItems = [
-  { label: "Calendars", href: "/dashboard/calendar", icon: Calendar },
-  { label: "Onboarding", href: "/dashboard/onboarding", icon: CheckSquare },
-  { label: "Staff", href: "/dashboard/staff", icon: Users, permission: "manage_staff" },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings, adminOnly: true },
+  { label: "Calendars",    href: "/dashboard/calendar",              icon: Calendar },
+  { label: "Team Schedule", href: "/dashboard/schedule",             icon: CalendarDays, permission: "view_team_schedule" },
+  { label: "Onboarding",  href: "/dashboard/onboarding",            icon: CheckSquare },
+  { label: "Org Chart",   href: "/dashboard/org",                   icon: Network },
+  { label: "My Role",     href: "/dashboard/position-descriptions", icon: Briefcase },
+  { label: "Staff",       href: "/dashboard/staff",                 icon: Users,       permission: "manage_staff" },
+  { label: "Access Levels", href: "/dashboard/access",              icon: ShieldCheck, adminOnly: true },
 ];
 
 export default function TopBar({ userName, isAdmin, role = "staff", permissions = [], notificationCount = 0 }: TopBarProps) {
