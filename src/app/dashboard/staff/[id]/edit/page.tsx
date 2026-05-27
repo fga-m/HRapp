@@ -22,7 +22,7 @@ export default function EditStaffPage() {
     position: "",
     department: "",
     google_calendar_id: "",
-    contracted_hours: 38,
+    contracted_hours: 40,
     is_active: true,
   });
 
@@ -36,7 +36,7 @@ export default function EditStaffPage() {
           position: d.position || "",
           department: d.department || "",
           google_calendar_id: d.google_calendar_id || "",
-          contracted_hours: d.contracted_hours ?? 38,
+          contracted_hours: d.contracted_hours ?? 40,
           is_active: d.is_active ?? true,
         });
         setLoading(false);
@@ -148,7 +148,7 @@ export default function EditStaffPage() {
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[#9BADB7] pointer-events-none">hrs</span>
             </div>
-            <p className="text-xs text-[#9BADB7] mt-1">e.g. 38 for full-time, 19 for 0.5 FTE, 0 for volunteers</p>
+            <p className="text-xs text-[#9BADB7] mt-1">1 FTE = 40 hrs/week (8 hrs/day × 5 days, incl. lunch). e.g. 20 for 0.5 FTE, 30 for 0.75 FTE, 0 for volunteers</p>
           </div>
 
           {/* Role — highlighted section */}
