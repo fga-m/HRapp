@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Building2, User, Calendar, Shield, Edit } from "lucide-react";
 import ScheduleCard from "@/components/staff/ScheduleCard";
+import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,18 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
     caller?.id === id ||
     caller?.role === "admin" ||
     caller?.role === "manager";
+
+  // Check manager's manage_staff permission for performance notes
+  let isManager = caller?.role === "admin";
+  if (caller?.role === "manager") {
+    const { data: perm } = await supabaseAdmin
+      .from("role_permissions")
+      .select("enabled")
+      .eq("role", "manager")
+      .eq("feature", "manage_staff")
+      .single();
+    isManager = perm?.enabled ?? false;
+  }
 
   const initials = member.full_name
     .split(" ")
@@ -161,6 +174,14 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
 
       {/* Work Schedule */}
       <ScheduleCard staffId={member.id} canEdit={canEditSchedule} />
+
+      {/* Performance Notes */}
+      <PerformanceNotesCard
+        staffId={member.id}
+        callerId={caller?.id ?? ""}
+        isManager={isManager}
+        isOwnProfile={caller?.id === id}
+      />
     </div>
   );
 }
