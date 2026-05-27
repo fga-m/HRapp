@@ -9,11 +9,24 @@ export const DEFAULT_SCHEDULE = Object.fromEntries(
     day,
     {
       enabled: ["monday", "tuesday", "wednesday", "thursday", "friday"].includes(day),
-      start: "09:00",
-      end: "17:00",
+      slots: [{ start: "09:00", end: "17:00" }],
     },
   ])
 );
+
+/** Migrate legacy {start, end} format to slots array */
+function normalise(schedule: Record<string, any>) {
+  const out: Record<string, any> = {};
+  for (const day of DAYS) {
+    const d = schedule[day] ?? { enabled: false, slots: [{ start: "09:00", end: "17:00" }] };
+    if (d.start !== undefined && !d.slots) {
+      out[day] = { enabled: d.enabled, slots: [{ start: d.start, end: d.end }] };
+    } else {
+      out[day] = d;
+    }
+  }
+  return out;
+}
 
 async function canEdit(callerRole: string, callerId: string, targetId: string): Promise<boolean> {
   if (callerId === targetId) return true;
@@ -42,8 +55,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     .eq("staff_id", id)
     .single();
 
+  const raw = data?.schedule ?? DEFAULT_SCHEDULE;
   return NextResponse.json({
-    schedule: data?.schedule ?? DEFAULT_SCHEDULE,
+    schedule: normalise(raw),
     updated_at: data?.updated_at ?? null,
   });
 }
@@ -72,11 +86,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Invalid schedule" }, { status: 400 });
   }
 
-  // Upsert — one row per staff member
   const { data, error } = await supabaseAdmin
     .from("staff_schedules")
     .upsert(
-      { staff_id: id, schedule, updated_at: new Date().toISOString() },
+      { staff_id: id, schedule: normalise(schedule), updated_at: new Date().toISOString() },
       { onConflict: "staff_id" }
     )
     .select()
