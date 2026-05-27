@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   Calendar,
+  CalendarDays,
   FileText,
   Shield,
   CheckSquare,
@@ -22,6 +23,7 @@ import { enableStaffView } from "@/app/actions/view-mode";
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Calendars", href: "/dashboard/calendar", icon: Calendar },
+  { label: "Team Schedule", href: "/dashboard/schedule", icon: CalendarDays, adminOnly: true },
   { label: "Meeting Notes", href: "/dashboard/meetings", icon: FileText },
   { label: "Policies", href: "/dashboard/policies", icon: Shield },
   { label: "Onboarding", href: "/dashboard/onboarding", icon: CheckSquare },
