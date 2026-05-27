@@ -18,13 +18,15 @@ export default async function DashboardLayout({
 
   const { data: caller } = await supabaseAdmin
     .from("staff")
-    .select("id, full_name, email, role")
+    .select("id, full_name, email, role, avatar_url")
     .eq("email", session.user?.email ?? "")
     .single();
 
   const isAdmin = caller?.role === "admin";
   const userName = caller?.full_name || session.user?.name || "";
   const userEmail = caller?.email || session.user?.email || "";
+  const userAvatar = caller?.avatar_url || session.user?.image || "";
+  const userId = caller?.id || "";
 
   // "View as staff" preview mode — admins only
   const cookieStore = await cookies();
@@ -66,6 +68,9 @@ export default async function DashboardLayout({
       {/* Mobile top bar */}
       <TopBar
         userName={userName}
+        userEmail={userEmail}
+        userAvatar={userAvatar}
+        userId={userId}
         isAdmin={effectiveIsAdmin}
         role={caller?.role ?? "staff"}
         permissions={viewAsStaff ? [] : permissions}
