@@ -44,7 +44,7 @@ export default function BottomNav() {
       {/* More tab — fires a custom event that TopBar listens to */}
       <button
         onClick={() => window.dispatchEvent(new Event("openMobileMenu"))}
-        className="flex-1 flex flex-col items-center justify-center gap-1 py-2 min-h-[56px] text-[#9BADB7] transition-colors active:text-[#223149]"
+        className="flex-1 flex flex-col items-center justify-center gap-1 py-2 min-h-[56px] text-[#9BADB7] transition-colors active:text-[#223149] cursor-pointer"
         style={{ touchAction: "manipulation" }}
       >
         <MoreHorizontal className="w-5 h-5" />
