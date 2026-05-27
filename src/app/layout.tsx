@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { League_Spartan } from "next/font/google";
 import "./globals.css";
@@ -18,17 +18,18 @@ const leagueSpartan = League_Spartan({
 export const metadata: Metadata = {
   title: "FGA Melbourne | HR Portal",
   description: "FGA Melbourne Staff HR Portal",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "FGA HR",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
