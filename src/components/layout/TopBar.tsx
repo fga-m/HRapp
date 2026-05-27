@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, X, Menu, LogOut, Settings, Calendar, CheckSquare, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,6 +23,13 @@ const moreItems = [
 export default function TopBar({ userName, isAdmin, role = "staff", permissions = [], notificationCount = 0 }: TopBarProps) {
   const [showMore, setShowMore] = useState(false);
   const pathname = usePathname();
+
+  // Listen for the BottomNav "More" button event
+  useEffect(() => {
+    const handler = () => setShowMore(true);
+    window.addEventListener("openMobileMenu", handler);
+    return () => window.removeEventListener("openMobileMenu", handler);
+  }, []);
 
   const pageTitle: Record<string, string> = {
     "/dashboard": "Dashboard",
