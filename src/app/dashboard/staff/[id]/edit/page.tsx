@@ -154,7 +154,7 @@ export default function EditStaffPage() {
           {/* Role — highlighted section */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-semibold text-[#223149] mb-2">Role</label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: "staff" })}
@@ -191,6 +191,23 @@ export default function EditStaffPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setForm({ ...form, role: "finance" })}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
+                  form.role === "finance"
+                    ? "border-[#2E7D52] bg-[#2E7D52]/5"
+                    : "border-[#ECE3DF] hover:border-[#9BADB7]"
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "finance" ? "bg-[#2E7D52]" : "bg-[#ECE3DF]"}`}>
+                  <span className={`text-xs font-bold ${form.role === "finance" ? "text-white" : "text-[#9BADB7]"}`}>F</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-[#223149]">Finance</p>
+                  <p className="text-xs text-[#9BADB7]">Payroll &amp; hours</p>
+                </div>
+              </button>
+              <button
+                type="button"
                 onClick={() => setForm({ ...form, role: "admin" })}
                 className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
                   form.role === "admin"
@@ -215,6 +232,11 @@ export default function EditStaffPage() {
             {form.role === "manager" && (
               <p className="text-xs text-[#5F7C84] mt-2">
                 Managers get the permissions configured on the Access Levels page.
+              </p>
+            )}
+            {form.role === "finance" && (
+              <p className="text-xs text-[#2E7D52] mt-2">
+                Finance gets the permissions configured on the Access Levels page.
               </p>
             )}
           </div>

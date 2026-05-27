@@ -91,7 +91,7 @@ export default function TopBar({
     .sort((a, b) => b[0].length - a[0].length)
     .find(([path]) => pathname.startsWith(path))?.[1] ?? "HR Portal";
 
-  const roleBadge = role === "admin" ? "Admin" : role === "manager" ? "Manager" : null;
+  const roleBadge = role === "admin" ? "Admin" : role === "manager" ? "Manager" : role === "finance" ? "Finance" : null;
 
   return (
     <>

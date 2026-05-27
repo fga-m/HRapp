@@ -42,7 +42,7 @@ export default function AccessLevelsPage() {
       });
   }, []);
 
-  const toggle = async (role: "manager" | "staff", feature: string) => {
+  const toggle = async (role: "manager" | "finance" | "staff", feature: string) => {
     const current = permMap[role]?.[feature] ?? false;
     const next = !current;
     const key = `${role}:${feature}`;
@@ -106,7 +106,7 @@ export default function AccessLevelsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {/* Admin card — locked */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
@@ -155,6 +155,16 @@ export default function AccessLevelsPage() {
           onToggle={toggle}
         />
 
+        {/* Finance card */}
+        <RoleCard
+          role="finance"
+          label="Finance"
+          badgeColor="bg-[#2E7D52]"
+          permMap={permMap}
+          saving={saving}
+          onToggle={toggle}
+        />
+
         {/* Staff card */}
         <RoleCard
           role="staff"
@@ -170,7 +180,7 @@ export default function AccessLevelsPage() {
 }
 
 interface RoleCardProps {
-  role: "manager" | "staff";
+  role: "manager" | "finance" | "staff";
   label: string;
   badgeColor: string;
   permMap: PermissionsMap;

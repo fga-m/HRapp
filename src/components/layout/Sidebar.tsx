@@ -75,7 +75,7 @@ export default function Sidebar({
   });
 
   const roleBadgeLabel =
-    role === "admin" ? "Admin" : role === "manager" ? "Manager" : null;
+    role === "admin" ? "Admin" : role === "manager" ? "Manager" : role === "finance" ? "Finance" : null;
 
   return (
     <aside className="w-64 min-h-screen bg-[#223149] flex flex-col">
