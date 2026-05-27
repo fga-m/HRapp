@@ -93,7 +93,7 @@ export default function AccessLevelsPage() {
           <ShieldCheck className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-[#223149]">Access Levels</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#223149]">Access Levels</h1>
           <p className="text-sm text-[#9BADB7] mt-0.5">
             Configure which features each role can access
           </p>
@@ -204,6 +204,7 @@ function RoleCard({ role, label, badgeColor, permMap, saving, onToggle }: RoleCa
                   className={`relative w-9 h-5 rounded-full flex-shrink-0 transition-colors ${
                     enabled ? "bg-[#223149]" : "bg-[#ECE3DF]"
                   } ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`}
+                  style={{ touchAction: "manipulation" }}
                   aria-label={`${enabled ? "Disable" : "Enable"} ${feature.label} for ${label}`}
                 >
                   <span

@@ -232,10 +232,10 @@ function ToilModal({ member, onClose, onSaved }: ToilModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/40 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg max-h-[90vh] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)] sm:pb-0">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
           <div className="flex items-center gap-3">
@@ -455,7 +455,7 @@ export default function SchedulePage() {
             disabled={loading}
             className="px-3 py-2 rounded-xl border border-[#ECE3DF] bg-white text-sm font-medium text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
           >
-            This week
+            <span className="hidden sm:inline">This </span>week
           </button>
           <button
             onClick={nextWeek}

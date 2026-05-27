@@ -580,14 +580,15 @@ export default function OrgChartPage() {
         </div>
 
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isEditMode && (
               <button
                 onClick={() => openAddModal(null)}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#223149] text-[#223149] text-sm font-medium hover:bg-[#F8F6F4] transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Add top-level role
+                <span className="hidden sm:inline">Add top-level role</span>
+                <span className="sm:hidden">Add role</span>
               </button>
             )}
             <button

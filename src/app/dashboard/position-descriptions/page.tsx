@@ -288,7 +288,7 @@ export default function PositionDescriptionsPage() {
       {/* New PD Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
-          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-6 w-full md:max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-6 w-full md:max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-[#223149]">New Position Description</h2>
               <button
