@@ -53,6 +53,7 @@ interface SidebarProps {
   permissions?: string[];
   userName?: string;
   userEmail?: string;
+  userId?: string;
   notificationCount?: number;
   viewAsStaff?: boolean;
 }
@@ -63,6 +64,7 @@ export default function Sidebar({
   permissions = [],
   userName,
   userEmail,
+  userId,
   notificationCount = 0,
   viewAsStaff = false,
 }: SidebarProps) {
@@ -166,10 +168,20 @@ export default function Sidebar({
           )}
         </Link>
 
-        <div className="px-3 py-2 mt-2">
-          <p className="text-white text-sm font-medium truncate">{userName}</p>
-          <p className="text-[#9BADB7] text-xs truncate">{userEmail}</p>
-        </div>
+        {userId ? (
+          <Link
+            href={`/dashboard/staff/${userId}`}
+            className="block px-3 py-2 mt-2 rounded-xl hover:bg-white/5 transition-colors group"
+          >
+            <p className="text-white text-sm font-medium truncate group-hover:underline">{userName}</p>
+            <p className="text-[#9BADB7] text-xs truncate">{userEmail}</p>
+          </Link>
+        ) : (
+          <div className="px-3 py-2 mt-2">
+            <p className="text-white text-sm font-medium truncate">{userName}</p>
+            <p className="text-[#9BADB7] text-xs truncate">{userEmail}</p>
+          </div>
+        )}
         {/* Preview as staff — only visible to admins, hidden while preview is active */}
         {isAdmin && (
           <form action={enableStaffView}>

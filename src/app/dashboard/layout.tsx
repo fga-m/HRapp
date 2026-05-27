@@ -60,6 +60,7 @@ export default async function DashboardLayout({
           permissions={viewAsStaff ? [] : permissions}
           userName={userName}
           userEmail={userEmail}
+          userId={userId}
           notificationCount={unreadCount ?? 0}
           viewAsStaff={viewAsStaff}
         />
