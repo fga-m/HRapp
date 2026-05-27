@@ -75,8 +75,17 @@ function eventHeightPx(ev: GEvent) {
 }
 function eventsForDay(events: GEvent[], day: Date) {
   return events.filter((ev) => {
-    const d = ev.start.dateTime ? new Date(ev.start.dateTime) : new Date(ev.start.date!);
-    return isSameDay(d, day);
+    if (ev.start.dateTime) {
+      // Timed event: match on start day only
+      return isSameDay(new Date(ev.start.dateTime), day);
+    }
+    // All-day event: check if `day` falls within [start, end)
+    // Google uses exclusive end dates, so "Jun 2–3" has end.date = "Jun 4"
+    const dayN = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+    const startN = (() => { const d = new Date(ev.start.date!); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
+    const endRaw = ev.end?.date ?? ev.start.date!;
+    const endN = (() => { const d = new Date(endRaw); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
+    return dayN >= startN && dayN < endN;
   });
 }
 function allDayEventsForDay(events: GEvent[], day: Date) {
