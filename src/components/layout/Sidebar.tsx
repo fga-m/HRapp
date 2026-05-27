@@ -17,32 +17,65 @@ import {
   Eye,
   Briefcase,
   Network,
+  ShieldCheck,
+  type LucideIcon,
 } from "lucide-react";
 import { enableStaffView } from "@/app/actions/view-mode";
+import type { FeatureKey } from "@/lib/permissions";
 
-const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Calendars", href: "/dashboard/calendar", icon: Calendar },
-  { label: "Team Schedule", href: "/dashboard/schedule", icon: CalendarDays, adminOnly: true },
-  { label: "Meeting Notes", href: "/dashboard/meetings", icon: FileText },
-  { label: "Policies", href: "/dashboard/policies", icon: Shield },
-  { label: "Onboarding", href: "/dashboard/onboarding", icon: CheckSquare },
-  { label: "Staff Hub", href: "/dashboard/hub", icon: BookOpen },
-  { label: "Org Chart", href: "/dashboard/org", icon: Network },
-  { label: "My Role", href: "/dashboard/position-descriptions", icon: Briefcase },
-  { label: "Staff", href: "/dashboard/staff", icon: Users, adminOnly: true },
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  adminOnly?: boolean;      // only admin can see (not configurable)
+  permission?: FeatureKey;  // visible if admin OR if user has this permission
+}
+
+const navItems: NavItem[] = [
+  { label: "Dashboard",    href: "/dashboard",                   icon: LayoutDashboard },
+  { label: "Calendars",   href: "/dashboard/calendar",           icon: Calendar },
+  { label: "Team Schedule", href: "/dashboard/schedule",         icon: CalendarDays,  permission: "view_team_schedule" },
+  { label: "Meeting Notes", href: "/dashboard/meetings",         icon: FileText },
+  { label: "Policies",    href: "/dashboard/policies",           icon: Shield },
+  { label: "Onboarding",  href: "/dashboard/onboarding",        icon: CheckSquare },
+  { label: "Staff Hub",   href: "/dashboard/hub",               icon: BookOpen },
+  { label: "Org Chart",   href: "/dashboard/org",               icon: Network },
+  { label: "My Role",     href: "/dashboard/position-descriptions", icon: Briefcase },
+  { label: "Staff",       href: "/dashboard/staff",             icon: Users,         permission: "manage_staff" },
+  { label: "Access Levels", href: "/dashboard/access",          icon: ShieldCheck,   adminOnly: true },
 ];
 
 interface SidebarProps {
   isAdmin?: boolean;
+  role?: string;
+  permissions?: string[];
   userName?: string;
   userEmail?: string;
   notificationCount?: number;
   viewAsStaff?: boolean;
 }
 
-export default function Sidebar({ isAdmin, userName, userEmail, notificationCount = 0, viewAsStaff = false }: SidebarProps) {
+export default function Sidebar({
+  isAdmin,
+  role = "staff",
+  permissions = [],
+  userName,
+  userEmail,
+  notificationCount = 0,
+  viewAsStaff = false,
+}: SidebarProps) {
   const pathname = usePathname();
+
+  const visibleItems = navItems.filter((item) => {
+    if (!item.adminOnly && !item.permission) return true; // visible to all
+    if (isAdmin) return true;                             // admin sees everything
+    if (item.adminOnly) return false;                     // hard admin-only, no override
+    if (item.permission) return permissions.includes(item.permission);
+    return false;
+  });
+
+  const roleBadgeLabel =
+    role === "admin" ? "Admin" : role === "manager" ? "Manager" : null;
 
   return (
     <aside className="w-64 min-h-screen bg-[#223149] flex flex-col">
@@ -70,40 +103,38 @@ export default function Sidebar({ isAdmin, userName, userEmail, notificationCoun
       </div>
 
       {/* Role badge */}
-      {isAdmin && (
+      {roleBadgeLabel && (
         <div className="px-6 py-3">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#9BADB7]/20 text-[#9BADB7]">
-            Admin
+            {roleBadgeLabel}
           </span>
         </div>
       )}
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems
-          .filter((item) => !item.adminOnly || isAdmin)
-          .map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-white/10 text-white"
-                    : "text-[#9BADB7] hover:bg-white/5 hover:text-white"
-                )}
-              >
-                <Icon className="w-4 h-4 flex-shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
+        {visibleItems.map((item) => {
+          const Icon = item.icon;
+          const isActive =
+            item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-white/10 text-white"
+                  : "text-[#9BADB7] hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Bottom */}

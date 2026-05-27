@@ -154,7 +154,7 @@ export default function EditStaffPage() {
           {/* Role — highlighted section */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-semibold text-[#223149] mb-2">Role</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: "staff" })}
@@ -170,6 +170,23 @@ export default function EditStaffPage() {
                 <div>
                   <p className="font-semibold text-sm text-[#223149]">Staff</p>
                   <p className="text-xs text-[#9BADB7]">Standard access</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, role: "manager" })}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
+                  form.role === "manager"
+                    ? "border-[#5F7C84] bg-[#5F7C84]/5"
+                    : "border-[#ECE3DF] hover:border-[#9BADB7]"
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "manager" ? "bg-[#5F7C84]" : "bg-[#ECE3DF]"}`}>
+                  <span className={`text-xs font-bold ${form.role === "manager" ? "text-white" : "text-[#9BADB7]"}`}>M</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-[#223149]">Manager</p>
+                  <p className="text-xs text-[#9BADB7]">Configurable access</p>
                 </div>
               </button>
               <button
@@ -193,6 +210,11 @@ export default function EditStaffPage() {
             {form.role === "admin" && (
               <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
                 ⚠️ Admins can manage all staff, policies, meeting notes and onboarding.
+              </p>
+            )}
+            {form.role === "manager" && (
+              <p className="text-xs text-[#5F7C84] mt-2">
+                Managers get the permissions configured on the Access Levels page.
               </p>
             )}
           </div>

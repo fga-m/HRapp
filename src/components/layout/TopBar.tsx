@@ -8,17 +8,19 @@ import { usePathname } from "next/navigation";
 interface TopBarProps {
   userName?: string;
   isAdmin?: boolean;
+  role?: string;
+  permissions?: string[];
   notificationCount?: number;
 }
 
 const moreItems = [
   { label: "Calendars", href: "/dashboard/calendar", icon: Calendar },
   { label: "Onboarding", href: "/dashboard/onboarding", icon: CheckSquare },
-  { label: "Staff", href: "/dashboard/staff", icon: Users, adminOnly: true },
+  { label: "Staff", href: "/dashboard/staff", icon: Users, permission: "manage_staff" },
   { label: "Settings", href: "/dashboard/settings", icon: Settings, adminOnly: true },
 ];
 
-export default function TopBar({ userName, isAdmin, notificationCount = 0 }: TopBarProps) {
+export default function TopBar({ userName, isAdmin, role = "staff", permissions = [], notificationCount = 0 }: TopBarProps) {
   const [showMore, setShowMore] = useState(false);
   const pathname = usePathname();
 
@@ -77,8 +79,11 @@ export default function TopBar({ userName, isAdmin, notificationCount = 0 }: Top
                 <p className="font-bold text-[#223149]" style={{ fontFamily: "var(--font-league-spartan)" }}>
                   {userName}
                 </p>
-                {isAdmin && (
+                {role === "admin" && (
                   <span className="text-xs text-[#9BADB7]">Admin</span>
+                )}
+                {role === "manager" && (
+                  <span className="text-xs text-[#9BADB7]">Manager</span>
                 )}
               </div>
               <button onClick={() => setShowMore(false)} className="p-2 rounded-xl hover:bg-[#F8F6F4]">
@@ -87,7 +92,13 @@ export default function TopBar({ userName, isAdmin, notificationCount = 0 }: Top
             </div>
             <div className="px-4 py-3 space-y-1">
               {moreItems
-                .filter(item => !item.adminOnly || isAdmin)
+                .filter(item => {
+                  if (!item.adminOnly && !(item as any).permission) return true;
+                  if (isAdmin) return true;
+                  if (item.adminOnly) return false;
+                  if ((item as any).permission) return permissions.includes((item as any).permission);
+                  return false;
+                })
                 .map(item => {
                   const Icon = item.icon;
                   const isActive = pathname.startsWith(item.href);

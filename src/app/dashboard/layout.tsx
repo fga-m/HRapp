@@ -31,6 +31,16 @@ export default async function DashboardLayout({
   const viewAsStaff = isAdmin && cookieStore.get("fga_view_as_staff")?.value === "1";
   const effectiveIsAdmin = isAdmin && !viewAsStaff;
 
+  // Fetch effective permissions for this user
+  const { data: dbPerms } = await supabaseAdmin
+    .from("role_permissions")
+    .select("feature, enabled")
+    .eq("role", caller?.role ?? "staff");
+
+  const permissions: string[] = (dbPerms ?? [])
+    .filter((p: any) => p.enabled)
+    .map((p: any) => p.feature as string);
+
   // Unread notification count
   const { count: unreadCount } = await supabaseAdmin
     .from("notifications")
@@ -44,6 +54,8 @@ export default async function DashboardLayout({
       <div className="hidden md:block">
         <Sidebar
           isAdmin={effectiveIsAdmin}
+          role={caller?.role ?? "staff"}
+          permissions={viewAsStaff ? [] : permissions}
           userName={userName}
           userEmail={userEmail}
           notificationCount={unreadCount ?? 0}
@@ -55,6 +67,8 @@ export default async function DashboardLayout({
       <TopBar
         userName={userName}
         isAdmin={effectiveIsAdmin}
+        role={caller?.role ?? "staff"}
+        permissions={viewAsStaff ? [] : permissions}
         notificationCount={unreadCount ?? 0}
       />
 

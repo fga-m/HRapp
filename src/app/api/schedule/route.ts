@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
+async function callerCanDo(callerRole: string, feature: string): Promise<boolean> {
+  if (callerRole === "admin") return true;
+  if (callerRole !== "manager") return false;
+  const { data } = await supabaseAdmin
+    .from("role_permissions")
+    .select("enabled")
+    .eq("role", "manager")
+    .eq("feature", feature)
+    .single();
+  return data?.enabled ?? false;
+}
+
 function getMondayOfWeek(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay(); // 0=Sun, 1=Mon, ...
@@ -30,7 +42,7 @@ export async function GET(req: NextRequest) {
 
   if (!caller) return NextResponse.json({ error: "Staff record not found" }, { status: 404 });
 
-  const isAdmin = caller.role === "admin";
+  const canViewTeam = await callerCanDo(caller.role, "view_team_schedule");
 
   // Parse weekStart param
   const { searchParams } = new URL(req.url);
@@ -48,7 +60,7 @@ export async function GET(req: NextRequest) {
   weekEnd.setDate(weekEnd.getDate() + 7);
 
   // Fetch staff
-  const staffQuery = isAdmin
+  const staffQuery = canViewTeam
     ? supabaseAdmin
         .from("staff")
         .select("id, full_name, email, avatar_url, position, contracted_hours, google_calendar_id")

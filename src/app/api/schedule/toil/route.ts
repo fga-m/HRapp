@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
+async function callerCanDo(callerRole: string, feature: string): Promise<boolean> {
+  if (callerRole === "admin") return true;
+  if (callerRole !== "manager") return false;
+  const { data } = await supabaseAdmin
+    .from("role_permissions")
+    .select("enabled")
+    .eq("role", "manager")
+    .eq("feature", feature)
+    .single();
+  return data?.enabled ?? false;
+}
+
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,12 +29,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const staffId = searchParams.get("staff_id");
 
-  // Staff can only view their own transactions
-  if (caller.role !== "admin" && staffId !== caller.id) {
+  const canManageToil = await callerCanDo(caller.role, "manage_toil");
+
+  // Staff can only view their own transactions; managers/admins with manage_toil can view any
+  if (!canManageToil && staffId !== caller.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const queryId = caller.role === "admin" ? (staffId ?? caller.id) : caller.id;
+  const queryId = canManageToil ? (staffId ?? caller.id) : caller.id;
 
   const { data: transactions, error } = await supabaseAdmin
     .from("toil_transactions")
@@ -46,7 +60,9 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (!caller) return NextResponse.json({ error: "Staff record not found" }, { status: 404 });
-  if (caller.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!(await callerCanDo(caller.role, "manage_toil"))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const body = await req.json();
   const { staff_id, hours, reason, transaction_date } = body;

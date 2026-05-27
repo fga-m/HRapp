@@ -3,6 +3,18 @@ import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createMeetingDoc } from "@/lib/google-drive";
 
+async function callerCanDo(callerRole: string, feature: string): Promise<boolean> {
+  if (callerRole === "admin") return true;
+  if (callerRole !== "manager") return false;
+  const { data } = await supabaseAdmin
+    .from("role_permissions")
+    .select("enabled")
+    .eq("role", "manager")
+    .eq("feature", feature)
+    .single();
+  return data?.enabled ?? false;
+}
+
 export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,8 +29,10 @@ export async function GET() {
 
   let data, error;
 
-  if (caller.role === "admin") {
-    // Admins see only their own notes
+  const canManage = await callerCanDo(caller.role, "manage_meetings");
+
+  if (canManage) {
+    // Admins and managers with manage_meetings see their own created notes
     ({ data, error } = await supabaseAdmin
       .from("meeting_notes")
       .select("*, creator:staff!meeting_notes_created_by_fkey(full_name)")
@@ -48,7 +62,10 @@ export async function POST(req: NextRequest) {
     .eq("email", session.user?.email)
     .single();
 
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!(await callerCanDo(caller.role, "manage_meetings"))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const body = await req.json();
   const { title, meeting_type, meeting_date, attendees, content } = body;

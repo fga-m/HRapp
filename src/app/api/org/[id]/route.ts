@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
+async function callerCanDo(callerRole: string, feature: string): Promise<boolean> {
+  if (callerRole === "admin") return true;
+  if (callerRole !== "manager") return false;
+  const { data } = await supabaseAdmin
+    .from("role_permissions")
+    .select("enabled")
+    .eq("role", "manager")
+    .eq("feature", feature)
+    .single();
+  return data?.enabled ?? false;
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,7 +26,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq("email", session.user?.email)
     .single();
 
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!(await callerCanDo(caller?.role ?? "", "manage_org"))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const body = await req.json();
   const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() };
@@ -49,7 +63,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .eq("email", session.user?.email)
     .single();
 
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!(await callerCanDo(caller?.role ?? "", "manage_org"))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   // Detach children so they become root nodes (not orphaned / cascade deleted)
   await supabaseAdmin
