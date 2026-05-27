@@ -18,6 +18,7 @@ import {
   Briefcase,
   Network,
   ShieldCheck,
+  FileSignature,
   type LucideIcon,
 } from "lucide-react";
 import { enableStaffView } from "@/app/actions/view-mode";
@@ -37,6 +38,7 @@ const navItems: NavItem[] = [
   { label: "Team Schedule", href: "/dashboard/schedule",         icon: CalendarDays,  permission: "view_team_schedule" },
   { label: "Meeting Notes", href: "/dashboard/meetings",         icon: FileText },
   { label: "Policies",    href: "/dashboard/policies",           icon: Shield },
+  { label: "Contracts",   href: "/dashboard/contracts",          icon: FileSignature },
   { label: "Onboarding",  href: "/dashboard/onboarding",        icon: CheckSquare },
   { label: "Staff Hub",   href: "/dashboard/hub",               icon: BookOpen },
   { label: "Org Chart",   href: "/dashboard/org",               icon: Network },

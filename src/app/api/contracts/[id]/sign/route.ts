@@ -1,0 +1,66 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase";
+
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+
+  const { data: caller } = await supabaseAdmin
+    .from("staff")
+    .select("id, role")
+    .eq("email", session.user?.email)
+    .single();
+
+  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Validate: must be assigned to this contract
+  const { data: assignment } = await supabaseAdmin
+    .from("contract_assignments")
+    .select("id")
+    .eq("contract_id", id)
+    .eq("staff_id", caller.id)
+    .single();
+
+  if (!assignment) return NextResponse.json({ error: "You are not assigned to this contract" }, { status: 403 });
+
+  // Validate: must not have already signed
+  const { data: existing } = await supabaseAdmin
+    .from("contract_signatures")
+    .select("id")
+    .eq("contract_id", id)
+    .eq("staff_id", caller.id)
+    .single();
+
+  if (existing) return NextResponse.json({ error: "You have already signed this contract" }, { status: 409 });
+
+  const body = await req.json();
+  const { name_as_typed } = body;
+
+  if (!name_as_typed || name_as_typed.trim().length < 2) {
+    return NextResponse.json({ error: "A valid full name is required to sign" }, { status: 400 });
+  }
+
+  // Get IP from request headers
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    req.headers.get("x-real-ip") ??
+    null;
+
+  const { data, error } = await supabaseAdmin
+    .from("contract_signatures")
+    .insert({
+      contract_id: id,
+      staff_id: caller.id,
+      name_as_typed: name_as_typed.trim(),
+      ip_address: ip,
+    })
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json(data, { status: 201 });
+}
