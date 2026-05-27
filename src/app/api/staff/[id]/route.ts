@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json();
-  const { full_name, role, position, department, google_calendar_id, is_active } = body;
+  const { full_name, role, position, department, google_calendar_id, is_active, contracted_hours } = body;
 
   const { data, error } = await supabaseAdmin
     .from("staff")
@@ -34,6 +34,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(department !== undefined && { department }),
       ...(google_calendar_id !== undefined && { google_calendar_id }),
       ...(is_active !== undefined && { is_active }),
+      ...(contracted_hours !== undefined && { contracted_hours: Number(contracted_hours) }),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)

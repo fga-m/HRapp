@@ -22,6 +22,7 @@ export default function EditStaffPage() {
     position: "",
     department: "",
     google_calendar_id: "",
+    contracted_hours: 38,
     is_active: true,
   });
 
@@ -35,6 +36,7 @@ export default function EditStaffPage() {
           position: d.position || "",
           department: d.department || "",
           google_calendar_id: d.google_calendar_id || "",
+          contracted_hours: d.contracted_hours ?? 38,
           is_active: d.is_active ?? true,
         });
         setLoading(false);
@@ -127,6 +129,26 @@ export default function EditStaffPage() {
               onChange={(e) => setForm({ ...form, google_calendar_id: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              Contracted Hours
+              <span className="ml-1.5 text-xs font-normal text-[#9BADB7]">per week</span>
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                min={0}
+                max={168}
+                step={0.5}
+                value={form.contracted_hours}
+                onChange={(e) => setForm({ ...form, contracted_hours: parseFloat(e.target.value) || 0 })}
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors pr-14"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[#9BADB7] pointer-events-none">hrs</span>
+            </div>
+            <p className="text-xs text-[#9BADB7] mt-1">e.g. 38 for full-time, 19 for 0.5 FTE, 0 for volunteers</p>
           </div>
 
           {/* Role — highlighted section */}
