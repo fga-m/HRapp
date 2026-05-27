@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, Menu, LogOut, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck } from "lucide-react";
+import { Bell, X, LogOut, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -70,12 +70,6 @@ export default function TopBar({ userName, isAdmin, role = "staff", permissions 
               </span>
             )}
           </Link>
-          <button
-            onClick={() => setShowMore(true)}
-            className="p-2 rounded-xl hover:bg-white/10 transition-colors"
-          >
-            <Menu className="w-5 h-5 text-white" />
-          </button>
         </div>
       </header>
 
