@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json();
-  const { full_name, role, position, department, google_calendar_id, is_active, contracted_hours } = body;
+  const { full_name, role, position, department, google_calendar_id, is_active, contracted_hours, xero_employee_id } = body;
 
   const { data, error } = await supabaseAdmin
     .from("staff")
@@ -35,6 +35,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(google_calendar_id !== undefined && { google_calendar_id }),
       ...(is_active !== undefined && { is_active }),
       ...(contracted_hours !== undefined && { contracted_hours: Number(contracted_hours) }),
+      ...(xero_employee_id !== undefined && { xero_employee_id: xero_employee_id || null }),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)

@@ -3,7 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Shield, Search, ChevronDown, X, Loader2 } from "lucide-react";
+
+interface XeroEmployee {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: string;
+}
 
 const DEPARTMENTS = [
   "Administration", "Worship", "Youth", "Children", "Connect Groups",
@@ -24,7 +32,16 @@ export default function EditStaffPage() {
     google_calendar_id: "",
     contracted_hours: 40,
     is_active: true,
+    xero_employee_id: "",
   });
+
+  // Xero employee lookup
+  const [xeroLinked, setXeroLinked] = useState<XeroEmployee | null>(null);
+  const [showXeroLookup, setShowXeroLookup] = useState(false);
+  const [xeroEmployees, setXeroEmployees] = useState<XeroEmployee[]>([]);
+  const [xeroLoading, setXeroLoading] = useState(false);
+  const [xeroError, setXeroError] = useState("");
+  const [xeroSearch, setXeroSearch] = useState("");
 
   useEffect(() => {
     fetch(`/api/staff/${id}`)
@@ -38,6 +55,7 @@ export default function EditStaffPage() {
           google_calendar_id: d.google_calendar_id || "",
           contracted_hours: d.contracted_hours ?? 40,
           is_active: d.is_active ?? true,
+          xero_employee_id: d.xero_employee_id || "",
         });
         setLoading(false);
       });
@@ -63,6 +81,38 @@ export default function EditStaffPage() {
       setSaving(false);
     }
   };
+
+  const openXeroLookup = async () => {
+    setShowXeroLookup(true);
+    if (xeroEmployees.length > 0) return;
+    setXeroLoading(true);
+    setXeroError("");
+    try {
+      const res = await fetch("/api/xero/employees");
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error ?? "Failed to load Xero employees");
+      setXeroEmployees(d.employees ?? []);
+    } catch (err: any) {
+      setXeroError(err.message);
+    } finally {
+      setXeroLoading(false);
+    }
+  };
+
+  const selectXeroEmployee = (emp: XeroEmployee) => {
+    setForm({ ...form, xero_employee_id: emp.id });
+    setXeroLinked(emp);
+    setShowXeroLookup(false);
+    setXeroSearch("");
+  };
+
+  const filteredXeroEmployees = xeroEmployees.filter((e) => {
+    const q = xeroSearch.toLowerCase();
+    return (
+      `${e.firstName} ${e.lastName}`.toLowerCase().includes(q) ||
+      e.email.toLowerCase().includes(q)
+    );
+  });
 
   if (loading) {
     return (
@@ -239,6 +289,117 @@ export default function EditStaffPage() {
                 Finance gets the permissions configured on the Access Levels page.
               </p>
             )}
+          </div>
+
+          {/* Xero Employee Link */}
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              Xero Employee
+              <span className="ml-1.5 text-xs font-normal text-[#9BADB7]">for leave requests</span>
+            </label>
+            {form.xero_employee_id ? (
+              <div className="flex items-center gap-3 px-4 py-3 bg-[#F8F6F4] rounded-xl border border-[#ECE3DF]">
+                <div className="w-7 h-7 rounded-lg bg-[#13B5EA]/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[#13B5EA] text-xs font-bold">X</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  {xeroLinked ? (
+                    <>
+                      <p className="text-sm font-semibold text-[#223149]">{xeroLinked.firstName} {xeroLinked.lastName}</p>
+                      {xeroLinked.email && <p className="text-xs text-[#9BADB7] truncate">{xeroLinked.email}</p>}
+                    </>
+                  ) : (
+                    <p className="text-sm text-[#223149] font-mono truncate">{form.xero_employee_id}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setForm({ ...form, xero_employee_id: "" }); setXeroLinked(null); }}
+                  className="p-1 rounded-lg hover:bg-[#ECE3DF] text-[#9BADB7] hover:text-red-400 transition-colors flex-shrink-0"
+                  title="Remove link"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={openXeroLookup}
+                className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-dashed border-[#9BADB7] text-[#5F7C84] hover:border-[#13B5EA] hover:text-[#13B5EA] transition-colors text-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <Search className="w-4 h-4" />
+                  Search Xero employees…
+                </span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Lookup dropdown */}
+            {showXeroLookup && (
+              <div className="mt-2 bg-white border border-[#ECE3DF] rounded-xl shadow-lg overflow-hidden">
+                <div className="p-3 border-b border-[#ECE3DF]">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-[#F8F6F4] rounded-lg">
+                    <Search className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Search by name or email…"
+                      value={xeroSearch}
+                      onChange={(e) => setXeroSearch(e.target.value)}
+                      className="flex-1 bg-transparent text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setShowXeroLookup(false); setXeroSearch(""); }}
+                      className="text-[#9BADB7] hover:text-[#223149]"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="max-h-52 overflow-y-auto">
+                  {xeroLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-6 text-sm text-[#9BADB7]">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading from Xero…
+                    </div>
+                  ) : xeroError ? (
+                    <div className="p-4 text-sm text-red-500">
+                      {xeroError.includes("not connected") || xeroError.includes("Xero not connected")
+                        ? "Xero is not connected. Go to Settings to connect."
+                        : xeroError}
+                    </div>
+                  ) : filteredXeroEmployees.length === 0 ? (
+                    <p className="p-4 text-sm text-[#9BADB7] text-center">
+                      {xeroSearch ? "No employees match your search." : "No employees found in Xero."}
+                    </p>
+                  ) : (
+                    filteredXeroEmployees
+                      .filter((e) => e.status !== "TERMINATED")
+                      .map((emp) => (
+                        <button
+                          key={emp.id}
+                          type="button"
+                          onClick={() => selectXeroEmployee(emp)}
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#F8F6F4] transition-colors text-left"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-[#223149] flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-bold">
+                              {emp.firstName[0]}{emp.lastName[0]}
+                            </span>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#223149]">{emp.firstName} {emp.lastName}</p>
+                            {emp.email && <p className="text-xs text-[#9BADB7] truncate">{emp.email}</p>}
+                          </div>
+                        </button>
+                      ))
+                  )}
+                </div>
+              </div>
+            )}
+            <p className="text-xs text-[#9BADB7] mt-1.5">Links this staff member to their Xero Payroll record for leave requests.</p>
           </div>
 
           {/* Active status */}

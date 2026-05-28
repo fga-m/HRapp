@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Mail, Building2, User, Calendar, Shield, Edit } from "lucide-react";
+import { ArrowLeft, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink } from "lucide-react";
 import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 
@@ -142,6 +142,33 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
             </div>
           )}
         </div>
+
+        {/* Xero link — admin only */}
+        {caller?.role === "admin" && (
+          <div className="mt-4 pt-4 border-t border-[#ECE3DF]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded bg-[#13B5EA]/10 flex items-center justify-center">
+                  <span className="text-[#13B5EA] text-[9px] font-bold">X</span>
+                </div>
+                <span className="text-xs font-medium text-[#9BADB7]">Xero Employee</span>
+              </div>
+              {member.xero_employee_id ? (
+                <span className="text-xs text-[#223149] font-mono bg-[#F8F6F4] px-2 py-0.5 rounded-lg">
+                  linked ✓
+                </span>
+              ) : (
+                <Link
+                  href={`/dashboard/staff/${member.id}/edit`}
+                  className="text-xs text-[#13B5EA] hover:underline flex items-center gap-1"
+                >
+                  Link to Xero
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="mt-4 pt-4 border-t border-[#ECE3DF]">
           <p className="text-xs text-[#9BADB7]">
