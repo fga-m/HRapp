@@ -56,16 +56,19 @@ export async function GET(
       return NextResponse.json({ error: `Xero error: ${err}` }, { status: res.status });
     }
     const data = await res.json();
-    const applications = (data.LeaveApplications ?? []).map((a: any) => ({
-      id: a.LeaveApplicationID,
-      leaveTypeId: a.LeaveTypeID,
-      leaveName: a.Title ?? a.LeaveType ?? "",
-      startDate: fromXeroDate(a.StartDate),
-      endDate: fromXeroDate(a.EndDate),
-      description: a.Description ?? "",
-      status: a.LeaveApplicationStatus ?? "SCHEDULED",
-      units: a.LeavePeriods?.reduce((sum: number, p: any) => sum + (p.NumberOfUnits ?? 0), 0) ?? 0,
-    }));
+    const applications = (data.LeaveApplications ?? [])
+      // Always filter by employee ID — Xero may return all org applications
+      .filter((a: any) => a.EmployeeID === member.xero_employee_id)
+      .map((a: any) => ({
+        id: a.LeaveApplicationID,
+        leaveTypeId: a.LeaveTypeID,
+        leaveName: a.Title ?? a.LeaveType ?? "",
+        startDate: fromXeroDate(a.StartDate),
+        endDate: fromXeroDate(a.EndDate),
+        description: a.Description ?? "",
+        status: a.LeaveApplicationStatus ?? "SCHEDULED",
+        units: a.LeavePeriods?.reduce((sum: number, p: any) => sum + (p.NumberOfUnits ?? 0), 0) ?? 0,
+      }));
     // Sort newest first
     applications.sort((a: any, b: any) => b.startDate.localeCompare(a.startDate));
     return NextResponse.json({ linked: true, applications });
