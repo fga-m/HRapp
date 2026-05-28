@@ -68,7 +68,7 @@ export async function GET(
         // we need to check each LeavePeriod's LeavePeriodStatus instead.
         const allPeriodsPaid =
           leavePeriods.length > 0 &&
-          leavePeriods.every((p: any) => p.LeavePeriodStatus === "PAID");
+          leavePeriods.every((p: any) => p.LeavePeriodStatus === "PROCESSED");
         const effectiveStatus =
           appStatus === "SCHEDULED" && allPeriodsPaid ? "COMPLETED" : appStatus;
 
@@ -80,8 +80,6 @@ export async function GET(
           endDate: fromXeroDate(a.EndDate),
           status: effectiveStatus,
           units: leavePeriods.reduce((sum: number, p: any) => sum + (p.NumberOfUnits ?? 0), 0),
-          // Temporary debug: expose raw period statuses
-          _debug: leavePeriods.map((p: any) => ({ s: p.LeavePeriodStatus, keys: Object.keys(p) })),
         };
       });
     // Sort newest first
