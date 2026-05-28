@@ -91,6 +91,12 @@ function businessDayCount(start: string, end: string) {
   return differenceInBusinessDays(addDays(e, 1), s);
 }
 
+interface Approver {
+  id: string;
+  full_name: string;
+  role: string;
+}
+
 export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Props) {
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [applications, setApplications] = useState<LeaveApplication[]>([]);
@@ -100,6 +106,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
 
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ leaveTypeId: "", startDate: "", endDate: "", description: "" });
+  const [approvers, setApprovers] = useState<Approver[]>([]);
+  const [approverId, setApproverId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -125,6 +133,21 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
 
   useEffect(() => { fetchAll(); }, [staffId]);
 
+  // Fetch approvers (managers + admins) when modal opens
+  useEffect(() => {
+    if (!showModal || approvers.length > 0) return;
+    fetch("/api/staff")
+      .then(r => r.json())
+      .then(d => {
+        const list: Approver[] = (Array.isArray(d) ? d : []).filter(
+          (s: Approver) => s.role === "admin" || s.role === "manager"
+        );
+        setApprovers(list);
+        if (list.length === 1) setApproverId(list[0].id);
+      })
+      .catch(() => {});
+  }, [showModal]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -139,6 +162,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
       if (!res.ok) throw new Error(d.error ?? "Failed to submit");
       setShowModal(false);
       setForm({ leaveTypeId: "", startDate: "", endDate: "", description: "" });
+      setApproverId("");
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 5000);
       fetchAll(true);
@@ -297,28 +321,56 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {/* Leave type */}
+              {/* Type of Request */}
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Leave type</label>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Type of Request</label>
                 <select
                   required
                   value={form.leaveTypeId}
                   onChange={e => setForm({ ...form, leaveTypeId: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
                 >
-                  <option value="">Select leave type…</option>
+                  <option value="">Select request…</option>
                   {balances.map(b => (
-                    <option key={b.leaveTypeId} value={b.leaveTypeId}>
-                      {b.name} — {formatBalance(b.balance, b.units)} remaining
-                    </option>
+                    <option key={b.leaveTypeId} value={b.leaveTypeId}>{b.name}</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  Description <span className="font-normal text-[#9BADB7]">(optional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Any additional context…"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                />
+              </div>
+
+              {/* Approver */}
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Approver</label>
+                <select
+                  value={approverId}
+                  onChange={e => setApproverId(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
+                >
+                  <option value="">Select approver…</option>
+                  {approvers.map(a => (
+                    <option key={a.id} value={a.id}>{a.full_name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-[#9BADB7] mt-1">For your reference — approval is managed in Xero.</p>
               </div>
 
               {/* Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Start date</label>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Start Date</label>
                   <input
                     type="date"
                     required
@@ -332,7 +384,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">End date</label>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">End Date</label>
                   <input
                     type="date"
                     required
@@ -344,34 +396,40 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                 </div>
               </div>
 
-              {/* Duration hint */}
-              {form.startDate && form.endDate && businessDays > 0 && (
-                <div className="flex items-center justify-between px-4 py-2.5 bg-[#F8F6F4] rounded-xl text-sm">
-                  <span className="text-[#5F7C84]">Duration</span>
-                  <span className="font-semibold text-[#223149]">
-                    {businessDays} business {businessDays === 1 ? "day" : "days"}
-                    {selectedBalance && ` (~${Math.round(businessDays * 7.6 * 10) / 10} hrs)`}
-                  </span>
+              {/* Current Leave Balance — shown once a type is selected */}
+              {selectedBalance && (
+                <div className="border border-[#ECE3DF] rounded-xl divide-y divide-[#ECE3DF]">
+                  <div className="flex items-center justify-between px-4 py-3 text-sm">
+                    <span className="font-semibold text-[#223149]">Current Leave Balance</span>
+                    <span className="text-xs text-[#9BADB7] font-medium uppercase tracking-wide">
+                      {selectedBalance.units.toLowerCase() === "days" ? "Days" : "Hours"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3 text-sm">
+                    <span className="text-[#5F7C84]">{selectedBalance.name}</span>
+                    <span className="font-bold text-[#223149] tabular-nums">
+                      {selectedBalance.units.toLowerCase() === "days"
+                        ? `${Math.round(selectedBalance.balance * 10) / 10}`
+                        : `${Math.round(selectedBalance.balance * 10) / 10}`}
+                    </span>
+                  </div>
+                  {/* Pay period / duration estimate */}
+                  {form.startDate && form.endDate && businessDays > 0 && (
+                    <div className="flex items-center justify-between px-4 py-3 text-sm">
+                      <span className="text-[#5F7C84]">
+                        {format(parseISO(form.startDate), "MMMM yyyy")}
+                        {form.startDate.slice(0, 7) !== form.endDate.slice(0, 7) &&
+                          ` – ${format(parseISO(form.endDate), "MMMM yyyy")}`}
+                      </span>
+                      <span className="font-bold text-[#223149] tabular-nums">
+                        {selectedBalance.units.toLowerCase() === "days"
+                          ? businessDays
+                          : Math.round(businessDays * 7.6 * 10) / 10}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
-
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-                  Notes <span className="font-normal text-[#9BADB7]">(optional)</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={form.description}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                  placeholder="Any additional context for your manager…"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
-                />
-              </div>
-
-              <div className="p-3 bg-blue-50 rounded-xl text-xs text-blue-700">
-                Your request will be sent directly to Xero. Your manager approves or declines it there.
-              </div>
 
               {submitError && (
                 <div className="flex items-start gap-2 text-sm text-red-500">
@@ -390,7 +448,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowModal(false); setSubmitError(""); }}
+                  onClick={() => { setShowModal(false); setSubmitError(""); setApproverId(""); }}
                   className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                 >
                   Cancel
