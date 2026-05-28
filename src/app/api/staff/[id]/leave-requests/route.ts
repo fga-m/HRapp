@@ -62,10 +62,10 @@ export async function GET(
       .map((a: any) => ({
         id: a.LeaveApplicationID,
         leaveTypeId: a.LeaveTypeID,
-        leaveName: a.Title ?? a.LeaveType ?? "",
+        // Title is the user-entered description (e.g. "LR Nicholas Teh" or "Annual leave")
+        title: a.Title ?? "",
         startDate: fromXeroDate(a.StartDate),
         endDate: fromXeroDate(a.EndDate),
-        description: a.Description ?? "",
         status: a.LeaveApplicationStatus ?? "SCHEDULED",
         units: a.LeavePeriods?.reduce((sum: number, p: any) => sum + (p.NumberOfUnits ?? 0), 0) ?? 0,
       }));

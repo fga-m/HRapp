@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Palmtree, Plus, X, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { Palmtree, Plus, X, CheckCircle, XCircle, AlertCircle, RefreshCw, Clock } from "lucide-react";
 import { format, parseISO, differenceInBusinessDays, addDays } from "date-fns";
 
 interface LeaveBalance {
@@ -14,12 +14,17 @@ interface LeaveBalance {
 interface LeaveApplication {
   id: string;
   leaveTypeId: string;
-  leaveName: string;
+  title: string;      // Xero Title field — shown as "Description" column in Xero
   startDate: string;
   endDate: string;
-  description: string;
-  status: string;
+  status: string;     // SCHEDULED | COMPLETED | CANCELLED | REJECTED
   units: number;
+}
+
+interface Approver {
+  id: string;
+  full_name: string;
+  role: string;
 }
 
 interface Props {
@@ -27,6 +32,8 @@ interface Props {
   staffName: string;
   hasXeroLink: boolean;
 }
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function leaveColour(name: string) {
   const n = name.toLowerCase();
@@ -51,51 +58,56 @@ function toXeroDate(dateStr: string): string {
   return `/Date(${ms}+0000)/`;
 }
 
-function StatusBadge({ status, isPast }: { status: string; isPast: boolean }) {
+/** Format date range to match Xero: "21 May 2026" or "30 Oct - 04 Nov 2025" */
+function formatLeavePeriod(start: string, end: string) {
+  const s = parseISO(start);
+  const e = parseISO(end);
+  if (start === end) return format(s, "dd MMM yyyy");
+  return `${format(s, "dd MMM")} - ${format(e, "dd MMM yyyy")}`;
+}
+
+function businessDayCount(start: string, end: string) {
+  return differenceInBusinessDays(addDays(parseISO(end), 1), parseISO(start));
+}
+
+// ─── Status Badge (matching Xero labels) ─────────────────────────────────────
+
+function StatusBadge({ status, startDate }: { status: string; startDate: string }) {
+  const today = new Date().toISOString().split("T")[0];
+  const isFuture = startDate >= today;
+
+  if (status === "REJECTED") return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-red-300 text-red-600 bg-red-50">
+      <XCircle className="w-3 h-3" /> Rejected
+    </span>
+  );
   if (status === "CANCELLED") return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#F8F6F4] text-[#9BADB7]">
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#9BADB7] bg-[#F8F6F4]">
       <XCircle className="w-3 h-3" /> Cancelled
     </span>
   );
-  if (status === "SCHEDULED" || status === "COMPLETED") {
-    if (isPast) return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
+  if (status === "COMPLETED") return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#9BADB7] bg-[#F8F6F4]">
+      <CheckCircle className="w-3 h-3" /> Complete
+    </span>
+  );
+  if (status === "SCHEDULED") {
+    if (isFuture) return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-green-300 text-green-700 bg-green-50">
         <CheckCircle className="w-3 h-3" /> Approved
       </span>
     );
+    // Past SCHEDULED (payroll not yet run)
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
-        <Clock className="w-3 h-3" /> Upcoming
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#9BADB7] bg-[#F8F6F4]">
+        <CheckCircle className="w-3 h-3" /> Complete
       </span>
     );
   }
   return <span className="text-xs text-[#9BADB7]">{status}</span>;
 }
 
-function formatDateRange(start: string, end: string) {
-  const s = parseISO(start);
-  const e = parseISO(end);
-  if (start === end) return format(s, "d MMMM yyyy");
-  if (s.getFullYear() === e.getFullYear() && s.getMonth() === e.getMonth()) {
-    return `${format(s, "d")}–${format(e, "d MMMM yyyy")}`;
-  }
-  if (s.getFullYear() === e.getFullYear()) {
-    return `${format(s, "d MMM")} – ${format(e, "d MMM yyyy")}`;
-  }
-  return `${format(s, "d MMM yyyy")} – ${format(e, "d MMM yyyy")}`;
-}
-
-function businessDayCount(start: string, end: string) {
-  const s = parseISO(start);
-  const e = parseISO(end);
-  return differenceInBusinessDays(addDays(e, 1), s);
-}
-
-interface Approver {
-  id: string;
-  full_name: string;
-  role: string;
-}
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Props) {
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
@@ -175,14 +187,11 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
 
   const selectedBalance = balances.find(b => b.leaveTypeId === form.leaveTypeId);
   const businessDays = form.startDate && form.endDate ? businessDayCount(form.startDate, form.endDate) : 0;
-
   const today = new Date().toISOString().split("T")[0];
-  const upcoming = applications.filter(a => a.endDate >= today && a.status !== "CANCELLED");
-  const past = applications.filter(a => a.endDate < today || a.status === "CANCELLED");
 
   if (!hasXeroLink) {
     return (
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-6 max-w-3xl">
         <h1 className="text-3xl font-bold text-[#223149]">My Leave</h1>
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center space-y-3">
           <Palmtree className="w-8 h-8 text-[#9BADB7] mx-auto" />
@@ -197,7 +206,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
 
   return (
     <>
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-6 max-w-3xl">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-[#223149]">My Leave</h1>
@@ -215,7 +224,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
               className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Request leave
+              New Leave Request
             </button>
           </div>
         </div>
@@ -228,10 +237,10 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
           </div>
         )}
 
-        {/* Leave balances */}
+        {/* Available Leave Balances */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="font-semibold text-[#223149]">Balances</span>
+          <div className="flex items-center gap-2 mb-5">
+            <span className="font-semibold text-[#223149]">Available Leave Balances</span>
             <span className="flex items-center px-1.5 py-0.5 rounded-md bg-[#13B5EA]/10 text-[#13B5EA] text-[10px] font-semibold">
               Xero
             </span>
@@ -243,65 +252,85 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
           ) : balances.length === 0 ? (
             <p className="text-sm text-[#9BADB7]">No leave balances found in Xero.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {balances.map(b => (
-                <div key={b.name} className={`flex items-center justify-between px-4 py-3 rounded-xl border ${leaveColour(b.name)}`}>
-                  <span className="text-sm font-medium">{b.name}</span>
-                  <span className="text-sm font-bold tabular-nums">{formatBalance(b.balance, b.units)}</span>
+                <div key={b.name} className={`px-4 py-4 rounded-xl border ${leaveColour(b.name)}`}>
+                  <p className="text-xs font-medium mb-1 opacity-75">{b.name}</p>
+                  <p className="text-2xl font-bold tabular-nums">
+                    {Math.floor(b.balance)}
+                    <span className="text-sm font-normal">.{String(Math.round((b.balance % 1) * 100)).padStart(2, "0")}</span>
+                    <span className="text-sm font-medium ml-1">
+                      {b.units.toLowerCase() === "days" ? "Days" : "Hours"}
+                    </span>
+                  </p>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Upcoming requests */}
-        {(appLoading || upcoming.length > 0) && (
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="font-semibold text-[#223149] mb-4">Upcoming</h2>
-            {appLoading ? (
-              <div className="flex justify-center py-4">
-                <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : upcoming.length === 0 ? (
-              <p className="text-sm text-[#9BADB7]">No upcoming leave.</p>
-            ) : (
-              <div className="space-y-3">
-                {upcoming.map(app => (
-                  <div key={app.id} className="flex items-center justify-between gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                    <div>
-                      <p className="text-sm font-semibold text-[#223149]">{app.leaveName || "Leave"}</p>
-                      <p className="text-sm text-[#5F7C84] mt-0.5">{formatDateRange(app.startDate, app.endDate)}</p>
-                      {app.description && <p className="text-xs text-[#9BADB7] mt-0.5 italic">{app.description}</p>}
-                    </div>
-                    <StatusBadge status={app.status} isPast={false} />
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* Leave Requests table */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-[#ECE3DF]">
+            <h2 className="font-semibold text-[#223149]">Leave Requests</h2>
           </div>
-        )}
 
-        {/* History */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="font-semibold text-[#223149] mb-4">History</h2>
           {appLoading ? (
-            <div className="flex justify-center py-4">
+            <div className="flex justify-center py-10">
               <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : past.length === 0 ? (
-            <p className="text-sm text-[#9BADB7]">No leave history yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {past.map(app => (
-                <div key={app.id} className="flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#223149]">{app.leaveName || "Leave"}</p>
-                    <p className="text-sm text-[#9BADB7] mt-0.5">{formatDateRange(app.startDate, app.endDate)}</p>
-                  </div>
-                  <StatusBadge status={app.status} isPast={true} />
-                </div>
-              ))}
+          ) : applications.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-sm text-[#9BADB7]">No leave requests found.</p>
             </div>
+          ) : (
+            <>
+              {/* Desktop table */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8F6F4] text-left">
+                      <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Type</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Description</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Period</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#ECE3DF]">
+                    {applications.map(app => {
+                      const typeName = balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name ?? "Leave";
+                      return (
+                        <tr key={app.id} className="hover:bg-[#F8F6F4] transition-colors">
+                          <td className="px-6 py-4 font-medium text-[#223149]">{typeName}</td>
+                          <td className="px-6 py-4 text-[#5F7C84]">{app.title || "—"}</td>
+                          <td className="px-6 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(app.startDate, app.endDate)}</td>
+                          <td className="px-6 py-4 text-right">
+                            <StatusBadge status={app.status} startDate={app.startDate} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="sm:hidden divide-y divide-[#ECE3DF]">
+                {applications.map(app => {
+                  const typeName = balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name ?? "Leave";
+                  return (
+                    <div key={app.id} className="px-4 py-4 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[#223149]">{typeName}</p>
+                        {app.title && <p className="text-xs text-[#5F7C84] mt-0.5">{app.title}</p>}
+                        <p className="text-xs text-[#9BADB7] mt-1">{formatLeavePeriod(app.startDate, app.endDate)}</p>
+                      </div>
+                      <StatusBadge status={app.status} startDate={app.startDate} />
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -311,9 +340,9 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
           <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md pb-safe">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
-              <h2 className="text-lg font-bold text-[#223149]">Request Leave</h2>
+              <h2 className="text-lg font-bold text-[#223149]">New Leave Request</h2>
               <button
-                onClick={() => { setShowModal(false); setSubmitError(""); }}
+                onClick={() => { setShowModal(false); setSubmitError(""); setApproverId(""); }}
                 className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
               >
                 <X className="w-5 h-5 text-[#5F7C84]" />
@@ -396,7 +425,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                 </div>
               </div>
 
-              {/* Current Leave Balance — shown once a type is selected */}
+              {/* Current Leave Balance */}
               {selectedBalance && (
                 <div className="border border-[#ECE3DF] rounded-xl divide-y divide-[#ECE3DF]">
                   <div className="flex items-center justify-between px-4 py-3 text-sm">
@@ -408,12 +437,9 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                   <div className="flex items-center justify-between px-4 py-3 text-sm">
                     <span className="text-[#5F7C84]">{selectedBalance.name}</span>
                     <span className="font-bold text-[#223149] tabular-nums">
-                      {selectedBalance.units.toLowerCase() === "days"
-                        ? `${Math.round(selectedBalance.balance * 10) / 10}`
-                        : `${Math.round(selectedBalance.balance * 10) / 10}`}
+                      {Math.round(selectedBalance.balance * 100) / 100}
                     </span>
                   </div>
-                  {/* Pay period / duration estimate */}
                   {form.startDate && form.endDate && businessDays > 0 && (
                     <div className="flex items-center justify-between px-4 py-3 text-sm">
                       <span className="text-[#5F7C84]">
