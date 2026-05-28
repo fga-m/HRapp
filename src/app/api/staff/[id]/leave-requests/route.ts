@@ -80,6 +80,8 @@ export async function GET(
           endDate: fromXeroDate(a.EndDate),
           status: effectiveStatus,
           units: leavePeriods.reduce((sum: number, p: any) => sum + (p.NumberOfUnits ?? 0), 0),
+          // Temporary debug: expose raw period statuses
+          _debug: leavePeriods.map((p: any) => ({ s: p.LeavePeriodStatus, keys: Object.keys(p) })),
         };
       });
     // Sort newest first
