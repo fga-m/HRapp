@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree } from "lucide-react";
+import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -20,6 +20,7 @@ interface TopBarProps {
 const moreItems = [
   { label: "Calendars",     href: "/dashboard/calendar",              icon: Calendar },
   { label: "My Leave",      href: "/dashboard/leave",                 icon: Palmtree },
+  { label: "Expenses",      href: "/dashboard/expenses",              icon: Wallet },
   { label: "Performance",  href: "/dashboard/performance",           icon: TrendingUp },
   { label: "Team Schedule", href: "/dashboard/schedule",              icon: CalendarDays, permission: "view_team_schedule" },
   { label: "Onboarding",   href: "/dashboard/onboarding",            icon: CheckSquare },
@@ -80,6 +81,7 @@ export default function TopBar({
     "/dashboard": "Dashboard",
     "/dashboard/calendar": "Calendars",
     "/dashboard/leave": "My Leave",
+    "/dashboard/expenses": "Expenses",
     "/dashboard/meetings": "Meeting Notes",
     "/dashboard/policies": "Policies",
     "/dashboard/onboarding": "Onboarding",
