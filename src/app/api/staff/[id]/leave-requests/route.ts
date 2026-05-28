@@ -59,16 +59,29 @@ export async function GET(
     const applications = (data.LeaveApplications ?? [])
       // Always filter by employee ID — Xero may return all org applications
       .filter((a: any) => a.EmployeeID === member.xero_employee_id)
-      .map((a: any) => ({
-        id: a.LeaveApplicationID,
-        leaveTypeId: a.LeaveTypeID,
-        // Title is the user-entered description (e.g. "LR Nicholas Teh" or "Annual leave")
-        title: a.Title ?? "",
-        startDate: fromXeroDate(a.StartDate),
-        endDate: fromXeroDate(a.EndDate),
-        status: a.LeaveApplicationStatus ?? "SCHEDULED",
-        units: a.LeavePeriods?.reduce((sum: number, p: any) => sum + (p.NumberOfUnits ?? 0), 0) ?? 0,
-      }));
+      .map((a: any) => {
+        const leavePeriods: any[] = a.LeavePeriods ?? [];
+        const appStatus: string = a.LeaveApplicationStatus ?? "SCHEDULED";
+
+        // Xero shows "Complete" when all pay periods have been paid (payroll processed).
+        // The LeaveApplicationStatus stays "SCHEDULED" even after payroll runs —
+        // we need to check each LeavePeriod's LeavePeriodStatus instead.
+        const allPeriodsPaid =
+          leavePeriods.length > 0 &&
+          leavePeriods.every((p: any) => p.LeavePeriodStatus === "PAID");
+        const effectiveStatus =
+          appStatus === "SCHEDULED" && allPeriodsPaid ? "COMPLETED" : appStatus;
+
+        return {
+          id: a.LeaveApplicationID,
+          leaveTypeId: a.LeaveTypeID,
+          title: a.Title ?? "",
+          startDate: fromXeroDate(a.StartDate),
+          endDate: fromXeroDate(a.EndDate),
+          status: effectiveStatus,
+          units: leavePeriods.reduce((sum: number, p: any) => sum + (p.NumberOfUnits ?? 0), 0),
+        };
+      });
     // Sort newest first
     applications.sort((a: any, b: any) => b.startDate.localeCompare(a.startDate));
     return NextResponse.json({ linked: true, applications });
