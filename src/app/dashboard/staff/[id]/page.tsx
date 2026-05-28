@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink } from "lucide-react";
 import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
+import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
 
 export const dynamic = "force-dynamic";
 
@@ -198,6 +199,9 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
           <span className="text-sm font-semibold text-[#223149]">Meeting Notes</span>
         </Link>
       </div>
+
+      {/* Leave Balances */}
+      <LeaveBalancesCard staffId={member.id} />
 
       {/* Work Schedule */}
       <ScheduleCard staffId={member.id} canEdit={canEditSchedule} />
