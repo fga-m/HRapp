@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Palmtree, Plus, X, CheckCircle, XCircle, AlertCircle, RefreshCw, Clock } from "lucide-react";
+import { Palmtree, Plus, X, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { format, parseISO, differenceInBusinessDays, addDays } from "date-fns";
 
 interface LeaveBalance {
@@ -72,10 +72,19 @@ function businessDayCount(start: string, end: string) {
 
 // ─── Status Badge (matching Xero labels) ─────────────────────────────────────
 
-function StatusBadge({ status, startDate }: { status: string; startDate: string }) {
-  const today = new Date().toISOString().split("T")[0];
-  const isFuture = startDate >= today;
-
+// Xero status values: SCHEDULED (approved, may be past or future until payroll runs),
+// COMPLETED (payroll processed), REJECTED, CANCELLED
+function StatusBadge({ status }: { status: string }) {
+  if (status === "SCHEDULED") return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-green-300 text-green-700 bg-green-50">
+      <CheckCircle className="w-3 h-3" /> Approved
+    </span>
+  );
+  if (status === "COMPLETED") return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#9BADB7] bg-[#F8F6F4]">
+      <CheckCircle className="w-3 h-3" /> Complete
+    </span>
+  );
   if (status === "REJECTED") return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-red-300 text-red-600 bg-red-50">
       <XCircle className="w-3 h-3" /> Rejected
@@ -86,24 +95,6 @@ function StatusBadge({ status, startDate }: { status: string; startDate: string 
       <XCircle className="w-3 h-3" /> Cancelled
     </span>
   );
-  if (status === "COMPLETED") return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#9BADB7] bg-[#F8F6F4]">
-      <CheckCircle className="w-3 h-3" /> Complete
-    </span>
-  );
-  if (status === "SCHEDULED") {
-    if (isFuture) return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-green-300 text-green-700 bg-green-50">
-        <CheckCircle className="w-3 h-3" /> Approved
-      </span>
-    );
-    // Past SCHEDULED (payroll not yet run)
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#9BADB7] bg-[#F8F6F4]">
-        <CheckCircle className="w-3 h-3" /> Complete
-      </span>
-    );
-  }
   return <span className="text-xs text-[#9BADB7]">{status}</span>;
 }
 
@@ -305,7 +296,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                           <td className="px-6 py-4 text-[#5F7C84]">{app.title || "—"}</td>
                           <td className="px-6 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(app.startDate, app.endDate)}</td>
                           <td className="px-6 py-4 text-right">
-                            <StatusBadge status={app.status} startDate={app.startDate} />
+                            <StatusBadge status={app.status} />
                           </td>
                         </tr>
                       );
@@ -325,7 +316,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                         {app.title && <p className="text-xs text-[#5F7C84] mt-0.5">{app.title}</p>}
                         <p className="text-xs text-[#9BADB7] mt-1">{formatLeavePeriod(app.startDate, app.endDate)}</p>
                       </div>
-                      <StatusBadge status={app.status} startDate={app.startDate} />
+                      <StatusBadge status={app.status} />
                     </div>
                   );
                 })}
