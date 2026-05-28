@@ -47,7 +47,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-[#223149]">Settings</h1>
         <p className="text-[#9BADB7] mt-1">Manage integrations and system configuration.</p>

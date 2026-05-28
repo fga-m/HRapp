@@ -107,7 +107,7 @@ export default function MeetingDetailPage() {
   const isShared = note.is_shared_with_staff;
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard/meetings" className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors">

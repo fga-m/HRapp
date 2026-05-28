@@ -55,7 +55,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
     .slice(0, 2);
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link

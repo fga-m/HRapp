@@ -360,7 +360,7 @@ export default function PerformanceDetailPage() {
   const showSideBySide = isManagerOrAdmin && selfEval && managerEval;
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4 flex-wrap">
         <Link

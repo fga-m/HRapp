@@ -256,7 +256,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
 
   if (!hasXeroLink) {
     return (
-      <div className="space-y-6 max-w-3xl">
+      <div className="space-y-6">
         <h1 className="text-3xl font-bold text-[#223149]">My Leave</h1>
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center space-y-3">
           <Palmtree className="w-8 h-8 text-[#9BADB7] mx-auto" />
@@ -269,7 +269,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
 
   return (
     <>
-      <div className="space-y-6 max-w-3xl">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-[#223149]">My Leave</h1>
@@ -376,99 +376,102 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
           </div>
         )}
 
-        {/* ── Leave Balances ── */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <span className="font-semibold text-[#223149]">Available Leave Balances</span>
-            <span className="flex items-center px-1.5 py-0.5 rounded-md bg-[#13B5EA]/10 text-[#13B5EA] text-[10px] font-semibold">Xero</span>
-          </div>
-          {balanceLoading ? (
-            <div className="flex justify-center py-6">
-              <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+        {/* ── Balances + Requests two-column layout at lg ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* ── Leave Balances ── */}
+          <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <span className="font-semibold text-[#223149]">Available Leave Balances</span>
+              <span className="flex items-center px-1.5 py-0.5 rounded-md bg-[#13B5EA]/10 text-[#13B5EA] text-[10px] font-semibold">Xero</span>
             </div>
-          ) : balances.length === 0 ? (
-            <p className="text-sm text-[#9BADB7]">No leave balances found in Xero.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {balances.map(b => (
-                <div key={b.name} className={`px-4 py-4 rounded-xl border ${leaveColour(b.name)}`}>
-                  <p className="text-xs font-medium mb-1 opacity-75">{b.name}</p>
-                  <p className="text-2xl font-bold tabular-nums">
-                    {Math.floor(b.balance)}
-                    <span className="text-sm font-normal">.{String(Math.round((b.balance % 1) * 100)).padStart(2, "0")}</span>
-                    <span className="text-sm font-medium ml-1">
-                      {b.units.toLowerCase() === "days" ? "Days" : "Hours"}
-                    </span>
-                  </p>
+            {balanceLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : balances.length === 0 ? (
+              <p className="text-sm text-[#9BADB7]">No leave balances found in Xero.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+                {balances.map(b => (
+                  <div key={b.name} className={`px-4 py-4 rounded-xl border ${leaveColour(b.name)}`}>
+                    <p className="text-xs font-medium mb-1 opacity-75">{b.name}</p>
+                    <p className="text-2xl font-bold tabular-nums">
+                      {Math.floor(b.balance)}
+                      <span className="text-sm font-normal">.{String(Math.round((b.balance % 1) * 100)).padStart(2, "0")}</span>
+                      <span className="text-sm font-medium ml-1">
+                        {b.units.toLowerCase() === "days" ? "Days" : "Hours"}
+                      </span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Leave Requests table ── */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#ECE3DF]">
+              <h2 className="font-semibold text-[#223149]">Leave Requests</h2>
+            </div>
+
+            {appLoading ? (
+              <div className="flex justify-center py-10">
+                <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : applications.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-sm text-[#9BADB7]">No leave requests yet.</p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop table */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-[#F8F6F4] text-left">
+                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Type</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Description</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Period</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#ECE3DF]">
+                      {applications.map(app => {
+                        const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
+                        return (
+                          <tr key={app.id} className="hover:bg-[#F8F6F4] transition-colors">
+                            <td className="px-6 py-4 font-medium text-[#223149]">{typeName}</td>
+                            <td className="px-6 py-4 text-[#5F7C84]">{app.title || "—"}</td>
+                            <td className="px-6 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(app.startDate, app.endDate)}</td>
+                            <td className="px-6 py-4 text-right">
+                              <StatusBadge status={app.status} />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* ── Leave Requests table ── */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#ECE3DF]">
-            <h2 className="font-semibold text-[#223149]">Leave Requests</h2>
-          </div>
-
-          {appLoading ? (
-            <div className="flex justify-center py-10">
-              <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : applications.length === 0 ? (
-            <div className="text-center py-10">
-              <p className="text-sm text-[#9BADB7]">No leave requests yet.</p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop table */}
-              <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[#F8F6F4] text-left">
-                      <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Type</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Description</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Period</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#ECE3DF]">
-                    {applications.map(app => {
-                      const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
-                      return (
-                        <tr key={app.id} className="hover:bg-[#F8F6F4] transition-colors">
-                          <td className="px-6 py-4 font-medium text-[#223149]">{typeName}</td>
-                          <td className="px-6 py-4 text-[#5F7C84]">{app.title || "—"}</td>
-                          <td className="px-6 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(app.startDate, app.endDate)}</td>
-                          <td className="px-6 py-4 text-right">
-                            <StatusBadge status={app.status} />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile cards */}
-              <div className="sm:hidden divide-y divide-[#ECE3DF]">
-                {applications.map(app => {
-                  const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
-                  return (
-                    <div key={app.id} className="px-4 py-4 flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#223149]">{typeName}</p>
-                        {app.title && <p className="text-xs text-[#5F7C84] mt-0.5">{app.title}</p>}
-                        <p className="text-xs text-[#9BADB7] mt-1">{formatLeavePeriod(app.startDate, app.endDate)}</p>
+                {/* Mobile cards */}
+                <div className="sm:hidden divide-y divide-[#ECE3DF]">
+                  {applications.map(app => {
+                    const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
+                    return (
+                      <div key={app.id} className="px-4 py-4 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-[#223149]">{typeName}</p>
+                          {app.title && <p className="text-xs text-[#5F7C84] mt-0.5">{app.title}</p>}
+                          <p className="text-xs text-[#9BADB7] mt-1">{formatLeavePeriod(app.startDate, app.endDate)}</p>
+                        </div>
+                        <StatusBadge status={app.status} />
                       </div>
-                      <StatusBadge status={app.status} />
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

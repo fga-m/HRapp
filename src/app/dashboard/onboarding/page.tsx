@@ -498,7 +498,7 @@ export default function OnboardingPage() {
   // ── Staff view ─────────────────────────────────────────────────────────────
   if (!isAdmin) {
     return (
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">My Checklists</h1>
           <p className="text-[#5F7C84] mt-1 text-sm">Your onboarding & offboarding tasks</p>
@@ -547,7 +547,7 @@ export default function OnboardingPage() {
 
   // ── Admin view ─────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

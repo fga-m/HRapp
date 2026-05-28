@@ -161,7 +161,7 @@ export default function PositionDescriptionsPage() {
   // Staff view: no PD
   if (!isAdmin && (!pds || pds.length === 0)) {
     return (
-      <div className="max-w-2xl">
+      <div>
         <div className="flex items-center gap-3 mb-6">
           <Briefcase className="w-6 h-6 text-[#223149]" />
           <h1 className="text-2xl font-bold text-[#223149]">My Role</h1>
@@ -183,7 +183,7 @@ export default function PositionDescriptionsPage() {
   if (!isAdmin && pds && pds.length > 0) {
     const pd = pds[0];
     return (
-      <div className="max-w-2xl">
+      <div>
         <div className="flex items-center gap-3 mb-6">
           <Briefcase className="w-6 h-6 text-[#223149]" />
           <h1 className="text-2xl font-bold text-[#223149]">My Role</h1>
@@ -220,7 +220,7 @@ export default function PositionDescriptionsPage() {
 
   // Admin view
   return (
-    <div className="max-w-5xl space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

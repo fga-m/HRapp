@@ -78,7 +78,7 @@ export default function NewMeetingPage() {
   }, [form.meeting_type, form.attendees[0]]);
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/dashboard/meetings" className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors">
           <ArrowLeft className="w-5 h-5 text-[#223149]" />

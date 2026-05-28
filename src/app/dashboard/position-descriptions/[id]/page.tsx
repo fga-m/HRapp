@@ -156,7 +156,7 @@ export default function PositionDescriptionDetailPage() {
   // Edit mode
   if (isEditMode && isAdmin) {
     return (
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Link
             href={`/dashboard/position-descriptions/${id}`}
@@ -208,7 +208,7 @@ export default function PositionDescriptionDetailPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link

@@ -423,7 +423,7 @@ export default function SchedulePage() {
   const staffWithToil = data?.staff.filter((s) => s.toil_balance > 0).length ?? 0;
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">

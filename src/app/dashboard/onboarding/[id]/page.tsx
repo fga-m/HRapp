@@ -428,7 +428,7 @@ export default function ChecklistDetailPage() {
     requiredItems.length > 0 && completedRequired.length === requiredItems.length;
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start gap-3">
         <Link
