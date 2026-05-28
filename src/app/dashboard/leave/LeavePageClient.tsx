@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Palmtree, Plus, X, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import {
+  Palmtree, Plus, X, CheckCircle, XCircle, AlertCircle,
+  RefreshCw, Clock, ChevronRight,
+} from "lucide-react";
 import { format, parseISO, differenceInBusinessDays, addDays } from "date-fns";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface LeaveBalance {
   name: string;
@@ -14,11 +19,24 @@ interface LeaveBalance {
 interface LeaveApplication {
   id: string;
   leaveTypeId: string;
-  title: string;      // Xero Title field — shown as "Description" column in Xero
+  leaveName: string;
+  title: string;
   startDate: string;
   endDate: string;
-  status: string;     // SCHEDULED | COMPLETED | CANCELLED | REJECTED
+  status: string; // PENDING | REJECTED | CANCELLED | SCHEDULED | COMPLETED
   units: number;
+  source?: "local" | "xero";
+}
+
+interface PendingRequest {
+  id: string;
+  staff_id: string;
+  leave_type_name: string;
+  start_date: string;
+  end_date: string;
+  description: string | null;
+  submitted_at: string;
+  staff: { full_name: string; email: string } | null;
 }
 
 interface Approver {
@@ -31,6 +49,7 @@ interface Props {
   staffId: string;
   staffName: string;
   hasXeroLink: boolean;
+  isReviewer: boolean;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -58,7 +77,6 @@ function toXeroDate(dateStr: string): string {
   return `/Date(${ms}+0000)/`;
 }
 
-/** Format date range to match Xero: "21 May 2026" or "30 Oct - 04 Nov 2025" */
 function formatLeavePeriod(start: string, end: string) {
   const s = parseISO(start);
   const e = parseISO(end);
@@ -70,11 +88,14 @@ function businessDayCount(start: string, end: string) {
   return differenceInBusinessDays(addDays(parseISO(end), 1), parseISO(start));
 }
 
-// ─── Status Badge (matching Xero labels) ─────────────────────────────────────
+// ─── Status Badge ─────────────────────────────────────────────────────────────
 
-// Xero status values: SCHEDULED (approved, may be past or future until payroll runs),
-// COMPLETED (payroll processed), REJECTED, CANCELLED
 function StatusBadge({ status }: { status: string }) {
+  if (status === "PENDING") return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-amber-200 text-amber-600 bg-amber-50">
+      <Clock className="w-3 h-3" /> Pending
+    </span>
+  );
   if (status === "SCHEDULED") return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-green-300 text-green-700 bg-green-50">
       <CheckCircle className="w-3 h-3" /> Approved
@@ -100,43 +121,71 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Props) {
+export default function LeavePageClient({ staffId, staffName, hasXeroLink, isReviewer }: Props) {
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [applications, setApplications] = useState<LeaveApplication[]>([]);
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [appLoading, setAppLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Pending approvals (reviewer only)
+  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
+  const [pendingLoading, setPendingLoading] = useState(false);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState("");
+  const [reviewError, setReviewError] = useState("");
+
+  // New request form
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ leaveTypeId: "", startDate: "", endDate: "", description: "" });
   const [approvers, setApprovers] = useState<Approver[]>([]);
   const [approverId, setApproverId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
-  const fetchAll = async (silent = false) => {
+  const fetchAll = useCallback(async (silent = false) => {
     if (!silent) { setBalanceLoading(true); setAppLoading(true); }
     else setRefreshing(true);
 
-    await Promise.all([
-      fetch(`/api/staff/${staffId}/leave-balances`)
-        .then(r => r.json())
-        .then(d => { setBalances(d.balances ?? []); setBalanceLoading(false); })
-        .catch(() => setBalanceLoading(false)),
-
+    const fetches: Promise<void>[] = [
       fetch(`/api/staff/${staffId}/leave-requests`)
         .then(r => r.json())
         .then(d => { setApplications(d.applications ?? []); setAppLoading(false); })
         .catch(() => setAppLoading(false)),
-    ]);
+    ];
 
+    if (hasXeroLink) {
+      fetches.push(
+        fetch(`/api/staff/${staffId}/leave-balances`)
+          .then(r => r.json())
+          .then(d => { setBalances(d.balances ?? []); setBalanceLoading(false); })
+          .catch(() => setBalanceLoading(false))
+      );
+    } else {
+      setBalanceLoading(false);
+    }
+
+    await Promise.all(fetches);
     setRefreshing(false);
-  };
+  }, [staffId, hasXeroLink]);
 
-  useEffect(() => { fetchAll(); }, [staffId]);
+  const fetchPending = useCallback(async () => {
+    if (!isReviewer) return;
+    setPendingLoading(true);
+    fetch("/api/leave-requests")
+      .then(r => r.json())
+      .then(d => setPendingRequests(d.requests ?? []))
+      .catch(() => {})
+      .finally(() => setPendingLoading(false));
+  }, [isReviewer]);
 
-  // Fetch approvers (managers + admins) when modal opens
+  useEffect(() => {
+    fetchAll();
+    fetchPending();
+  }, [fetchAll, fetchPending]);
+
+  // Load approvers when modal opens
   useEffect(() => {
     if (!showModal || approvers.length > 0) return;
     fetch("/api/staff")
@@ -155,19 +204,24 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
     e.preventDefault();
     setSubmitting(true);
     setSubmitError("");
+    const selectedBalance = balances.find(b => b.leaveTypeId === form.leaveTypeId);
     try {
       const res = await fetch(`/api/staff/${staffId}/leave-requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          leaveTypeName: selectedBalance?.name ?? "",
+          approverId: approverId || undefined,
+        }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "Failed to submit");
       setShowModal(false);
       setForm({ leaveTypeId: "", startDate: "", endDate: "", description: "" });
       setApproverId("");
-      setSubmitSuccess(true);
-      setTimeout(() => setSubmitSuccess(false), 5000);
+      setSuccessMsg("Your leave request has been submitted and is awaiting approval.");
+      setTimeout(() => setSuccessMsg(""), 6000);
       fetchAll(true);
     } catch (err: any) {
       setSubmitError(err.message);
@@ -176,9 +230,29 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
     }
   };
 
+  const handleReview = async (reqId: string, action: "APPROVE" | "REJECT") => {
+    setReviewingId(reqId);
+    setReviewError("");
+    try {
+      const res = await fetch(`/api/leave-requests/${reqId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, note: reviewNote }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error ?? "Failed to review");
+      setReviewNote("");
+      await fetchPending();
+      await fetchAll(true);
+    } catch (err: any) {
+      setReviewError(err.message);
+    } finally {
+      setReviewingId(null);
+    }
+  };
+
   const selectedBalance = balances.find(b => b.leaveTypeId === form.leaveTypeId);
   const businessDays = form.startDate && form.endDate ? businessDayCount(form.startDate, form.endDate) : 0;
-  const today = new Date().toISOString().split("T")[0];
 
   if (!hasXeroLink) {
     return (
@@ -187,9 +261,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center space-y-3">
           <Palmtree className="w-8 h-8 text-[#9BADB7] mx-auto" />
           <p className="font-semibold text-[#223149]">Not linked to Xero</p>
-          <p className="text-sm text-[#9BADB7]">
-            An admin needs to link your profile to Xero Payroll before you can view or request leave.
-          </p>
+          <p className="text-sm text-[#9BADB7]">An admin needs to link your profile to Xero Payroll before you can view or request leave.</p>
         </div>
       </div>
     );
@@ -203,10 +275,10 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
           <h1 className="text-3xl font-bold text-[#223149]">My Leave</h1>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => fetchAll(true)}
+              onClick={() => { fetchAll(true); fetchPending(); }}
               disabled={refreshing}
               className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors text-[#9BADB7] hover:text-[#223149]"
-              title="Refresh from Xero"
+              title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
             </button>
@@ -221,20 +293,94 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
         </div>
 
         {/* Success banner */}
-        {submitSuccess && (
+        {successMsg && (
           <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700">
             <CheckCircle className="w-5 h-5 flex-shrink-0" />
-            <p className="text-sm font-medium">Leave request submitted. Your manager will approve it in Xero.</p>
+            <p className="text-sm font-medium">{successMsg}</p>
           </div>
         )}
 
-        {/* Available Leave Balances */}
+        {/* ── Pending Approvals (reviewers only) ── */}
+        {isReviewer && (
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#ECE3DF] flex items-center gap-3">
+              <h2 className="font-semibold text-[#223149]">Pending Approvals</h2>
+              {pendingRequests.length > 0 && (
+                <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full border border-amber-100">
+                  {pendingRequests.length}
+                </span>
+              )}
+            </div>
+
+            {pendingLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : pendingRequests.length === 0 ? (
+              <div className="px-6 py-8 text-center">
+                <CheckCircle className="w-8 h-8 text-[#ECE3DF] mx-auto mb-2" />
+                <p className="text-sm text-[#9BADB7]">No pending leave requests.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#ECE3DF]">
+                {pendingRequests.map(req => (
+                  <div key={req.id} className="px-6 py-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[#223149] text-sm">
+                          {req.staff?.full_name ?? "Unknown"}
+                        </p>
+                        <p className="text-sm text-[#5F7C84] mt-0.5">
+                          {req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}
+                        </p>
+                        {req.description && (
+                          <p className="text-xs text-[#9BADB7] mt-0.5 italic">{req.description}</p>
+                        )}
+                        <p className="text-xs text-[#9BADB7] mt-1">
+                          Submitted {format(parseISO(req.submitted_at), "d MMM yyyy")}
+                        </p>
+                      </div>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-amber-200 text-amber-600 bg-amber-50 flex-shrink-0">
+                        <Clock className="w-3 h-3" /> Pending
+                      </span>
+                    </div>
+
+                    {reviewError && reviewingId === req.id && (
+                      <div className="flex items-center gap-2 text-xs text-red-500">
+                        <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {reviewError}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleReview(req.id, "APPROVE")}
+                        disabled={reviewingId === req.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        {reviewingId === req.id ? "Approving…" : "Approve"}
+                      </button>
+                      <button
+                        onClick={() => handleReview(req.id, "REJECT")}
+                        disabled={reviewingId === req.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        {reviewingId === req.id ? "Rejecting…" : "Reject"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Leave Balances ── */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-5">
             <span className="font-semibold text-[#223149]">Available Leave Balances</span>
-            <span className="flex items-center px-1.5 py-0.5 rounded-md bg-[#13B5EA]/10 text-[#13B5EA] text-[10px] font-semibold">
-              Xero
-            </span>
+            <span className="flex items-center px-1.5 py-0.5 rounded-md bg-[#13B5EA]/10 text-[#13B5EA] text-[10px] font-semibold">Xero</span>
           </div>
           {balanceLoading ? (
             <div className="flex justify-center py-6">
@@ -260,7 +406,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
           )}
         </div>
 
-        {/* Leave Requests table */}
+        {/* ── Leave Requests table ── */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-[#ECE3DF]">
             <h2 className="font-semibold text-[#223149]">Leave Requests</h2>
@@ -272,7 +418,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
             </div>
           ) : applications.length === 0 ? (
             <div className="text-center py-10">
-              <p className="text-sm text-[#9BADB7]">No leave requests found.</p>
+              <p className="text-sm text-[#9BADB7]">No leave requests yet.</p>
             </div>
           ) : (
             <>
@@ -289,7 +435,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                   </thead>
                   <tbody className="divide-y divide-[#ECE3DF]">
                     {applications.map(app => {
-                      const typeName = balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name ?? "Leave";
+                      const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
                       return (
                         <tr key={app.id} className="hover:bg-[#F8F6F4] transition-colors">
                           <td className="px-6 py-4 font-medium text-[#223149]">{typeName}</td>
@@ -308,7 +454,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
               {/* Mobile cards */}
               <div className="sm:hidden divide-y divide-[#ECE3DF]">
                 {applications.map(app => {
-                  const typeName = balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name ?? "Leave";
+                  const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
                   return (
                     <div key={app.id} className="px-4 py-4 flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -326,7 +472,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
         </div>
       </div>
 
-      {/* Request Leave Modal */}
+      {/* ── New Leave Request Modal ── */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
           <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md pb-safe">
@@ -384,7 +530,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                     <option key={a.id} value={a.id}>{a.full_name}</option>
                   ))}
                 </select>
-                <p className="text-xs text-[#9BADB7] mt-1">For your reference — approval is managed in Xero.</p>
+                <p className="text-xs text-[#9BADB7] mt-1">Your request will be sent for approval before going to Xero.</p>
               </div>
 
               {/* Dates */}

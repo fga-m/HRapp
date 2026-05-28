@@ -5,18 +5,14 @@ import { xeroRequest } from "@/lib/xero";
 
 export const dynamic = "force-dynamic";
 
-/** Convert a JS date string (YYYY-MM-DD) to Xero's /Date(ms+0000)/ format */
-function toXeroDate(dateStr: string): string {
-  const ms = new Date(dateStr).getTime();
-  return `/Date(${ms}+0000)/`;
-}
-
-/** Parse Xero /Date(ms+0000)/ → ISO date string */
 function fromXeroDate(xeroDate: string): string {
   const match = xeroDate.match(/\/Date\((\d+)/);
   if (!match) return xeroDate;
   return new Date(parseInt(match[1])).toISOString().split("T")[0];
 }
+
+// ─── GET ────────────────────────────────────────────────────────────────────
+// Returns merged list: local PENDING/REJECTED/CANCELLED + Xero SCHEDULED/COMPLETED
 
 export async function GET(
   _req: NextRequest,
@@ -35,8 +31,7 @@ export async function GET(
 
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const canView =
-    caller.id === id || caller.role === "admin" || caller.role === "manager";
+  const canView = caller.id === id || caller.role === "admin" || caller.role === "manager";
   if (!canView) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { data: member } = await supabaseAdmin
@@ -45,53 +40,76 @@ export async function GET(
     .eq("id", id)
     .single();
 
-  if (!member?.xero_employee_id) return NextResponse.json({ linked: false });
+  // 1. Fetch local pending/rejected/cancelled from DB
+  const { data: localRequests } = await supabaseAdmin
+    .from("leave_requests")
+    .select("*")
+    .eq("staff_id", id)
+    .in("status", ["PENDING", "REJECTED", "CANCELLED"])
+    .order("start_date", { ascending: false });
 
-  try {
-    const res = await xeroRequest(
-      `/payroll.xro/1.0/LeaveApplications?EmployeeId=${member.xero_employee_id}`
-    );
-    if (!res.ok) {
-      const err = await res.text();
-      return NextResponse.json({ error: `Xero error: ${err}` }, { status: res.status });
+  const localApps = (localRequests ?? []).map((r) => ({
+    id: r.id,
+    leaveTypeId: r.leave_type_id,
+    leaveName: r.leave_type_name,
+    title: r.description ?? "",
+    startDate: r.start_date,
+    endDate: r.end_date,
+    status: r.status as string,
+    units: 0,
+    source: "local" as const,
+  }));
+
+  // 2. Fetch approved/completed from Xero (only if linked)
+  let xeroApps: typeof localApps = [];
+
+  if (member?.xero_employee_id) {
+    try {
+      const res = await xeroRequest(
+        `/payroll.xro/1.0/LeaveApplications?EmployeeId=${member.xero_employee_id}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        xeroApps = (data.LeaveApplications ?? [])
+          .filter((a: any) => a.EmployeeID === member.xero_employee_id)
+          .map((a: any) => {
+            const leavePeriods: any[] = a.LeavePeriods ?? [];
+            const appStatus: string = a.LeaveApplicationStatus ?? "SCHEDULED";
+            const allProcessed =
+              leavePeriods.length > 0 &&
+              leavePeriods.every((p: any) => p.LeavePeriodStatus === "PROCESSED");
+            const effectiveStatus =
+              appStatus === "SCHEDULED" && allProcessed ? "COMPLETED" : appStatus;
+            return {
+              id: a.LeaveApplicationID,
+              leaveTypeId: a.LeaveTypeID,
+              leaveName: "",
+              title: a.Title ?? "",
+              startDate: fromXeroDate(a.StartDate),
+              endDate: fromXeroDate(a.EndDate),
+              status: effectiveStatus,
+              units: leavePeriods.reduce(
+                (sum: number, p: any) => sum + (p.NumberOfUnits ?? 0),
+                0
+              ),
+              source: "xero" as const,
+            };
+          });
+      }
+    } catch {
+      // Xero not connected — just return local records
     }
-    const data = await res.json();
-    const applications = (data.LeaveApplications ?? [])
-      // Always filter by employee ID — Xero may return all org applications
-      .filter((a: any) => a.EmployeeID === member.xero_employee_id)
-      .map((a: any) => {
-        const leavePeriods: any[] = a.LeavePeriods ?? [];
-        const appStatus: string = a.LeaveApplicationStatus ?? "SCHEDULED";
-
-        // Xero shows "Complete" when all pay periods have been paid (payroll processed).
-        // The LeaveApplicationStatus stays "SCHEDULED" even after payroll runs —
-        // we need to check each LeavePeriod's LeavePeriodStatus instead.
-        const allPeriodsPaid =
-          leavePeriods.length > 0 &&
-          leavePeriods.every((p: any) => p.LeavePeriodStatus === "PROCESSED");
-        const effectiveStatus =
-          appStatus === "SCHEDULED" && allPeriodsPaid ? "COMPLETED" : appStatus;
-
-        return {
-          id: a.LeaveApplicationID,
-          leaveTypeId: a.LeaveTypeID,
-          title: a.Title ?? "",
-          startDate: fromXeroDate(a.StartDate),
-          endDate: fromXeroDate(a.EndDate),
-          status: effectiveStatus,
-          units: leavePeriods.reduce((sum: number, p: any) => sum + (p.NumberOfUnits ?? 0), 0),
-        };
-      });
-    // Sort newest first
-    applications.sort((a: any, b: any) => b.startDate.localeCompare(a.startDate));
-    return NextResponse.json({ linked: true, applications });
-  } catch (err: any) {
-    if (err.message?.includes("not connected")) {
-      return NextResponse.json({ linked: true, applications: [], xeroDown: true });
-    }
-    return NextResponse.json({ error: err.message }, { status: 500 });
   }
+
+  // 3. Merge and sort newest first
+  const all = [...localApps, ...xeroApps];
+  all.sort((a, b) => b.startDate.localeCompare(a.startDate));
+
+  return NextResponse.json({ linked: !!member?.xero_employee_id, applications: all });
 }
+
+// ─── POST ───────────────────────────────────────────────────────────────────
+// Saves leave request locally as PENDING — not yet sent to Xero
 
 export async function POST(
   req: NextRequest,
@@ -110,13 +128,12 @@ export async function POST(
 
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Only the staff member themselves or an admin can submit leave
   const canSubmit = caller.id === id || caller.role === "admin";
   if (!canSubmit) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { data: member } = await supabaseAdmin
     .from("staff")
-    .select("xero_employee_id, full_name")
+    .select("xero_employee_id")
     .eq("id", id)
     .single();
 
@@ -127,51 +144,39 @@ export async function POST(
     );
   }
 
-  const { leaveTypeId, startDate, endDate, description } = await req.json();
+  const { leaveTypeId, leaveTypeName, startDate, endDate, description, approverId } =
+    await req.json();
 
-  if (!leaveTypeId || !startDate || !endDate) {
-    return NextResponse.json({ error: "Leave type, start date and end date are required" }, { status: 400 });
+  if (!leaveTypeId || !leaveTypeName || !startDate || !endDate) {
+    return NextResponse.json(
+      { error: "Leave type, start date and end date are required" },
+      { status: 400 }
+    );
   }
 
   if (new Date(endDate) < new Date(startDate)) {
-    return NextResponse.json({ error: "End date must be on or after start date" }, { status: 400 });
+    return NextResponse.json(
+      { error: "End date must be on or after start date" },
+      { status: 400 }
+    );
   }
 
-  try {
-    const body = {
-      LeaveApplications: [
-        {
-          EmployeeID: member.xero_employee_id,
-          LeaveTypeID: leaveTypeId,
-          StartDate: toXeroDate(startDate),
-          EndDate: toXeroDate(endDate),
-          ...(description?.trim() && { Description: description.trim() }),
-        },
-      ],
-    };
+  const { data, error } = await supabaseAdmin
+    .from("leave_requests")
+    .insert({
+      staff_id: id,
+      leave_type_id: leaveTypeId,
+      leave_type_name: leaveTypeName,
+      start_date: startDate,
+      end_date: endDate,
+      description: description?.trim() || null,
+      approver_id: approverId || null,
+      status: "PENDING",
+    })
+    .select()
+    .single();
 
-    const res = await xeroRequest("/payroll.xro/1.0/LeaveApplications", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ Message: "Unknown error" }));
-      return NextResponse.json(
-        { error: err.Message ?? err.Detail ?? "Failed to submit leave request" },
-        { status: res.status }
-      );
-    }
-
-    const data = await res.json();
-    const created = data.LeaveApplications?.[0];
-    return NextResponse.json({
-      id: created?.LeaveApplicationID,
-      startDate,
-      endDate,
-      status: "SCHEDULED",
-    });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
+  return NextResponse.json({ id: data.id, status: "PENDING" }, { status: 201 });
 }

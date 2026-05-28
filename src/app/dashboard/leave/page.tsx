@@ -11,17 +11,20 @@ export default async function LeavePage() {
 
   const { data: staff } = await supabaseAdmin
     .from("staff")
-    .select("id, full_name, xero_employee_id")
+    .select("id, full_name, role, xero_employee_id")
     .eq("email", session.user?.email ?? "")
     .single();
 
   if (!staff) redirect("/");
+
+  const isReviewer = staff.role === "admin" || staff.role === "manager";
 
   return (
     <LeavePageClient
       staffId={staff.id}
       staffName={staff.full_name}
       hasXeroLink={!!staff.xero_employee_id}
+      isReviewer={isReviewer}
     />
   );
 }
