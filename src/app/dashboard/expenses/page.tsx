@@ -22,5 +22,5 @@ export default async function ExpensesPage() {
     staff.role === "manager" ||
     staff.role === "finance";
 
-  return <ExpensesPageClient staffId={staff.id} isReviewer={isReviewer} />;
+  return <ExpensesPageClient isReviewer={isReviewer} />;
 }
