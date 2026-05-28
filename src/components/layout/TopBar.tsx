@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp } from "lucide-react";
+import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -27,6 +27,7 @@ const moreItems = [
   { label: "My Role",      href: "/dashboard/position-descriptions", icon: Briefcase },
   { label: "Staff",        href: "/dashboard/staff",                 icon: Users,       permission: "manage_staff" },
   { label: "Access Levels", href: "/dashboard/access",               icon: ShieldCheck, adminOnly: true },
+  { label: "Settings",      href: "/dashboard/settings",             icon: Settings,    adminOnly: true },
 ];
 
 function Avatar({ src, name, size = 7 }: { src?: string; name?: string; size?: number }) {
@@ -82,13 +83,13 @@ export default function TopBar({
     "/dashboard/onboarding": "Onboarding",
     "/dashboard/hub": "Staff Hub",
     "/dashboard/staff": "Staff",
-    "/dashboard/settings": "Settings",
     "/dashboard/schedule": "Team Schedule",
     "/dashboard/org": "Org Chart",
     "/dashboard/position-descriptions": "My Role",
     "/dashboard/access": "Access Levels",
     "/dashboard/contracts": "Contracts",
     "/dashboard/performance": "Performance",
+    "/dashboard/settings": "Settings",
   };
 
   const title = Object.entries(pageTitle)

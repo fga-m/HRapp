@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   FileSignature,
   TrendingUp,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import { enableStaffView } from "@/app/actions/view-mode";
@@ -47,6 +48,7 @@ const navItems: NavItem[] = [
   { label: "My Role",     href: "/dashboard/position-descriptions", icon: Briefcase },
   { label: "Staff",       href: "/dashboard/staff",             icon: Users,         permission: "manage_staff" },
   { label: "Access Levels", href: "/dashboard/access",          icon: ShieldCheck,   adminOnly: true },
+  { label: "Settings",      href: "/dashboard/settings",        icon: Settings,      adminOnly: true },
 ];
 
 interface SidebarProps {
