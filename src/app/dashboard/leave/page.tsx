@@ -17,7 +17,7 @@ export default async function LeavePage() {
 
   if (!staff) redirect("/");
 
-  const isReviewer = staff.role === "admin" || staff.role === "manager";
+  const isReviewer = staff.role === "admin" || staff.role === "leave_approver";
 
   return (
     <LeavePageClient

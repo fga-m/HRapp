@@ -28,7 +28,7 @@ export async function PATCH(
 
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isReviewer = caller.role === "admin" || caller.role === "manager";
+  const isReviewer = caller.role === "admin" || caller.role === "leave_approver";
   if (!isReviewer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { action, note } = await req.json() as {

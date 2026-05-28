@@ -208,7 +208,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           {/* Role — highlighted section */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-semibold text-[#223149] mb-2">Role</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: "staff" })}
@@ -237,6 +237,21 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 <div>
                   <p className="font-semibold text-sm text-[#223149]">Manager</p>
                   <p className="text-xs text-[#9BADB7]">Configurable access</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, role: "leave_approver" })}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
+                  form.role === "leave_approver" ? "border-[#7C5C8A] bg-[#7C5C8A]/5" : "border-[#ECE3DF] hover:border-[#9BADB7]"
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "leave_approver" ? "bg-[#7C5C8A]" : "bg-[#ECE3DF]"}`}>
+                  <span className={`text-xs font-bold ${form.role === "leave_approver" ? "text-white" : "text-[#9BADB7]"}`}>LA</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-[#223149]">Leave Approver</p>
+                  <p className="text-xs text-[#9BADB7]">Approves leave requests</p>
                 </div>
               </button>
               <button
@@ -278,6 +293,11 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
             {form.role === "manager" && (
               <p className="text-xs text-[#5F7C84] mt-2">
                 Managers get the permissions configured on the Access Levels page.
+              </p>
+            )}
+            {form.role === "leave_approver" && (
+              <p className="text-xs text-[#7C5C8A] mt-2">
+                Leave Approvers can review, approve and reject leave requests in the app before they go to Xero.
               </p>
             )}
             {form.role === "finance" && (
