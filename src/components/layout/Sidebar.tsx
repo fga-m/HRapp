@@ -21,6 +21,7 @@ import {
   FileSignature,
   TrendingUp,
   Settings,
+  Palmtree,
   type LucideIcon,
 } from "lucide-react";
 import { enableStaffView } from "@/app/actions/view-mode";
@@ -37,6 +38,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard",    href: "/dashboard",                   icon: LayoutDashboard },
   { label: "Calendars",   href: "/dashboard/calendar",           icon: Calendar },
+  { label: "My Leave",    href: "/dashboard/leave",              icon: Palmtree },
   { label: "Team Schedule", href: "/dashboard/schedule",         icon: CalendarDays,  permission: "view_team_schedule" },
   { label: "Meeting Notes", href: "/dashboard/meetings",         icon: FileText },
   { label: "Performance",  href: "/dashboard/performance",       icon: TrendingUp },
