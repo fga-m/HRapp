@@ -60,6 +60,7 @@ export async function GET(
 
     const balances = (employee.LeaveBalances ?? []).map((b: any) => ({
       name: b.LeaveName,
+      leaveTypeId: b.LeaveTypeID,
       balance: b.NumberOfUnits,
       units: b.TypeOfUnits ?? "Hours",
     }));

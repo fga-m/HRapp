@@ -6,6 +6,7 @@ import { ArrowLeft, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink 
 import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
+import ExpenseClaimsCard from "@/components/staff/ExpenseClaimsCard";
 
 export const dynamic = "force-dynamic";
 
@@ -201,10 +202,17 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       </div>
 
       {/* Leave Balances */}
-      <LeaveBalancesCard staffId={member.id} />
+      <LeaveBalancesCard staffId={member.id} isOwnProfile={caller?.id === id} />
 
       {/* Work Schedule */}
       <ScheduleCard staffId={member.id} canEdit={canEditSchedule} />
+
+      {/* Expense Claims */}
+      <ExpenseClaimsCard
+        staffId={member.id}
+        isOwnProfile={caller?.id === id}
+        isManager={isManager}
+      />
 
       {/* Performance Notes */}
       <PerformanceNotesCard
