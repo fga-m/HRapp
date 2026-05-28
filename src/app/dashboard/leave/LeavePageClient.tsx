@@ -51,22 +51,24 @@ function toXeroDate(dateStr: string): string {
   return `/Date(${ms}+0000)/`;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  if (status === "SCHEDULED") return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
-      <Clock className="w-3 h-3" /> Pending approval
-    </span>
-  );
-  if (status === "COMPLETED") return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
-      <CheckCircle className="w-3 h-3" /> Approved
-    </span>
-  );
+function StatusBadge({ status, isPast }: { status: string; isPast: boolean }) {
   if (status === "CANCELLED") return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#F8F6F4] text-[#9BADB7]">
       <XCircle className="w-3 h-3" /> Cancelled
     </span>
   );
+  if (status === "SCHEDULED" || status === "COMPLETED") {
+    if (isPast) return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
+        <CheckCircle className="w-3 h-3" /> Approved
+      </span>
+    );
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
+        <Clock className="w-3 h-3" /> Upcoming
+      </span>
+    );
+  }
   return <span className="text-xs text-[#9BADB7]">{status}</span>;
 }
 
@@ -150,8 +152,9 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
   const selectedBalance = balances.find(b => b.leaveTypeId === form.leaveTypeId);
   const businessDays = form.startDate && form.endDate ? businessDayCount(form.startDate, form.endDate) : 0;
 
-  const pending = applications.filter(a => a.status === "SCHEDULED");
-  const past = applications.filter(a => a.status !== "SCHEDULED");
+  const today = new Date().toISOString().split("T")[0];
+  const upcoming = applications.filter(a => a.endDate >= today && a.status !== "CANCELLED");
+  const past = applications.filter(a => a.endDate < today || a.status === "CANCELLED");
 
   if (!hasXeroLink) {
     return (
@@ -227,26 +230,26 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
           )}
         </div>
 
-        {/* Pending requests */}
-        {(appLoading || pending.length > 0) && (
+        {/* Upcoming requests */}
+        {(appLoading || upcoming.length > 0) && (
           <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="font-semibold text-[#223149] mb-4">Upcoming / Pending</h2>
+            <h2 className="font-semibold text-[#223149] mb-4">Upcoming</h2>
             {appLoading ? (
               <div className="flex justify-center py-4">
                 <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : pending.length === 0 ? (
-              <p className="text-sm text-[#9BADB7]">No pending requests.</p>
+            ) : upcoming.length === 0 ? (
+              <p className="text-sm text-[#9BADB7]">No upcoming leave.</p>
             ) : (
               <div className="space-y-3">
-                {pending.map(app => (
+                {upcoming.map(app => (
                   <div key={app.id} className="flex items-center justify-between gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
                     <div>
                       <p className="text-sm font-semibold text-[#223149]">{app.leaveName || "Leave"}</p>
                       <p className="text-sm text-[#5F7C84] mt-0.5">{formatDateRange(app.startDate, app.endDate)}</p>
                       {app.description && <p className="text-xs text-[#9BADB7] mt-0.5 italic">{app.description}</p>}
                     </div>
-                    <StatusBadge status={app.status} />
+                    <StatusBadge status={app.status} isPast={false} />
                   </div>
                 ))}
               </div>
@@ -271,7 +274,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink }: Pro
                     <p className="text-sm font-semibold text-[#223149]">{app.leaveName || "Leave"}</p>
                     <p className="text-sm text-[#9BADB7] mt-0.5">{formatDateRange(app.startDate, app.endDate)}</p>
                   </div>
-                  <StatusBadge status={app.status} />
+                  <StatusBadge status={app.status} isPast={true} />
                 </div>
               ))}
             </div>
