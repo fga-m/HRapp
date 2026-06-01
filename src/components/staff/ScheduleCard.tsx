@@ -160,13 +160,16 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
   const addSlot = (dayKey: string) => {
     if (!draft) return;
     const prev = draft[dayKey].slots[draft[dayKey].slots.length - 1];
-    // Default second slot starts 3h after the first ends
+    // Default: start 30 min after previous slot ends, run for 4h — capped at 23:00/23:30
     const [eh, em] = prev.end.split(":").map(Number);
-    const newStart = String(eh + 3).padStart(2, "0") + ":" + String(em).padStart(2, "0");
-    const newEnd = String(eh + 3 + 4).padStart(2, "0") + ":" + String(em).padStart(2, "0");
+    const prevEndMins = eh * 60 + em;
+    const startMins = Math.min(prevEndMins + 30, 23 * 60);       // cap start at 23:00
+    const endMins   = Math.min(startMins + 4 * 60, 23 * 60 + 30); // cap end at 23:30
+    const toTime = (mins: number) =>
+      String(Math.floor(mins / 60)).padStart(2, "0") + ":" + String(mins % 60).padStart(2, "0");
     setDraft({
       ...draft,
-      [dayKey]: { ...draft[dayKey], slots: [...draft[dayKey].slots, { start: newStart, end: newEnd }] },
+      [dayKey]: { ...draft[dayKey], slots: [...draft[dayKey].slots, { start: toTime(startMins), end: toTime(endMins) }] },
     });
   };
 
