@@ -1028,8 +1028,9 @@ export default function CalendarPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-amber-100 divide-y divide-[#F8F6F4] overflow-hidden">
               {pendingInvites.map((ev) => {
                 const dateLabel = ev.start.dateTime
-                  ? format(new Date(ev.start.dateTime), "EEE d MMM, h:mm")
-                  + "–" + format(new Date(ev.end.dateTime!), "h:mm a")
+                  ? isMultiDayTimed(ev)
+                    ? `${format(new Date(ev.start.dateTime), "EEE d MMM, h:mm a")} – ${format(new Date(ev.end.dateTime!), "EEE d MMM, h:mm a")}`
+                    : `${format(new Date(ev.start.dateTime), "EEE d MMM, h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`
                   : ev.start.date
                   ? format(new Date(ev.start.date), "EEE d MMM") + " · All day"
                   : "";
@@ -1463,7 +1464,9 @@ export default function CalendarPage() {
           ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Working — available</span>
           : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#223149]/10 text-[#223149]">Busy</span>;
         const timeLabel = ev.start.dateTime
-          ? `${format(new Date(ev.start.dateTime), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`
+          ? isMultiDayTimed(ev)
+            ? `${format(new Date(ev.start.dateTime), "EEE d MMM, h:mm a")} – ${format(new Date(ev.end.dateTime!), "EEE d MMM, h:mm a")}`
+            : `${format(new Date(ev.start.dateTime), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`
           : null;
         const canEdit = isOwnCalendar && !ooo && !isAllDayLike(ev);
         return (
@@ -1646,7 +1649,9 @@ export default function CalendarPage() {
                 <p>
                   {format(new Date(tooltip.start.dateTime), "EEE d MMM, h:mm a")}
                   {" – "}
-                  {format(new Date(tooltip.end.dateTime!), "h:mm a")}
+                  {isMultiDayTimed(tooltip)
+                    ? format(new Date(tooltip.end.dateTime!), "EEE d MMM, h:mm a")
+                    : format(new Date(tooltip.end.dateTime!), "h:mm a")}
                 </p>
               ) : (
                 <p>{format(new Date(tooltip.start.date!), "EEE d MMM")} · All day</p>
