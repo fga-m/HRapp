@@ -540,12 +540,18 @@ export default function CalendarPage() {
   const [userEmail, setUserEmail] = useState("");
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const searchParams = useSearchParams();
-  const [selectedId, setSelectedId] = useState(() => {
-    // Pre-select staff calendar if ?staff=email is in the URL
-    const staffEmail = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("staff") : null;
-    return staffEmail ?? "primary";
-  });
+  const [selectedId, setSelectedId] = useState("primary");
   const [selectedLabel, setSelectedLabel] = useState("My Calendar");
+
+  // Pre-select staff calendar from ?staff= URL param on first render
+  useEffect(() => {
+    const staffEmail = searchParams.get("staff");
+    if (staffEmail) {
+      setSelectedId(staffEmail);
+      setSelectedLabel(""); // will be updated to full name when staffList loads
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount only
   const gridRef = useRef<HTMLDivElement>(null);
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [nowTop, setNowTop] = useState(0);
