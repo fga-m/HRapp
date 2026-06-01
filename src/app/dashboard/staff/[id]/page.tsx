@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink, FileSignature, CheckCircle, Clock } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink, FileSignature, CheckCircle, Clock, Clock3 } from "lucide-react";
 import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
@@ -253,6 +253,15 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
               <div>
                 <p className="text-xs text-[#9BADB7] font-medium">Position</p>
                 <p className="text-sm text-[#223149]">{member.position}</p>
+              </div>
+            </div>
+          )}
+          {member.contracted_hours != null && (
+            <div className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl">
+              <Clock3 className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+              <div>
+                <p className="text-xs text-[#9BADB7] font-medium">Contracted Hours</p>
+                <p className="text-sm text-[#223149]">{member.contracted_hours} hrs / week</p>
               </div>
             </div>
           )}
