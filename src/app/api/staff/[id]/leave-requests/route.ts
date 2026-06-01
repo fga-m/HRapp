@@ -178,5 +178,32 @@ export async function POST(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Notify leave approvers and admins (excluding the requester themselves)
+  const { data: approvers } = await supabaseAdmin
+    .from("staff")
+    .select("id")
+    .in("role", ["admin", "leave_approver"])
+    .eq("is_active", true)
+    .neq("id", id);
+
+  if (approvers && approvers.length > 0) {
+    const { data: requester } = await supabaseAdmin
+      .from("staff")
+      .select("full_name")
+      .eq("id", id)
+      .single();
+
+    await supabaseAdmin.from("notifications").insert(
+      approvers.map((a: any) => ({
+        staff_id: a.id,
+        title: `Leave request from ${requester?.full_name ?? "a staff member"}`,
+        message: `${requester?.full_name ?? "A staff member"} has submitted a ${leaveTypeName} request from ${startDate} to ${endDate} — awaiting your approval.`,
+        type: "leave",
+        link: "/dashboard/leave",
+        is_read: false,
+      }))
+    );
+  }
+
   return NextResponse.json({ id: data.id, status: "PENDING" }, { status: 201 });
 }

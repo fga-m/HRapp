@@ -99,6 +99,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           staff_id: a.staff_id,
           title: `Updated contract to sign: "${newContract.title}"`,
           message: `A new version (v${newVersion}) of a contract you were previously assigned has been published. Please review and sign the updated version.`,
+          type: "contract",
           link: `/dashboard/contracts/${newContract.id}`,
           is_read: false,
         }))

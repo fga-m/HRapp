@@ -65,6 +65,16 @@ export async function PATCH(
       .eq("id", id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await supabaseAdmin.from("notifications").insert({
+      staff_id: leaveReq.staff_id,
+      title: "Leave request declined",
+      message: `Your ${leaveReq.leave_type_name} request from ${leaveReq.start_date} to ${leaveReq.end_date} was not approved${note?.trim() ? `: "${note.trim()}"` : "."}`,
+      type: "leave",
+      link: "/dashboard/leave",
+      is_read: false,
+    });
+
     return NextResponse.json({ status: "REJECTED" });
   }
 
@@ -125,6 +135,15 @@ export async function PATCH(
       .eq("id", id);
 
     if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+    await supabaseAdmin.from("notifications").insert({
+      staff_id: leaveReq.staff_id,
+      title: "Leave request approved",
+      message: `Your ${leaveReq.leave_type_name} request from ${leaveReq.start_date} to ${leaveReq.end_date} has been approved.`,
+      type: "leave",
+      link: "/dashboard/leave",
+      is_read: false,
+    });
 
     return NextResponse.json({ status: "APPROVED", xeroId });
   } catch (err: any) {

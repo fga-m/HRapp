@@ -60,6 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           staff_id,
           title: `Contract to sign: "${contract.title}"`,
           message: `You have been assigned a contract that requires your e-signature. Please review and sign it.`,
+          type: "contract",
           link: `/dashboard/contracts/${id}`,
           is_read: false,
         }))

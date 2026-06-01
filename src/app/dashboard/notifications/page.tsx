@@ -2,44 +2,67 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, FileText, CheckSquare, Bell, Check } from "lucide-react";
+import { Shield, FileText, CheckSquare, Bell, Check, FileSignature, Palmtree, MessageSquare, TrendingUp } from "lucide-react";
 import { formatDistanceToNow, isToday, isYesterday, format } from "date-fns";
 
 type Notification = {
   id: string;
   title: string;
   message: string;
-  type: "policy" | "meeting" | "checklist" | "general";
+  type: "policy" | "meeting" | "checklist" | "general" | "contract" | "leave" | "note" | "performance";
   reference_id: string | null;
+  link: string | null;
   is_read: boolean;
   created_at: string;
 };
 
 function typeIcon(type: Notification["type"]) {
   switch (type) {
-    case "policy":    return <Shield className="w-4 h-4" />;
-    case "meeting":   return <FileText className="w-4 h-4" />;
-    case "checklist": return <CheckSquare className="w-4 h-4" />;
-    default:          return <Bell className="w-4 h-4" />;
+    case "policy":      return <Shield className="w-4 h-4" />;
+    case "meeting":     return <FileText className="w-4 h-4" />;
+    case "checklist":   return <CheckSquare className="w-4 h-4" />;
+    case "contract":    return <FileSignature className="w-4 h-4" />;
+    case "leave":       return <Palmtree className="w-4 h-4" />;
+    case "note":        return <MessageSquare className="w-4 h-4" />;
+    case "performance": return <TrendingUp className="w-4 h-4" />;
+    default:            return <Bell className="w-4 h-4" />;
   }
 }
 
 function typeColor(type: Notification["type"]) {
   switch (type) {
-    case "policy":    return "bg-[#223149] text-white";
-    case "meeting":   return "bg-[#5F7C84] text-white";
-    case "checklist": return "bg-emerald-500 text-white";
-    default:          return "bg-[#9BADB7] text-white";
+    case "policy":      return "bg-[#223149] text-white";
+    case "meeting":     return "bg-[#5F7C84] text-white";
+    case "checklist":   return "bg-emerald-500 text-white";
+    case "contract":    return "bg-indigo-500 text-white";
+    case "leave":       return "bg-teal-500 text-white";
+    case "note":        return "bg-[#5F7C84] text-white";
+    case "performance": return "bg-amber-500 text-white";
+    default:            return "bg-[#9BADB7] text-white";
   }
 }
 
 function targetHref(n: Notification) {
+  if (n.link) return n.link;
   if (!n.reference_id) return null;
   switch (n.type) {
     case "policy":    return `/dashboard/policies/${n.reference_id}`;
     case "meeting":   return `/dashboard/meetings/${n.reference_id}`;
     case "checklist": return `/dashboard/onboarding/${n.reference_id}`;
     default:          return null;
+  }
+}
+
+function viewLabel(type: Notification["type"]) {
+  switch (type) {
+    case "policy":      return "View policy";
+    case "meeting":     return "View meeting";
+    case "checklist":   return "View checklist";
+    case "contract":    return "View contract";
+    case "leave":       return "View leave request";
+    case "note":        return "View note";
+    case "performance": return "View review";
+    default:            return "View";
   }
 }
 
@@ -167,7 +190,7 @@ export default function NotificationsPage() {
                       </p>
                       {href && (
                         <span className="text-xs font-medium text-[#223149]">
-                          → {n.type === "policy" ? "View policy" : n.type === "meeting" ? "View meeting" : "View"}
+                          → {viewLabel(n.type)}
                         </span>
                       )}
                     </div>
