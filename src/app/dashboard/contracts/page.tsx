@@ -12,6 +12,8 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
+  Search,
+  Users,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -32,6 +34,44 @@ export default function ContractsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Staff assignment inside upload modal
+  const [allStaff, setAllStaff] = useState<any[]>([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [assignedIds, setAssignedIds] = useState<Set<string>>(new Set());
+  const [staffSearch, setStaffSearch] = useState("");
+
+  const openUploadModal = () => {
+    setShowUpload(true);
+    if (allStaff.length > 0) return; // already loaded
+    setStaffLoading(true);
+    fetch("/api/staff")
+      .then((r) => r.json())
+      .then((data) => {
+        setAllStaff(Array.isArray(data) ? data.filter((s: any) => s.is_active) : []);
+      })
+      .finally(() => setStaffLoading(false));
+  };
+
+  const closeUploadModal = () => {
+    setShowUpload(false);
+    setUploadError("");
+    setUploadMode("new");
+    setTitle("");
+    setDescription("");
+    setFile(null);
+    setSelectedGroupId("");
+    setAssignedIds(new Set());
+    setStaffSearch("");
+  };
+
+  const toggleStaff = (id: string) => {
+    setAssignedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const fetchContracts = () => {
     setLoading(true);
@@ -56,6 +96,10 @@ export default function ContractsPage() {
     if (!file) return;
     if (uploadMode === "new" && !title.trim()) return;
     if (uploadMode === "version" && !selectedGroupId) return;
+    if (assignedIds.size === 0) {
+      setUploadError("Please assign this contract to at least one staff member.");
+      return;
+    }
 
     setUploading(true);
     setUploadError("");
@@ -66,7 +110,6 @@ export default function ContractsPage() {
       fd.append("title", title.trim());
       fd.append("description", description.trim());
     } else {
-      // Find the group title for the new version
       const grp = groups.find((g: any) => g.id === selectedGroupId);
       fd.append("title", grp?.title ?? "");
       fd.append("group_id", selectedGroupId);
@@ -77,12 +120,15 @@ export default function ContractsPage() {
       const res = await fetch("/api/contracts", { method: "POST", body: fd });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "Upload failed");
-      setShowUpload(false);
-      setTitle("");
-      setDescription("");
-      setFile(null);
-      setSelectedGroupId("");
-      setUploadMode("new");
+
+      // Assign staff immediately after creation
+      await fetch(`/api/contracts/${d.id}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ staff_ids: Array.from(assignedIds) }),
+      });
+
+      closeUploadModal();
       fetchContracts();
     } catch (err: any) {
       setUploadError(err.message);
@@ -116,7 +162,7 @@ export default function ContractsPage() {
         </div>
         {role === "admin" && (
           <button
-            onClick={() => setShowUpload(true)}
+            onClick={() => openUploadModal()}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -133,7 +179,7 @@ export default function ContractsPage() {
               <FileSignature className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
               <p className="text-[#5F7C84] font-medium">No contracts yet</p>
               <button
-                onClick={() => setShowUpload(true)}
+                onClick={() => openUploadModal()}
                 className="text-sm text-[#223149] underline mt-1 inline-block"
               >
                 Upload your first contract
@@ -189,11 +235,11 @@ export default function ContractsPage() {
       {/* Upload modal */}
       {showUpload && (
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
-          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-lg pb-safe">
+          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-lg pb-safe max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
               <h2 className="text-lg font-bold text-[#223149]">Upload Contract</h2>
               <button
-                onClick={() => { setShowUpload(false); setUploadError(""); setUploadMode("new"); }}
+                onClick={closeUploadModal}
                 className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
               >
                 <X className="w-5 h-5 text-[#5F7C84]" />
@@ -228,7 +274,7 @@ export default function ContractsPage() {
               )}
             </div>
 
-            <form onSubmit={handleUpload} className="p-6 space-y-4">
+            <form onSubmit={handleUpload} className="p-6 space-y-4 overflow-y-auto flex-1">
               {uploadMode === "new" ? (
                 <>
                   <div>
@@ -312,6 +358,80 @@ export default function ContractsPage() {
                 />
               </div>
 
+              {/* Assign to staff — required */}
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  Assign to <span className="text-red-400">*</span>
+                  {assignedIds.size > 0 && (
+                    <span className="ml-2 text-xs font-normal text-[#5F7C84]">{assignedIds.size} selected</span>
+                  )}
+                </label>
+
+                {staffLoading ? (
+                  <div className="flex items-center gap-2 py-3 text-sm text-[#9BADB7]">
+                    <div className="w-4 h-4 border-2 border-[#9BADB7] border-t-transparent rounded-full animate-spin" />
+                    Loading staff…
+                  </div>
+                ) : (
+                  <div className="border border-[#ECE3DF] rounded-xl overflow-hidden">
+                    {/* Search */}
+                    <div className="flex items-center gap-2 px-3 py-2 border-b border-[#ECE3DF]">
+                      <Search className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" />
+                      <input
+                        type="text"
+                        value={staffSearch}
+                        onChange={(e) => setStaffSearch(e.target.value)}
+                        placeholder="Search staff…"
+                        className="flex-1 text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none bg-transparent"
+                      />
+                    </div>
+                    {/* Staff list */}
+                    <div className="max-h-44 overflow-y-auto divide-y divide-[#F8F6F4]">
+                      {allStaff
+                        .filter((s: any) =>
+                          s.full_name.toLowerCase().includes(staffSearch.toLowerCase()) ||
+                          s.email.toLowerCase().includes(staffSearch.toLowerCase())
+                        )
+                        .map((s: any) => {
+                          const checked = assignedIds.has(s.id);
+                          const initials = s.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+                          return (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => toggleStaff(s.id)}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${checked ? "bg-[#223149]/5" : "hover:bg-[#F8F6F4]"}`}
+                            >
+                              <div className="w-7 h-7 rounded-full bg-[#ECE3DF] flex items-center justify-center flex-shrink-0">
+                                {s.avatar_url
+                                  ? <img src={s.avatar_url} alt={s.full_name} className="w-7 h-7 rounded-full object-cover" />
+                                  : <span className="text-[10px] font-bold text-[#5F7C84]">{initials}</span>
+                                }
+                              </div>
+                              <span className="flex-1 text-sm font-medium text-[#223149] truncate">{s.full_name}</span>
+                              <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${checked ? "bg-[#223149] border-[#223149]" : "border-[#9BADB7]"}`}>
+                                {checked && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10"><path d="M1.5 5l2.5 2.5L8.5 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      {allStaff.filter((s: any) =>
+                        s.full_name.toLowerCase().includes(staffSearch.toLowerCase()) ||
+                        s.email.toLowerCase().includes(staffSearch.toLowerCase())
+                      ).length === 0 && (
+                        <p className="text-sm text-[#9BADB7] px-3 py-3">No staff found.</p>
+                      )}
+                    </div>
+                    {/* Select all / none */}
+                    <div className="flex gap-3 px-3 py-2 border-t border-[#ECE3DF]">
+                      <button type="button" onClick={() => setAssignedIds(new Set(allStaff.map((s: any) => s.id)))} className="text-xs text-[#5F7C84] hover:text-[#223149] transition-colors">Select all</button>
+                      <span className="text-[#ECE3DF]">·</span>
+                      <button type="button" onClick={() => setAssignedIds(new Set())} className="text-xs text-[#5F7C84] hover:text-[#223149] transition-colors">Clear</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {uploadError && (
                 <p className="text-sm text-red-500">{uploadError}</p>
               )}
@@ -322,6 +442,7 @@ export default function ContractsPage() {
                   disabled={
                     uploading ||
                     !file ||
+                    assignedIds.size === 0 ||
                     (uploadMode === "new" && !title.trim()) ||
                     (uploadMode === "version" && !selectedGroupId)
                   }
@@ -341,7 +462,7 @@ export default function ContractsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowUpload(false); setUploadError(""); setUploadMode("new"); }}
+                  onClick={closeUploadModal}
                   className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                 >
                   Cancel
