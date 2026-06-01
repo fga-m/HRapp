@@ -319,6 +319,7 @@ export default function SchedulePage() {
                   </th>
                   <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
                     TOIL Balance
+                    <p className="text-[8px] font-normal normal-case tracking-normal mt-0.5 opacity-70">accumulates 4 wks then resets</p>
                   </th>
                 </tr>
               </thead>

@@ -155,16 +155,19 @@ export async function GET(req: NextRequest) {
   const timeMin = toMelbourneISO(weekStartStr);
   const timeMax = toMelbourneISO(weekEndStr);
 
-  // Previous week boundaries
-  const prevWeekStart = new Date(weekStart); prevWeekStart.setDate(prevWeekStart.getDate() - 7);
-  const prevWeekEnd   = new Date(weekEnd);   prevWeekEnd.setDate(prevWeekEnd.getDate() - 7);
-  const prevTimeMin = toMelbourneISO(toISODateString(prevWeekStart));
-  const prevTimeMax = toMelbourneISO(toISODateString(prevWeekEnd));
+  // Build boundaries for the 3 prior weeks (TOIL accumulates over 4 weeks then resets)
+  const TOIL_WEEKS = 4;
+  const priorWeekBounds = Array.from({ length: TOIL_WEEKS - 1 }, (_, i) => {
+    const offset = (i + 1) * 7;
+    const s = new Date(weekStart); s.setDate(s.getDate() - offset);
+    const e = new Date(weekEnd);   e.setDate(e.getDate() - offset);
+    return { tMin: toMelbourneISO(toISODateString(s)), tMax: toMelbourneISO(toISODateString(e)) };
+  });
 
-  // Fetch both weeks in parallel
-  const [scheduledHoursMap, prevScheduledHoursMap] = await Promise.all([
+  // Fetch current week + prior 3 weeks in parallel (all 4 weeks for TOIL window)
+  const [scheduledHoursMap, ...priorMaps] = await Promise.all([
     fetchWeekHours(timeMin, timeMax),
-    fetchWeekHours(prevTimeMin, prevTimeMax),
+    ...priorWeekBounds.map(({ tMin, tMax }) => fetchWeekHours(tMin, tMax)),
   ]);
 
   // Mark staff who have no linked calendar at all
@@ -173,17 +176,17 @@ export async function GET(req: NextRequest) {
     if (s.google_calendar_id || s.email) hasCalendarSet.add(s.id);
   }
 
-  // TOIL balance = sum of weekly variances (scheduled − contracted) over the last 2 weeks.
+  // TOIL balance = sum of weekly variances (scheduled − contracted) over the last 4 weeks.
   // Weeks with no calendar data contribute 0 to the balance.
   const toilBalanceMap = new Map<string, number>();
   for (const s of staffList as any[]) {
     const contracted = s.contracted_hours ?? 37.5;
-    const currentScheduled = scheduledHoursMap.get(s.id);
-    const prevScheduled    = prevScheduledHoursMap.get(s.id);
-    const currentVariance  = currentScheduled != null ? currentScheduled - contracted : 0;
-    const prevVariance     = prevScheduled    != null ? prevScheduled    - contracted : 0;
-    const toil = Math.round((currentVariance + prevVariance) * 10) / 10;
-    toilBalanceMap.set(s.id, toil);
+    const allWeekMaps = [scheduledHoursMap, ...priorMaps];
+    const totalVariance = allWeekMaps.reduce((sum, weekMap) => {
+      const scheduled = weekMap.get(s.id);
+      return sum + (scheduled != null ? scheduled - contracted : 0);
+    }, 0);
+    toilBalanceMap.set(s.id, Math.round(totalVariance * 10) / 10);
   }
 
   // Build response
