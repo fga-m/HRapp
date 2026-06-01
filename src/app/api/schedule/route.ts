@@ -104,6 +104,20 @@ export async function GET(req: NextRequest) {
     .filter((item) => !!item.calId);
 
   // Helper: fetch scheduled hours for all staff over a given week boundary
+  // Fetch manual work-hour overrides for all staff (keyed by staffId → eventId → workHours)
+  const staffIds = (staffList as any[]).map((s: any) => s.id);
+  const { data: overrideRows } = await supabaseAdmin
+    .from("calendar_event_overrides")
+    .select("staff_id, event_id, work_hours")
+    .in("staff_id", staffIds);
+
+  // Build nested map: staffId → (eventId → work_hours)
+  const overrideMap = new Map<string, Map<string, number>>();
+  for (const row of (overrideRows ?? []) as any[]) {
+    if (!overrideMap.has(row.staff_id)) overrideMap.set(row.staff_id, new Map());
+    overrideMap.get(row.staff_id)!.set(row.event_id, Number(row.work_hours));
+  }
+
   async function fetchWeekHours(tMin: string, tMax: string): Promise<Map<string, number>> {
     const map = new Map<string, number>();
     if (!token || calendarItems.length === 0) return map;
@@ -125,16 +139,22 @@ export async function GET(req: NextRequest) {
 
         const data = await res.json();
         const events: any[] = data.items ?? [];
+        const staffOverrides = overrideMap.get(staffId);
 
-        // Sum timed events with lunch deduction (same logic as Work Schedule card):
-        // any single continuous block >= 5 h has 30 min deducted.
+        // Sum timed events. If a manual work-hour override exists for an event, use that
+        // instead of the calculated duration. Otherwise apply the standard lunch deduction.
         let totalMinutes = 0;
         for (const event of events) {
           if (event.start?.dateTime && event.end?.dateTime) {
-            const start = new Date(event.start.dateTime).getTime();
-            const end   = new Date(event.end.dateTime).getTime();
-            const durationMins = (end - start) / 60_000;
-            totalMinutes += durationMins >= 300 ? durationMins - 30 : durationMins;
+            if (staffOverrides?.has(event.id)) {
+              // Override: use the manually specified work hours (already in hours, convert to mins)
+              totalMinutes += staffOverrides.get(event.id)! * 60;
+            } else {
+              const start = new Date(event.start.dateTime).getTime();
+              const end   = new Date(event.end.dateTime).getTime();
+              const durationMins = (end - start) / 60_000;
+              totalMinutes += durationMins >= 300 ? durationMins - 30 : durationMins;
+            }
           }
         }
         return { staffId, hours: Math.round((totalMinutes / 60) * 10) / 10 };

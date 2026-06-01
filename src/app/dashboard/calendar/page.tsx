@@ -550,6 +550,11 @@ export default function CalendarPage() {
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [nowTop, setNowTop] = useState(0);
   const [tooltip, setTooltip] = useState<GEvent | null>(null);
+  // Work-hour override state (for the event detail modal)
+  const [overrideHours, setOverrideHours] = useState<string>("");
+  const [overrideNote, setOverrideNote] = useState<string>("");
+  const [overrideSaving, setOverrideSaving] = useState(false);
+  const [overrideExisting, setOverrideExisting] = useState<number | null>(null); // null = no override set
   const [editingEvent, setEditingEvent] = useState<GEvent | null>(null);
   const [duplicatingEvent, setDuplicatingEvent] = useState<GEvent | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
@@ -906,6 +911,33 @@ export default function CalendarPage() {
 
   const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
+  const handleSaveOverride = async () => {
+    if (!tooltip || !viewingStaff) return;
+    setOverrideSaving(true);
+    await fetch("/api/calendar/overrides", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        staff_id: viewingStaff.id,
+        event_id: tooltip.id,
+        work_hours: parseFloat(overrideHours) || 0,
+        note: overrideNote.trim() || null,
+      }),
+    });
+    setOverrideExisting(parseFloat(overrideHours) || 0);
+    setOverrideSaving(false);
+  };
+
+  const handleDeleteOverride = async () => {
+    if (!tooltip || !viewingStaff) return;
+    setOverrideSaving(true);
+    await fetch(`/api/calendar/overrides?staff_id=${viewingStaff.id}&event_id=${tooltip.id}`, { method: "DELETE" });
+    setOverrideExisting(null);
+    setOverrideHours("");
+    setOverrideNote("");
+    setOverrideSaving(false);
+  };
+
   const handleDelete = async (ev: GEvent) => {
     if (!confirm(`Delete "${ev.summary || "this event"}"?`)) return;
     await fetch(`/api/calendar/events/${ev.id}?calendarId=${encodeURIComponent(selectedId)}`, { method: "DELETE" });
@@ -915,6 +947,30 @@ export default function CalendarPage() {
 
   // Only own calendar is editable (primary = your own)
   const isOwnCalendar = selectedId === "primary";
+
+  // The staff member whose calendar is being viewed (null if "My Calendar")
+  const viewingStaff = selectedId !== "primary"
+    ? staffList.find((s) => s.email === selectedId) ?? null
+    : null;
+
+  // Load existing override when the detail modal opens on a staff calendar
+  useEffect(() => {
+    setOverrideHours("");
+    setOverrideNote("");
+    setOverrideExisting(null);
+    if (!tooltip || !viewingStaff || role !== "admin") return;
+    fetch(`/api/calendar/overrides?staff_id=${viewingStaff.id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const match = (d.overrides ?? []).find((o: any) => o.event_id === tooltip.id);
+        if (match) {
+          setOverrideExisting(match.work_hours);
+          setOverrideHours(String(match.work_hours));
+          setOverrideNote(match.note ?? "");
+        }
+      })
+      .catch(() => {});
+  }, [tooltip?.id, viewingStaff?.id, role]);
 
   // Hex with alpha suffix helper
   const hexA = (hex: string, alpha: number) => {
@@ -1685,6 +1741,57 @@ export default function CalendarPage() {
                 </div>
               )}
             </div>
+
+            {/* Work-hour override — admin only, staff calendars only */}
+            {role === "admin" && viewingStaff && (
+              <div className="pt-3 border-t border-[#ECE3DF] space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">
+                    Work hours (TOIL)
+                  </p>
+                  {overrideExisting !== null && (
+                    <button
+                      onClick={handleDeleteOverride}
+                      disabled={overrideSaving}
+                      className="text-[10px] text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                    >
+                      Reset to auto
+                    </button>
+                  )}
+                </div>
+                {overrideExisting !== null && (
+                  <p className="text-[10px] text-amber-600 bg-amber-50 rounded-lg px-2 py-1">
+                    Override set: {overrideExisting}h (auto would be full duration)
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    value={overrideHours}
+                    onChange={(e) => setOverrideHours(e.target.value)}
+                    placeholder="e.g. 8 or 0"
+                    className="flex-1 px-3 py-1.5 text-sm rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                  />
+                  <span className="text-xs text-[#9BADB7] self-center">hrs</span>
+                  <button
+                    onClick={handleSaveOverride}
+                    disabled={overrideSaving || overrideHours === ""}
+                    className="px-3 py-1.5 bg-[#223149] text-white text-xs font-semibold rounded-xl hover:bg-[#1a2638] transition-colors disabled:opacity-50"
+                  >
+                    {overrideSaving ? "Saving…" : "Save"}
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={overrideNote}
+                  onChange={(e) => setOverrideNote(e.target.value)}
+                  placeholder="Note (optional)"
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                />
+              </div>
+            )}
 
             {tooltip.htmlLink && (
               <a
