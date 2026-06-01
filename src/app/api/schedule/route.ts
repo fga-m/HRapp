@@ -27,6 +27,26 @@ function toISODateString(date: Date): string {
   return date.toISOString().split("T")[0];
 }
 
+/**
+ * Merge overlapping time intervals so that only unique time is counted.
+ * e.g. [[9am,5pm],[10am,11am]] → [[9am,5pm]] not 9h+1h=10h
+ * Each interval is [startMs, endMs].
+ */
+function mergeIntervals(intervals: Array<[number, number]>): Array<[number, number]> {
+  if (intervals.length === 0) return [];
+  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
+  const merged: Array<[number, number]> = [[sorted[0][0], sorted[0][1]]];
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1];
+    if (sorted[i][0] <= last[1]) {
+      last[1] = Math.max(last[1], sorted[i][1]); // extend the current interval
+    } else {
+      merged.push([sorted[i][0], sorted[i][1]]);
+    }
+  }
+  return merged;
+}
+
 // Return the UTC+offset string for Australia/Melbourne on a given date (handles AEST/AEDT).
 // e.g. "+10:00" in winter, "+11:00" in summer.
 function getMelbourneOffset(date: Date): string {
@@ -141,22 +161,33 @@ export async function GET(req: NextRequest) {
         const events: any[] = data.items ?? [];
         const staffOverrides = overrideMap.get(staffId);
 
-        // Sum timed events. If a manual work-hour override exists for an event, use that
-        // instead of the calculated duration. Otherwise apply the standard lunch deduction.
-        let totalMinutes = 0;
+        // Separate events into overridden (manual hours) and auto (calculate from duration).
+        // Auto events are merged to avoid counting overlapping time twice.
+        let overrideMinutes = 0;
+        const autoIntervals: Array<[number, number]> = [];
+
         for (const event of events) {
-          if (event.start?.dateTime && event.end?.dateTime) {
-            if (staffOverrides?.has(event.id)) {
-              // Override: use the manually specified work hours (already in hours, convert to mins)
-              totalMinutes += staffOverrides.get(event.id)! * 60;
-            } else {
-              const start = new Date(event.start.dateTime).getTime();
-              const end   = new Date(event.end.dateTime).getTime();
-              const durationMins = (end - start) / 60_000;
-              totalMinutes += durationMins >= 300 ? durationMins - 30 : durationMins;
-            }
+          if (!event.start?.dateTime || !event.end?.dateTime) continue;
+          if (staffOverrides?.has(event.id)) {
+            overrideMinutes += staffOverrides.get(event.id)! * 60;
+          } else {
+            const start = new Date(event.start.dateTime).getTime();
+            const end   = new Date(event.end.dateTime).getTime();
+            if (end > start) autoIntervals.push([start, end]);
           }
         }
+
+        // Merge overlapping intervals so e.g. a "Work" block + a meeting inside it
+        // count as one continuous block, not two separate durations.
+        const merged = mergeIntervals(autoIntervals);
+        let autoMinutes = 0;
+        for (const [start, end] of merged) {
+          const durationMins = (end - start) / 60_000;
+          // Apply 30-min lunch deduction for any merged block >= 5 hours
+          autoMinutes += durationMins >= 300 ? durationMins - 30 : durationMins;
+        }
+
+        const totalMinutes = overrideMinutes + autoMinutes;
         return { staffId, hours: Math.round((totalMinutes / 60) * 10) / 10 };
       })
     );
