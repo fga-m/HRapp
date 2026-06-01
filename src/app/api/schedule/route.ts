@@ -27,6 +27,26 @@ function toISODateString(date: Date): string {
   return date.toISOString().split("T")[0];
 }
 
+// Return the UTC+offset string for Australia/Melbourne on a given date (handles AEST/AEDT).
+// e.g. "+10:00" in winter, "+11:00" in summer.
+function getMelbourneOffset(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-AU", {
+    timeZone: "Australia/Melbourne",
+    timeZoneName: "shortOffset",
+  }).formatToParts(date);
+  const tz = parts.find((p) => p.type === "timeZoneName")?.value ?? "GMT+10";
+  const match = tz.match(/GMT([+-])(\d+)/);
+  if (!match) return "+10:00";
+  return `${match[1]}${match[2].padStart(2, "0")}:00`;
+}
+
+// Build a local-midnight ISO string for Australia/Melbourne, e.g. "2026-05-25T00:00:00+10:00"
+function toMelbourneISO(dateStr: string): string {
+  // Create a reference Date just to get the correct DST offset for that week
+  const ref = new Date(dateStr + "T12:00:00Z");
+  return `${dateStr}T00:00:00${getMelbourneOffset(ref)}`;
+}
+
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -87,14 +107,20 @@ export async function GET(req: NextRequest) {
   // Parallel fetch per staff member; only timed events count (all-day events are skipped).
   const scheduledHoursMap = new Map<string, number>();
 
+  // Use Melbourne-local midnight boundaries so events on Mon morning don't bleed into the prior week
+  const weekStartStr = toISODateString(weekStart);
+  const weekEndStr = toISODateString(weekEnd);
+  const timeMin = toMelbourneISO(weekStartStr);
+  const timeMax = toMelbourneISO(weekEndStr);
+
   if (token && calendarItems.length > 0) {
     const results = await Promise.allSettled(
       calendarItems.map(async ({ calId, staffId }) => {
         const url = new URL(
           `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`
         );
-        url.searchParams.set("timeMin", weekStart.toISOString());
-        url.searchParams.set("timeMax", weekEnd.toISOString());
+        url.searchParams.set("timeMin", timeMin);
+        url.searchParams.set("timeMax", timeMax);
         url.searchParams.set("singleEvents", "true");
         url.searchParams.set("maxResults", "250");
 
