@@ -77,61 +77,54 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch staff" }, { status: 500 });
   }
 
-  // Build FreeBusy items — only staff with a calendar id or email
-  const calendarItems = staffList
-    .map((s: any) => ({ id: s.google_calendar_id || s.email, staffId: s.id }))
-    .filter((item: any) => !!item.id);
+  // Build calendar items — only staff with a calendar id or email
+  const calendarItems = (staffList as any[])
+    .map((s: any) => ({ calId: s.google_calendar_id || s.email, staffId: s.id }))
+    .filter((item) => !!item.calId);
 
-  // Map: calendarId → staffId
-  const calendarToStaffId = new Map<string, string>();
-  for (const s of staffList as any[]) {
-    const calId = s.google_calendar_id || s.email;
-    if (calId) calendarToStaffId.set(calId, s.id);
-  }
-
-  // Fetch FreeBusy if we have a token and calendar items
-  const scheduledHoursMap = new Map<string, number | null>();
+  // Fetch scheduled hours via Calendar Events API (uses calendar.events scope, already granted).
+  // FreeBusy requires calendar.freebusy scope which we don't have — Events API works instead.
+  // Parallel fetch per staff member; only timed events count (all-day events are skipped).
+  const scheduledHoursMap = new Map<string, number>();
 
   if (token && calendarItems.length > 0) {
-    try {
-      const freeBusyRes = await fetch(
-        "https://www.googleapis.com/calendar/v3/freeBusy",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            timeMin: weekStart.toISOString(),
-            timeMax: weekEnd.toISOString(),
-            items: calendarItems.map((item: any) => ({ id: item.id })),
-          }),
-        }
-      );
+    const results = await Promise.allSettled(
+      calendarItems.map(async ({ calId, staffId }) => {
+        const url = new URL(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`
+        );
+        url.searchParams.set("timeMin", weekStart.toISOString());
+        url.searchParams.set("timeMax", weekEnd.toISOString());
+        url.searchParams.set("singleEvents", "true");
+        url.searchParams.set("maxResults", "250");
 
-      if (freeBusyRes.ok) {
-        const freeBusyData = await freeBusyRes.json();
-        const calendars: Record<string, { busy: Array<{ start: string; end: string }> }> =
-          freeBusyData.calendars || {};
+        const res = await fetch(url.toString(), {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        for (const [calId, calData] of Object.entries(calendars)) {
-          const staffId = calendarToStaffId.get(calId);
-          if (!staffId) continue;
+        if (!res.ok) return { staffId, hours: null };
 
-          const busyBlocks = calData.busy || [];
-          let totalMinutes = 0;
-          for (const block of busyBlocks) {
-            const start = new Date(block.start).getTime();
-            const end = new Date(block.end).getTime();
-            totalMinutes += (end - start) / 60000;
+        const data = await res.json();
+        const events: any[] = data.items ?? [];
+
+        // Sum only timed events (skip all-day events which have .date but no .dateTime)
+        let totalMinutes = 0;
+        for (const event of events) {
+          if (event.start?.dateTime && event.end?.dateTime) {
+            const start = new Date(event.start.dateTime).getTime();
+            const end = new Date(event.end.dateTime).getTime();
+            totalMinutes += (end - start) / 60_000;
           }
-          scheduledHoursMap.set(staffId, Math.round((totalMinutes / 60) * 10) / 10);
         }
+
+        return { staffId, hours: Math.round((totalMinutes / 60) * 10) / 10 };
+      })
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled" && result.value.hours !== null) {
+        scheduledHoursMap.set(result.value.staffId, result.value.hours);
       }
-      // If freeBusy fails (403 etc.), we just leave the map empty — staff get null
-    } catch {
-      // Network error or parse error — don't crash, just leave map empty
     }
   }
 
@@ -155,8 +148,9 @@ export async function GET(req: NextRequest) {
   // Build response
   const staffResponse = (staffList as any[]).map((s: any) => {
     const hasCalendar = hasCalendarSet.has(s.id);
+    // null = no calendar linked; number = fetched (0 if calendar has no events that week)
     const scheduledHours = hasCalendar
-      ? (scheduledHoursMap.get(s.id) ?? null)
+      ? (scheduledHoursMap.has(s.id) ? scheduledHoursMap.get(s.id)! : null)
       : null;
     const toilBalance = Math.round((toilBalanceMap.get(s.id) ?? 0) * 10) / 10;
 
