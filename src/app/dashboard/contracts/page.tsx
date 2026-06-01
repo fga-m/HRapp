@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FileSignature,
   Plus,
   CheckCircle,
   Clock,
-  Upload,
   X,
-  FileText,
+  Upload,
   ChevronDown,
   ChevronUp,
   Search,
   Users,
 } from "lucide-react";
 import { format } from "date-fns";
+import DropZone from "@/components/ui/DropZone";
 
 export default function ContractsPage() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -33,7 +33,6 @@ export default function ContractsPage() {
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Staff assignment inside upload modal
   const [allStaff, setAllStaff] = useState<any[]>([]);
@@ -332,30 +331,7 @@ export default function ContractsPage() {
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                   PDF File <span className="text-red-400">*</span>
                 </label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full border-2 border-dashed border-[#ECE3DF] rounded-xl p-6 text-center cursor-pointer hover:border-[#223149]/30 hover:bg-[#F8F6F4] transition-colors"
-                >
-                  {file ? (
-                    <div className="flex items-center justify-center gap-2 text-[#223149]">
-                      <FileText className="w-5 h-5 text-[#5F7C84]" />
-                      <span className="text-sm font-medium truncate max-w-xs">{file.name}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-8 h-8 text-[#9BADB7] mx-auto mb-2" />
-                      <p className="text-sm text-[#5F7C84]">Click to select a PDF</p>
-                      <p className="text-xs text-[#9BADB7] mt-1">PDF only</p>
-                    </>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                />
+                <DropZone file={file} onChange={setFile} />
               </div>
 
               {/* Assign to staff — required */}

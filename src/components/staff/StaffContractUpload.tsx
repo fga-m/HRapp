@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, FileText, Plus } from "lucide-react";
+import { X, Plus, Upload } from "lucide-react";
+import DropZone from "@/components/ui/DropZone";
 
 interface ContractGroup {
   id: string;
@@ -29,7 +30,6 @@ export default function StaffContractUpload({ staffId, staffName }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const openModal = () => {
@@ -198,29 +198,7 @@ export default function StaffContractUpload({ staffId, staffName }: Props) {
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                   PDF File <span className="text-red-400">*</span>
                 </label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full border-2 border-dashed border-[#ECE3DF] rounded-xl p-5 text-center cursor-pointer hover:border-[#223149]/30 hover:bg-[#F8F6F4] transition-colors"
-                >
-                  {file ? (
-                    <div className="flex items-center justify-center gap-2 text-[#223149]">
-                      <FileText className="w-5 h-5 text-[#5F7C84]" />
-                      <span className="text-sm font-medium truncate max-w-xs">{file.name}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-7 h-7 text-[#9BADB7] mx-auto mb-1.5" />
-                      <p className="text-sm text-[#5F7C84]">Click to select a PDF</p>
-                    </>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                />
+                <DropZone file={file} onChange={setFile} />
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}

@@ -17,11 +17,11 @@ import {
   ToggleLeft,
   ToggleRight,
   Upload,
-  FileText,
   GitBranch,
 } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+import DropZone from "@/components/ui/DropZone";
 
 export default function ContractDetailPage() {
   const { id } = useParams();
@@ -57,7 +57,6 @@ export default function ContractDetailPage() {
   const [carryAssignments, setCarryAssignments] = useState(true);
   const [publishingVersion, setPublishingVersion] = useState(false);
   const [newVersionError, setNewVersionError] = useState("");
-  const newVersionFileRef = useRef<HTMLInputElement>(null);
 
   const fetchContract = useCallback(() => {
     setLoading(true);
@@ -625,30 +624,7 @@ export default function ContractDetailPage() {
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                   PDF File <span className="text-red-400">*</span>
                 </label>
-                <div
-                  onClick={() => newVersionFileRef.current?.click()}
-                  className="w-full border-2 border-dashed border-[#ECE3DF] rounded-xl p-6 text-center cursor-pointer hover:border-[#223149]/30 hover:bg-[#F8F6F4] transition-colors"
-                >
-                  {newVersionFile ? (
-                    <div className="flex items-center justify-center gap-2 text-[#223149]">
-                      <FileText className="w-5 h-5 text-[#5F7C84]" />
-                      <span className="text-sm font-medium truncate max-w-xs">{newVersionFile.name}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-8 h-8 text-[#9BADB7] mx-auto mb-2" />
-                      <p className="text-sm text-[#5F7C84]">Click to select updated PDF</p>
-                      <p className="text-xs text-[#9BADB7] mt-1">PDF only</p>
-                    </>
-                  )}
-                </div>
-                <input
-                  ref={newVersionFileRef}
-                  type="file"
-                  accept="application/pdf"
-                  className="hidden"
-                  onChange={(e) => setNewVersionFile(e.target.files?.[0] ?? null)}
-                />
+                <DropZone file={newVersionFile} onChange={setNewVersionFile} label="Updated PDF" />
               </div>
 
               <div>
