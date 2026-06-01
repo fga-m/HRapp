@@ -15,6 +15,7 @@ import {
   Plus,
 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -557,15 +558,15 @@ export default function SchedulePage() {
                   <tr key={member.id} className="hover:bg-[#F8F6F4] transition-colors">
                     {/* Staff cell */}
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
+                      <Link href={`/dashboard/staff/${member.id}`} className="flex items-center gap-3 group w-fit">
                         <Avatar member={member} />
                         <div>
-                          <p className="text-sm font-semibold text-[#223149]">{member.full_name}</p>
+                          <p className="text-sm font-semibold text-[#223149] group-hover:underline">{member.full_name}</p>
                           {member.position && (
                             <p className="text-xs text-[#9BADB7]">{member.position}</p>
                           )}
                         </div>
-                      </div>
+                      </Link>
                     </td>
 
                     {/* Contracted */}
@@ -626,15 +627,15 @@ export default function SchedulePage() {
                 className="bg-white rounded-2xl shadow-sm p-4 space-y-3"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <Link href={`/dashboard/staff/${member.id}`} className="flex items-center gap-3 group">
                     <Avatar member={member} />
                     <div>
-                      <p className="text-sm font-semibold text-[#223149]">{member.full_name}</p>
+                      <p className="text-sm font-semibold text-[#223149] group-hover:underline">{member.full_name}</p>
                       {member.position && (
                         <p className="text-xs text-[#9BADB7]">{member.position}</p>
                       )}
                     </div>
-                  </div>
+                  </Link>
                   {isAdmin && (
                     <button
                       onClick={() => setToilModal(member)}
