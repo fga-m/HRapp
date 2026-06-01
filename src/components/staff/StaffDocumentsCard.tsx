@@ -5,6 +5,7 @@ import {
   FileArchive,
   FileText,
   Image,
+  Eye,
   Download,
   Trash2,
   Upload,
@@ -238,55 +239,73 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                   key={doc.id}
                   className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl"
                 >
-                  <FileIcon fileName={doc.file_name} />
+                  {/* Clickable area — opens file in browser */}
+                  <a
+                    href={doc.signedUrl ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 flex-1 min-w-0 group"
+                    title="Click to view"
+                  >
+                    <FileIcon fileName={doc.file_name} />
 
-                  {/* Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-[#223149] truncate">
-                        {doc.title}
-                      </span>
-                      <span
-                        className={`rounded-full text-xs px-2.5 py-0.5 font-medium ${getCategoryBadgeClass(doc.category)}`}
-                      >
-                        {getCategoryLabel(doc.category)}
-                      </span>
-                    </div>
-
-                    {/* Expiry status */}
-                    {expiry && (
-                      <div className="mt-1">
-                        {expiry.status === "expired" && (
-                          <span className="inline-flex items-center gap-1 rounded-full text-xs px-2.5 py-0.5 font-medium bg-red-100 text-red-700">
-                            <AlertCircle className="w-3 h-3" />
-                            Expired {expiry.daysAgo} day{expiry.daysAgo === 1 ? "" : "s"} ago
-                          </span>
-                        )}
-                        {expiry.status === "expiring" && (
-                          <span className="inline-flex items-center gap-1 rounded-full text-xs px-2.5 py-0.5 font-medium bg-amber-100 text-amber-700">
-                            <Clock className="w-3 h-3" />
-                            {expiry.label}
-                          </span>
-                        )}
-                        {expiry.status === "ok" && (
-                          <span className="text-xs text-[#9BADB7]">{expiry.label}</span>
-                        )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-[#223149] group-hover:underline truncate">
+                          {doc.title}
+                        </span>
+                        <span
+                          className={`rounded-full text-xs px-2.5 py-0.5 font-medium ${getCategoryBadgeClass(doc.category)}`}
+                        >
+                          {getCategoryLabel(doc.category)}
+                        </span>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Actions */}
+                      {/* Expiry status */}
+                      {expiry && (
+                        <div className="mt-1">
+                          {expiry.status === "expired" && (
+                            <span className="inline-flex items-center gap-1 rounded-full text-xs px-2.5 py-0.5 font-medium bg-red-100 text-red-700">
+                              <AlertCircle className="w-3 h-3" />
+                              Expired {expiry.daysAgo} day{expiry.daysAgo === 1 ? "" : "s"} ago
+                            </span>
+                          )}
+                          {expiry.status === "expiring" && (
+                            <span className="inline-flex items-center gap-1 rounded-full text-xs px-2.5 py-0.5 font-medium bg-amber-100 text-amber-700">
+                              <Clock className="w-3 h-3" />
+                              {expiry.label}
+                            </span>
+                          )}
+                          {expiry.status === "ok" && (
+                            <span className="text-xs text-[#9BADB7]">{expiry.label}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </a>
+
+                  {/* Action buttons */}
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {doc.signedUrl && (
-                      <a
-                        href={doc.signedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#ECE3DF] transition-colors"
-                        title="Download"
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
+                      <>
+                        <a
+                          href={doc.signedUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#ECE3DF] transition-colors"
+                          title="View"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </a>
+                        <a
+                          href={doc.signedUrl}
+                          download={doc.file_name}
+                          className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#ECE3DF] transition-colors"
+                          title="Download"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      </>
                     )}
                     {canUpload && (
                       deletingId === doc.id ? (
