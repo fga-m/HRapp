@@ -14,9 +14,12 @@ export const DEFAULT_SCHEDULE = Object.fromEntries(
   ])
 );
 
-/** Migrate legacy {start, end} format to slots array */
+/** Migrate legacy {start, end} format to slots array, preserve flexible fields */
 function normalise(schedule: Record<string, any>) {
   const out: Record<string, any> = {};
+  // Preserve flexible schedule fields
+  if (schedule.flexible !== undefined) out.flexible = !!schedule.flexible;
+  if (schedule.flexible_hours !== undefined) out.flexible_hours = Number(schedule.flexible_hours) || 0;
   for (const day of DAYS) {
     const d = schedule[day] ?? { enabled: false, slots: [{ start: "09:00", end: "17:00" }] };
     if (d.start !== undefined && !d.slots) {

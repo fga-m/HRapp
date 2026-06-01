@@ -16,7 +16,9 @@ const DAYS = [
 
 interface Slot { start: string; end: string; }
 interface DaySchedule { enabled: boolean; slots: Slot[]; }
-type WeekSchedule = Record<string, DaySchedule>;
+// Flexible fields sit alongside day keys in the same flat JSON object
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type WeekSchedule = Record<string, any>;
 
 interface ScheduleCardProps {
   staffId: string;
@@ -35,7 +37,10 @@ function dayHours(day: DaySchedule): number {
 }
 
 function totalWeekHours(schedule: WeekSchedule): number {
-  return Object.values(schedule).reduce((t, d) => t + dayHours(d), 0);
+  if (schedule.flexible) return schedule.flexible_hours ?? 0;
+  return Object.entries(schedule)
+    .filter(([k]) => !["flexible", "flexible_hours"].includes(k))
+    .reduce((t, [, d]) => t + dayHours(d as DaySchedule), 0);
 }
 
 function fmtHours(h: number): string {
@@ -175,8 +180,18 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
 
   const removeSlot = (dayKey: string, i: number) => {
     if (!draft) return;
-    const slots = draft[dayKey].slots.filter((_, idx) => idx !== i);
+    const slots = draft[dayKey].slots.filter((_: Slot, idx: number) => idx !== i);
     setDraft({ ...draft, [dayKey]: { ...draft[dayKey], slots } });
+  };
+
+  const toggleFlexible = () => {
+    if (!draft) return;
+    setDraft({ ...draft, flexible: !draft.flexible, flexible_hours: draft.flexible_hours ?? 0 });
+  };
+
+  const setFlexibleHours = (h: number) => {
+    if (!draft) return;
+    setDraft({ ...draft, flexible_hours: h });
   };
 
   const current = editing ? draft : schedule;
@@ -195,8 +210,11 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
     );
   }
 
+  const isFlexible = !!current.flexible;
   const totalHours = totalWeekHours(current);
-  const workingDays = Object.values(current).filter((d) => d.enabled).length;
+  const workingDays = Object.entries(current)
+    .filter(([k, d]) => !["flexible", "flexible_hours"].includes(k) && (d as DaySchedule).enabled)
+    .length;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -206,7 +224,9 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
           <Clock className="w-4 h-4 text-[#9BADB7]" />
           <span className="font-semibold text-[#223149]">Work Schedule</span>
           <span className="text-xs text-[#9BADB7]">
-            {workingDays} {workingDays === 1 ? "day" : "days"} · {fmtHours(totalHours)}/week
+            {isFlexible
+              ? `Flexible · ${fmtHours(totalHours)}/week`
+              : `${workingDays} ${workingDays === 1 ? "day" : "days"} · ${fmtHours(totalHours)}/week`}
           </span>
         </div>
         {canEdit && !editing && (
@@ -239,8 +259,52 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
         )}
       </div>
 
+      {/* Flexible toggle row */}
+      <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 ${isFlexible ? "bg-[#F8F6F4]" : ""}`}>
+        {editing ? (
+          <button
+            type="button"
+            onClick={toggleFlexible}
+            style={{ touchAction: "manipulation" }}
+            className={`relative w-9 h-5 rounded-full flex-shrink-0 transition-colors ${isFlexible ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${isFlexible ? "right-0.5" : "left-0.5"}`} />
+          </button>
+        ) : (
+          <div className={`relative w-9 h-5 rounded-full flex-shrink-0 ${isFlexible ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
+            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow ${isFlexible ? "right-0.5" : "left-0.5"}`} />
+          </div>
+        )}
+        <span className={`text-sm font-semibold flex-shrink-0 ${isFlexible ? "text-[#223149]" : "text-[#9BADB7]"}`}>
+          Flexible hours
+        </span>
+        {isFlexible && (
+          editing ? (
+            <div className="ml-auto flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                max={168}
+                step={0.5}
+                value={current.flexible_hours ?? 0}
+                onChange={(e) => setFlexibleHours(parseFloat(e.target.value) || 0)}
+                className="w-20 px-2 py-1 text-sm border border-[#ECE3DF] rounded-lg text-[#223149] text-right focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              />
+              <span className="text-xs text-[#9BADB7]">hrs/week</span>
+            </div>
+          ) : (
+            <span className="ml-auto text-sm text-[#5F7C84] font-medium">
+              {fmtHours(current.flexible_hours ?? 0)}/week
+            </span>
+          )
+        )}
+        {!isFlexible && (
+          <span className="ml-auto text-xs text-[#9BADB7]">Set specific days below</span>
+        )}
+      </div>
+
       {/* Day rows */}
-      <div className="space-y-1.5">
+      <div className={`space-y-1.5 ${isFlexible ? "opacity-30 pointer-events-none" : ""}`}>
         {DAYS.map((day) => {
           const d = current[day.key];
           if (!d) return null;
@@ -278,7 +342,7 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
                 {!editing && (
                   d.enabled ? (
                     <div className="ml-auto flex items-center gap-3 flex-wrap justify-end">
-                      {d.slots.map((slot, i) => (
+                      {d.slots.map((slot: Slot, i: number) => (
                         <SlotDisplay key={i} slot={slot} />
                       ))}
                       {hours > 0 && d.slots.length > 1 && (
@@ -294,7 +358,7 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
               {/* Edit mode: slot editors stacked */}
               {editing && d.enabled && (
                 <div className="px-3 pb-2.5 space-y-1.5 ml-[68px] sm:ml-[136px]">
-                  {d.slots.map((slot, i) => (
+                  {d.slots.map((slot: Slot, i: number) => (
                     <SlotEditor
                       key={i}
                       slot={slot}
