@@ -206,7 +206,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
       <div className="bg-white rounded-2xl shadow-sm p-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-4 h-4 text-[#9BADB7]" />
-          <span className="font-semibold text-[#223149]">Work Schedule</span>
+          <span className="font-semibold text-[#223149]">Regular Work Schedule</span>
         </div>
         <div className="flex justify-center py-4">
           <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
@@ -232,7 +232,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2 flex-wrap">
           <Clock className="w-4 h-4 text-[#9BADB7]" />
-          <span className="font-semibold text-[#223149]">Work Schedule</span>
+          <span className="font-semibold text-[#223149]">Regular Work Schedule</span>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs text-[#9BADB7]">
               {workingDays} {workingDays === 1 ? "day" : "days"} · {fmtHours(totalHours)}/week
