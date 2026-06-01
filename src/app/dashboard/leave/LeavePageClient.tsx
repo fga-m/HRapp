@@ -28,16 +28,22 @@ interface LeaveApplication {
   source?: "local" | "xero";
 }
 
-interface PendingRequest {
+interface TeamLeaveRequest {
   id: string;
   staff_id: string;
   leave_type_name: string;
   start_date: string;
   end_date: string;
   description: string | null;
+  status: string;
   submitted_at: string;
+  reviewed_at: string | null;
+  approver_note: string | null;
   staff: { full_name: string; email: string } | null;
 }
+
+// Keep PendingRequest as alias for backwards compat with the approval panel
+type PendingRequest = TeamLeaveRequest;
 
 interface Approver {
   id: string;
@@ -128,6 +134,12 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   const [appLoading, setAppLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Tab for reviewers: "my" = own leave, "team" = all staff leave
+  const [activeTab, setActiveTab] = useState<"my" | "team">("my");
+  const [teamStatusFilter, setTeamStatusFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("PENDING");
+  const [teamRequests, setTeamRequests] = useState<TeamLeaveRequest[]>([]);
+  const [teamLoading, setTeamLoading] = useState(false);
+
   // Pending approvals (reviewer only)
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [pendingLoading, setPendingLoading] = useState(false);
@@ -173,12 +185,26 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   const fetchPending = useCallback(async () => {
     if (!isReviewer) return;
     setPendingLoading(true);
-    fetch("/api/leave-requests")
+    fetch("/api/leave-requests?status=PENDING")
       .then(r => r.json())
       .then(d => setPendingRequests(d.requests ?? []))
       .catch(() => {})
       .finally(() => setPendingLoading(false));
   }, [isReviewer]);
+
+  const fetchTeamRequests = useCallback(async (filter: "ALL" | "PENDING" | "APPROVED" | "REJECTED") => {
+    if (!isReviewer) return;
+    setTeamLoading(true);
+    fetch(`/api/leave-requests?status=${filter}`)
+      .then(r => r.json())
+      .then(d => setTeamRequests(d.requests ?? []))
+      .catch(() => {})
+      .finally(() => setTeamLoading(false));
+  }, [isReviewer]);
+
+  useEffect(() => {
+    if (activeTab === "team") fetchTeamRequests(teamStatusFilter);
+  }, [activeTab, teamStatusFilter, fetchTeamRequests]);
 
   useEffect(() => {
     fetchAll();
@@ -272,7 +298,32 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-[#223149]">My Leave</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-[#223149]">
+              {isReviewer && activeTab === "team" ? "Team Leave" : "My Leave"}
+            </h1>
+            {isReviewer && (
+              <div className="flex border border-[#ECE3DF] rounded-xl overflow-hidden text-sm font-semibold">
+                <button
+                  onClick={() => setActiveTab("my")}
+                  className={`px-4 py-2 transition-colors ${activeTab === "my" ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+                >
+                  My Leave
+                </button>
+                <button
+                  onClick={() => setActiveTab("team")}
+                  className={`px-4 py-2 transition-colors flex items-center gap-1.5 ${activeTab === "team" ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+                >
+                  Team
+                  {pendingRequests.length > 0 && (
+                    <span className={`text-xs rounded-full px-1.5 py-0.5 font-bold ${activeTab === "team" ? "bg-white/20" : "bg-amber-500 text-white"}`}>
+                      {pendingRequests.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => { fetchAll(true); fetchPending(); }}
@@ -291,6 +342,145 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
             </button>
           </div>
         </div>
+
+        {/* ── Team Leave view ── */}
+        {isReviewer && activeTab === "team" && (
+          <div className="space-y-4">
+            {/* Status filter tabs */}
+            <div className="flex gap-1 border-b border-[#ECE3DF]">
+              {(["PENDING", "APPROVED", "REJECTED", "ALL"] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setTeamStatusFilter(f)}
+                  className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors capitalize ${
+                    teamStatusFilter === f
+                      ? "border-[#223149] text-[#223149]"
+                      : "border-transparent text-[#9BADB7] hover:text-[#5F7C84]"
+                  }`}
+                >
+                  {f === "ALL" ? "All" : f === "PENDING" ? "Pending" : f === "APPROVED" ? "Approved" : "Rejected"}
+                  {f === "PENDING" && pendingRequests.length > 0 && (
+                    <span className="ml-1.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">
+                      {pendingRequests.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+              <button
+                onClick={() => fetchTeamRequests(teamStatusFilter)}
+                className="ml-auto p-2 text-[#9BADB7] hover:text-[#223149] transition-colors"
+                title="Refresh"
+              >
+                <RefreshCw className={`w-4 h-4 ${teamLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              {teamLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : teamRequests.length === 0 ? (
+                <div className="text-center py-12">
+                  <CheckCircle className="w-8 h-8 text-[#ECE3DF] mx-auto mb-2" />
+                  <p className="text-sm text-[#9BADB7]">
+                    {teamStatusFilter === "PENDING" ? "No pending leave requests" : `No ${teamStatusFilter.toLowerCase()} leave requests`}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop table */}
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-[#F8F6F4]">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Staff</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Type</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Period</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Submitted</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Status / Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#ECE3DF]">
+                        {teamRequests.map(req => (
+                          <tr key={req.id} className="hover:bg-[#F8F6F4] transition-colors">
+                            <td className="px-6 py-4">
+                              <p className="font-semibold text-[#223149]">{req.staff?.full_name ?? "—"}</p>
+                              <p className="text-xs text-[#9BADB7]">{req.staff?.email}</p>
+                            </td>
+                            <td className="px-4 py-4 text-[#5F7C84]">{req.leave_type_name}</td>
+                            <td className="px-4 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(req.start_date, req.end_date)}</td>
+                            <td className="px-4 py-4 text-[#9BADB7] tabular-nums text-xs">
+                              {format(parseISO(req.submitted_at), "d MMM yyyy")}
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              {req.status === "PENDING" ? (
+                                <div className="flex items-center justify-end gap-2">
+                                  {reviewError && reviewingId === req.id && (
+                                    <span className="text-xs text-red-500">{reviewError}</span>
+                                  )}
+                                  <button
+                                    onClick={() => handleReview(req.id, "APPROVE")}
+                                    disabled={reviewingId === req.id}
+                                    className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                                  >
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                    {reviewingId === req.id ? "…" : "Approve"}
+                                  </button>
+                                  <button
+                                    onClick={() => handleReview(req.id, "REJECT")}
+                                    disabled={reviewingId === req.id}
+                                    className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                                  >
+                                    <XCircle className="w-3.5 h-3.5" />
+                                    {reviewingId === req.id ? "…" : "Reject"}
+                                  </button>
+                                </div>
+                              ) : (
+                                <StatusBadge status={req.status} />
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile cards */}
+                  <div className="sm:hidden divide-y divide-[#ECE3DF]">
+                    {teamRequests.map(req => (
+                      <div key={req.id} className="px-4 py-4 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-semibold text-[#223149] text-sm">{req.staff?.full_name}</p>
+                            <p className="text-xs text-[#9BADB7]">{req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}</p>
+                          </div>
+                          <StatusBadge status={req.status} />
+                        </div>
+                        {req.status === "PENDING" && (
+                          <div className="flex gap-2">
+                            <button onClick={() => handleReview(req.id, "APPROVE")} disabled={reviewingId === req.id}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50">
+                              <CheckCircle className="w-3 h-3" /> Approve
+                            </button>
+                            <button onClick={() => handleReview(req.id, "REJECT")} disabled={reviewingId === req.id}
+                              className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 disabled:opacity-50">
+                              <XCircle className="w-3 h-3" /> Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── My Leave content (hidden when viewing Team tab) ── */}
+        {activeTab === "my" && <>
 
         {/* Success banner */}
         {successMsg && (
@@ -473,6 +663,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
             )}
           </div>
         </div>
+
+        </>} {/* end activeTab === "my" */}
       </div>
 
       {/* ── New Leave Request Modal ── */}

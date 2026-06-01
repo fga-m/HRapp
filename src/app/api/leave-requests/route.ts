@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/leave-requests — all pending requests (admin/manager only)
-export async function GET() {
+// GET /api/leave-requests?status=PENDING|APPROVED|REJECTED|ALL
+// admin/leave_approver only
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -20,16 +21,23 @@ export async function GET() {
   const isReviewer = caller.role === "admin" || caller.role === "leave_approver";
   if (!isReviewer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { data, error } = await supabaseAdmin
+  const { searchParams } = new URL(req.url);
+  const statusParam = (searchParams.get("status") ?? "PENDING").toUpperCase();
+
+  let query = supabaseAdmin
     .from("leave_requests")
     .select(`
       id, staff_id, leave_type_id, leave_type_name,
       start_date, end_date, description, status,
-      approver_id, submitted_at,
+      approver_id, approver_note, submitted_at, reviewed_at,
       staff:staff_id ( full_name, email )
-    `)
-    .eq("status", "PENDING")
-    .order("submitted_at", { ascending: true });
+    `);
+
+  if (statusParam !== "ALL") {
+    query = query.eq("status", statusParam);
+  }
+
+  const { data, error } = await query.order("submitted_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
