@@ -7,6 +7,7 @@ import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
 import StaffQuickSearch from "@/components/staff/StaffQuickSearch";
+import StaffContractUpload from "@/components/staff/StaffContractUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -317,9 +318,14 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       {/* Contracts Card */}
       {canSeeContracts && (
         <div className="bg-white rounded-2xl shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FileSignature className="w-4 h-4 text-[#9BADB7]" />
-            <h3 className="text-sm font-semibold text-[#223149]">Contracts</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <FileSignature className="w-4 h-4 text-[#9BADB7]" />
+              <h3 className="text-sm font-semibold text-[#223149]">Contracts</h3>
+            </div>
+            {caller?.role === "admin" && (
+              <StaffContractUpload staffId={id} staffName={member.full_name} />
+            )}
           </div>
           {contractRows.length === 0 ? (
             <p className="text-sm text-[#9BADB7]">No contracts assigned</p>
