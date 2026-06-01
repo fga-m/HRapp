@@ -213,6 +213,8 @@ export default function ContractDetailPage() {
   const isSigned = !!mySignature;
   const signedCount = (assignments ?? []).filter((a: any) => !!a.signature).length;
   const totalAssigned = (assignments ?? []).length;
+  // Whether the current user (including admins) is assigned to sign this contract
+  const isAssignedToSign = role !== "admin" || (assignments ?? []).some((a: any) => a.staff_id === staffId);
 
   // Determine if this is the latest version (for "Publish New Version" button)
   const isLatestVersion = groupVersions.length === 0 || (groupVersions[0]?.id === contract.id);
@@ -289,22 +291,31 @@ export default function ContractDetailPage() {
           {/* Status / sign card */}
           <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
             <div>
-              <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1">Status</p>
-              {isSigned ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-200">
-                  <CheckCircle className="w-4 h-4" />
-                  Signed
-                </span>
+              <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1">
+                {isAssignedToSign ? "Your status" : "Signatures"}
+              </p>
+              {isAssignedToSign ? (
+                isSigned ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-200">
+                    <CheckCircle className="w-4 h-4" />
+                    Signed
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    <Clock className="w-4 h-4" />
+                    Awaiting your signature
+                  </span>
+                )
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                  <Clock className="w-4 h-4" />
-                  Awaiting signature
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-[#F8F6F4] text-[#223149] border border-[#ECE3DF]">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  {signedCount} / {totalAssigned} signed
                 </span>
               )}
             </div>
 
-            {/* Staff: sign or confirmed */}
-            {role !== "admin" && (
+            {/* Sign / confirmed — visible to anyone assigned to this contract, including admins */}
+            {isAssignedToSign && (
               <>
                 {isSigned ? (
                   <div className="pt-3 border-t border-[#ECE3DF] flex items-start gap-3">
