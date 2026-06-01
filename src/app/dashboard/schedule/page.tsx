@@ -64,7 +64,11 @@ function formatWeekRange(start: string, end: string): string {
 }
 
 function toDateInputValue(date: Date): string {
-  return date.toISOString().split("T")[0];
+  // Use local date parts (not UTC) so Melbourne's Monday stays Monday when sent to the server
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function getInitials(name: string): string {
