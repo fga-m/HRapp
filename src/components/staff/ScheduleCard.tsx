@@ -32,12 +32,12 @@ function slotHours(slot: Slot): number {
   return Math.max(0, (eh * 60 + em - (sh * 60 + sm)) / 60);
 }
 
-// Whether a day should have a 30-min lunch deduction applied:
-// only when there is a single continuous slot >= 5.5 hours (split slots already exclude lunch).
+// 30-min unpaid lunch deduction applies when any single slot is >= 5 hours.
+// Split slots (e.g. 9–12:30 + 13–17) already exclude the break, so no deduction.
 function lunchDeduction(day: DaySchedule): number {
   if (!day.enabled || day.slots.length !== 1) return 0;
   const raw = slotHours(day.slots[0]);
-  return raw >= 5.5 ? 0.5 : 0;
+  return raw >= 5 ? 0.5 : 0;
 }
 
 function dayHours(day: DaySchedule): number {
@@ -320,16 +320,21 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
                       ))}
                       {(() => {
                         const deduction = lunchDeduction(d);
+                        const rawHours = d.slots.reduce((t: number, s: Slot) => t + slotHours(s), 0);
                         if (deduction > 0) {
                           return (
                             <span className="text-xs text-[#9BADB7]">
-                              = {fmtHours(hours)}
-                              <span className="ml-1 text-[#9BADB7]/70">(−30 min lunch)</span>
+                              {fmtHours(rawHours)} − 30 min lunch ={" "}
+                              <span className="font-semibold text-[#223149]">{fmtHours(hours)}</span>
                             </span>
                           );
                         }
                         if (hours > 0 && d.slots.length > 1) {
-                          return <span className="text-xs text-[#9BADB7]">= {fmtHours(hours)}</span>;
+                          return (
+                            <span className="text-xs text-[#9BADB7]">
+                              = <span className="font-semibold text-[#223149]">{fmtHours(hours)}</span>
+                            </span>
+                          );
                         }
                         return null;
                       })()}
@@ -399,8 +404,24 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
 
       {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
 
+      {/* Lunch break policy notice — shown when any day has the deduction applied */}
+      {!editing && (() => {
+        const anyDeduction = Object.entries(current)
+          .filter(([k]) => !["flexible", "flexible_hours"].includes(k))
+          .some(([, d]) => lunchDeduction(d as DaySchedule) > 0);
+        if (!anyDeduction) return null;
+        return (
+          <div className="mt-4 flex items-start gap-2 p-3 bg-[#F8F6F4] rounded-xl border border-[#ECE3DF]">
+            <Clock className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-[#9BADB7] leading-relaxed">
+              A <span className="font-semibold text-[#5F7C84]">30-minute unpaid lunch break</span> is automatically deducted from any shift of 5 hours or more. To exclude the break from the calculation, enter it as two separate time slots instead.
+            </p>
+          </div>
+        );
+      })()}
+
       {updatedAt && !editing && (
-        <p className="mt-4 text-xs text-[#9BADB7]">
+        <p className="mt-3 text-xs text-[#9BADB7]">
           Last updated {format(parseISO(updatedAt), "d MMM yyyy")}
         </p>
       )}
