@@ -37,10 +37,10 @@ function dayHours(day: DaySchedule): number {
 }
 
 function totalWeekHours(schedule: WeekSchedule): number {
-  if (schedule.flexible) return schedule.flexible_hours ?? 0;
-  return Object.entries(schedule)
+  const fixed = Object.entries(schedule)
     .filter(([k]) => !["flexible", "flexible_hours"].includes(k))
     .reduce((t, [, d]) => t + dayHours(d as DaySchedule), 0);
+  return fixed + (schedule.flexible_hours ?? 0);
 }
 
 function fmtHours(h: number): string {
@@ -184,11 +184,6 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
     setDraft({ ...draft, [dayKey]: { ...draft[dayKey], slots } });
   };
 
-  const toggleFlexible = () => {
-    if (!draft) return;
-    setDraft({ ...draft, flexible: !draft.flexible, flexible_hours: draft.flexible_hours ?? 0 });
-  };
-
   const setFlexibleHours = (h: number) => {
     if (!draft) return;
     setDraft({ ...draft, flexible_hours: h });
@@ -210,8 +205,8 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
     );
   }
 
-  const isFlexible = !!current.flexible;
   const totalHours = totalWeekHours(current);
+  const flexHours = current.flexible_hours ?? 0;
   const workingDays = Object.entries(current)
     .filter(([k, d]) => !["flexible", "flexible_hours"].includes(k) && (d as DaySchedule).enabled)
     .length;
@@ -224,9 +219,8 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
           <Clock className="w-4 h-4 text-[#9BADB7]" />
           <span className="font-semibold text-[#223149]">Work Schedule</span>
           <span className="text-xs text-[#9BADB7]">
-            {isFlexible
-              ? `Flexible · ${fmtHours(totalHours)}/week`
-              : `${workingDays} ${workingDays === 1 ? "day" : "days"} · ${fmtHours(totalHours)}/week`}
+            {workingDays} {workingDays === 1 ? "day" : "days"} · {fmtHours(totalHours)}/week
+            {flexHours > 0 && ` (incl. ${fmtHours(flexHours)} flex)`}
           </span>
         </div>
         {canEdit && !editing && (
@@ -259,52 +253,8 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
         )}
       </div>
 
-      {/* Flexible toggle row */}
-      <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 ${isFlexible ? "bg-[#F8F6F4]" : ""}`}>
-        {editing ? (
-          <button
-            type="button"
-            onClick={toggleFlexible}
-            style={{ touchAction: "manipulation" }}
-            className={`relative w-9 h-5 rounded-full flex-shrink-0 transition-colors ${isFlexible ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}
-          >
-            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${isFlexible ? "right-0.5" : "left-0.5"}`} />
-          </button>
-        ) : (
-          <div className={`relative w-9 h-5 rounded-full flex-shrink-0 ${isFlexible ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
-            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow ${isFlexible ? "right-0.5" : "left-0.5"}`} />
-          </div>
-        )}
-        <span className={`text-sm font-semibold flex-shrink-0 ${isFlexible ? "text-[#223149]" : "text-[#9BADB7]"}`}>
-          Flexible hours
-        </span>
-        {isFlexible && (
-          editing ? (
-            <div className="ml-auto flex items-center gap-2">
-              <input
-                type="number"
-                min={0}
-                max={168}
-                step={0.5}
-                value={current.flexible_hours ?? 0}
-                onChange={(e) => setFlexibleHours(parseFloat(e.target.value) || 0)}
-                className="w-20 px-2 py-1 text-sm border border-[#ECE3DF] rounded-lg text-[#223149] text-right focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
-              />
-              <span className="text-xs text-[#9BADB7]">hrs/week</span>
-            </div>
-          ) : (
-            <span className="ml-auto text-sm text-[#5F7C84] font-medium">
-              {fmtHours(current.flexible_hours ?? 0)}/week
-            </span>
-          )
-        )}
-        {!isFlexible && (
-          <span className="ml-auto text-xs text-[#9BADB7]">Set specific days below</span>
-        )}
-      </div>
-
       {/* Day rows */}
-      <div className={`space-y-1.5 ${isFlexible ? "opacity-30 pointer-events-none" : ""}`}>
+      <div className="space-y-1.5">
         {DAYS.map((day) => {
           const d = current[day.key];
           if (!d) return null;
@@ -383,6 +333,34 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
           );
         })}
       </div>
+
+      {/* Flexible hours line item */}
+      {(editing || flexHours > 0) && (
+        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mt-1 ${flexHours > 0 ? "bg-[#F8F6F4]" : ""}`}>
+          {/* Spacer matching toggle + day-label width */}
+          <span className="w-8 text-sm font-semibold text-[#5F7C84] flex-shrink-0">Flex</span>
+          <span className="hidden sm:block text-xs text-[#9BADB7] w-20 flex-shrink-0">Flexible</span>
+          {editing ? (
+            <div className="ml-auto flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                max={168}
+                step={0.5}
+                value={flexHours || ""}
+                placeholder="0"
+                onChange={(e) => setFlexibleHours(parseFloat(e.target.value) || 0)}
+                className="w-20 px-2 py-1 text-sm border border-[#ECE3DF] rounded-lg text-[#223149] text-right focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              />
+              <span className="text-xs text-[#9BADB7]">hrs/week</span>
+            </div>
+          ) : (
+            <span className="ml-auto text-sm text-[#5F7C84]">
+              {fmtHours(flexHours)}/week
+            </span>
+          )}
+        </div>
+      )}
 
       {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
 
