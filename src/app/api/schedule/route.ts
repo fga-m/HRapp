@@ -85,6 +85,7 @@ export async function GET(req: NextRequest) {
         .from("staff")
         .select("id, full_name, email, avatar_url, position, contracted_hours, google_calendar_id")
         .eq("is_active", true)
+        .order("full_name", { ascending: true })
     : supabaseAdmin
         .from("staff")
         .select("id, full_name, email, avatar_url, position, contracted_hours, google_calendar_id")
@@ -186,7 +187,7 @@ export async function GET(req: NextRequest) {
       email: s.email,
       avatar_url: s.avatar_url ?? null,
       position: s.position ?? null,
-      contracted_hours: s.contracted_hours ?? 38,
+      contracted_hours: s.contracted_hours ?? 37.5,
       scheduled_hours: scheduledHours,
       toil_balance: toilBalance,
       has_calendar: hasCalendar,
