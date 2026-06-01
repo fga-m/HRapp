@@ -248,26 +248,48 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
     existingRule?.until ?? format(addDays(new Date(), 90), "yyyy-MM-dd")
   );
   const [attendees, setAttendees] = useState<string[]>(initial?.attendees ?? []);
-  const [attendeeInput, setAttendeeInput] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [staffSearch, setStaffSearch] = useState("");
+  const [externalInput, setExternalInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const suggestions = staffList.filter(
-    (s) => s.email && !attendees.includes(s.email) &&
-      (s.full_name.toLowerCase().includes(attendeeInput.toLowerCase()) ||
-       s.email.toLowerCase().includes(attendeeInput.toLowerCase()))
-  );
+  // Staff picker helpers
+  const activeStaff = staffList.filter(s => s.email);
+  const filteredStaff = staffSearch.trim()
+    ? activeStaff.filter(s =>
+        s.full_name.toLowerCase().includes(staffSearch.toLowerCase()) ||
+        s.email.toLowerCase().includes(staffSearch.toLowerCase()))
+    : activeStaff;
 
-  const addAttendee = (email: string) => {
-    const e = email.trim().toLowerCase();
-    if (!e || attendees.includes(e)) return;
-    setAttendees((prev) => [...prev, e]);
-    setAttendeeInput("");
-    setShowSuggestions(false);
+  const allSelected = activeStaff.length > 0 && activeStaff.every(s => attendees.includes(s.email));
+  const someSelected = !allSelected && activeStaff.some(s => attendees.includes(s.email));
+
+  const toggleStaff = (email: string) => {
+    setAttendees(prev =>
+      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+    );
   };
 
-  const removeAttendee = (email: string) => setAttendees((prev) => prev.filter((a) => a !== email));
+  const toggleAll = () => {
+    if (allSelected) {
+      // Deselect all staff (keep any manually added external emails)
+      const staffEmails = new Set(activeStaff.map(s => s.email));
+      setAttendees(prev => prev.filter(e => !staffEmails.has(e)));
+    } else {
+      // Add all staff emails not already present
+      const toAdd = activeStaff.map(s => s.email).filter(e => !attendees.includes(e));
+      setAttendees(prev => [...prev, ...toAdd]);
+    }
+  };
+
+  const addExternal = (email: string) => {
+    const e = email.trim().toLowerCase();
+    if (!e || attendees.includes(e)) return;
+    setAttendees(prev => [...prev, e]);
+    setExternalInput("");
+  };
+
+  const removeAttendee = (email: string) => setAttendees(prev => prev.filter(a => a !== email));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -446,18 +468,82 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
           </div>
 
           {/* Attendees */}
-          <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-              Invite people <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
-            </label>
-            {/* Chips */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-[#223149]">
+                Invite people <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              </label>
+              {attendees.length > 0 && (
+                <span className="text-xs text-[#9BADB7]">{attendees.length} selected</span>
+              )}
+            </div>
+
+            {/* Staff picker panel */}
+            <div className="border border-[#ECE3DF] rounded-xl overflow-hidden">
+              {/* Search */}
+              <div className="flex items-center gap-2 px-3 py-2 border-b border-[#ECE3DF]">
+                <svg className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+                <input
+                  type="text"
+                  value={staffSearch}
+                  onChange={e => setStaffSearch(e.target.value)}
+                  placeholder="Search staff…"
+                  className="flex-1 text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none bg-transparent"
+                />
+              </div>
+
+              {/* All staff toggle */}
+              <button
+                type="button"
+                onClick={toggleAll}
+                className="w-full flex items-center gap-3 px-3 py-2.5 border-b border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors text-left"
+              >
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  allSelected ? "bg-[#223149] border-[#223149]" : someSelected ? "bg-[#223149]/30 border-[#223149]/50" : "border-[#9BADB7]"
+                }`}>
+                  {allSelected && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10"><path d="M1.5 5l2.5 2.5L8.5 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>}
+                  {someSelected && !allSelected && <div className="w-2 h-0.5 bg-[#223149] rounded" />}
+                </div>
+                <span className="text-sm font-semibold text-[#223149]">All staff</span>
+                <span className="ml-auto text-xs text-[#9BADB7]">{activeStaff.length} people</span>
+              </button>
+
+              {/* Staff list */}
+              <div className="max-h-44 overflow-y-auto divide-y divide-[#F8F6F4]">
+                {filteredStaff.map(s => {
+                  const checked = attendees.includes(s.email);
+                  const initials = s.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => toggleStaff(s.email)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${checked ? "bg-[#223149]/5" : "hover:bg-[#F8F6F4]"}`}
+                    >
+                      <div className="w-7 h-7 rounded-full bg-[#ECE3DF] flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-[#5F7C84]">
+                        {initials}
+                      </div>
+                      <span className="flex-1 text-sm text-[#223149] truncate">{s.full_name}</span>
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${checked ? "bg-[#223149] border-[#223149]" : "border-[#9BADB7]"}`}>
+                        {checked && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10"><path d="M1.5 5l2.5 2.5L8.5 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>}
+                      </div>
+                    </button>
+                  );
+                })}
+                {filteredStaff.length === 0 && (
+                  <p className="px-3 py-3 text-sm text-[#9BADB7]">No staff found</p>
+                )}
+              </div>
+            </div>
+
+            {/* Selected chips */}
             {attendees.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {attendees.map((email) => {
-                  const staff = staffList.find((s) => s.email === email);
+              <div className="flex flex-wrap gap-1.5">
+                {attendees.map(email => {
+                  const s = staffList.find(st => st.email === email);
                   return (
                     <span key={email} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#223149]/10 text-[#223149] rounded-full text-xs font-medium">
-                      {staff ? staff.full_name : email}
+                      {s ? s.full_name : email}
                       <button type="button" onClick={() => removeAttendee(email)} className="hover:text-rose-500 transition-colors">
                         <X className="w-3 h-3" />
                       </button>
@@ -466,41 +552,27 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
                 })}
               </div>
             )}
-            {/* Input + suggestions */}
-            <div className="relative">
+
+            {/* External email input */}
+            <div className="flex gap-2">
               <input
-                type="text"
-                value={attendeeInput}
-                onChange={(e) => { setAttendeeInput(e.target.value); setShowSuggestions(true); }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); addAttendee(attendeeInput); }
-                  if (e.key === "," || e.key === " ") { e.preventDefault(); addAttendee(attendeeInput); }
+                type="email"
+                value={externalInput}
+                onChange={e => setExternalInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") { e.preventDefault(); addExternal(externalInput); }
                 }}
-                placeholder="Search name or type email, press Enter to add"
-                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                placeholder="Add external email address…"
+                className="flex-1 px-3 py-2 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
-              {showSuggestions && (attendeeInput.length > 0) && suggestions.length > 0 && (
-                <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-[#ECE3DF] rounded-xl shadow-lg overflow-hidden">
-                  {suggestions.slice(0, 5).map((s) => (
-                    <button
-                      key={s.email}
-                      type="button"
-                      onMouseDown={() => addAttendee(s.email)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[#F8F6F4] transition-colors"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-[#223149]/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-bold text-[#223149]">{s.full_name[0]}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-[#223149]">{s.full_name}</p>
-                        <p className="text-xs text-[#9BADB7]">{s.email}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => addExternal(externalInput)}
+                disabled={!externalInput.trim()}
+                className="px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
+              >
+                Add
+              </button>
             </div>
           </div>
 
