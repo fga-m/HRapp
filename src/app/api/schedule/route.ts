@@ -212,14 +212,57 @@ export async function GET(req: NextRequest) {
     const offset = (i + 1) * 7;
     const s = new Date(weekStart); s.setDate(s.getDate() - offset);
     const e = new Date(weekEnd);   e.setDate(e.getDate() - offset);
-    return { tMin: toMelbourneISO(toISODateString(s)), tMax: toMelbourneISO(toISODateString(e)) };
+    return { tMin: toMelbourneISO(toISODateString(s)), tMax: toMelbourneISO(toISODateString(e)), start: s, end: e };
   });
+
+  // All week date ranges (current + 3 prior) as Date objects, for leave overlap calculation
+  const allWeekRanges = [
+    { start: weekStart, end: weekEnd },
+    ...priorWeekBounds.map(b => ({ start: b.start, end: b.end })),
+  ];
 
   // Fetch current week + prior 3 weeks in parallel (all 4 weeks for TOIL window)
   const [scheduledHoursMap, ...priorMaps] = await Promise.all([
     fetchWeekHours(timeMin, timeMax),
     ...priorWeekBounds.map(({ tMin, tMax }) => fetchWeekHours(tMin, tMax)),
   ]);
+
+  // Fetch approved leave within the 4-week TOIL window.
+  // Approved leave is treated as "worked" so it doesn't create a false TOIL deficit.
+  const toilWindowStart = toISODateString(priorWeekBounds[TOIL_WEEKS - 2].start);
+  const toilWindowEnd   = weekEndStr;
+  const { data: approvedLeave } = await supabaseAdmin
+    .from("leave_requests")
+    .select("staff_id, start_date, end_date")
+    .eq("status", "APPROVED")
+    .lte("start_date", toilWindowEnd)
+    .gte("end_date",   toilWindowStart);
+
+  // For each approved leave request, calculate how many contracted hours fall in each week.
+  // leaveHoursPerWeek[weekIndex] = Map<staffId, leaveHours>
+  const leaveHoursPerWeek: Array<Map<string, number>> = allWeekRanges.map(() => new Map());
+  const hoursPerDay = (contracted: number) => contracted / 5; // approximate daily hours
+
+  for (const leave of (approvedLeave ?? []) as any[]) {
+    const leaveStart = new Date(leave.start_date + "T00:00:00");
+    const leaveEnd   = new Date(leave.end_date   + "T00:00:00");
+    const staffContracted = ((staffList as any[]).find((s: any) => s.id === leave.staff_id)?.contracted_hours ?? 37.5);
+    const dailyHours = hoursPerDay(staffContracted);
+
+    for (let wi = 0; wi < allWeekRanges.length; wi++) {
+      const wStart = allWeekRanges[wi].start;
+      const wEnd   = new Date(allWeekRanges[wi].end); wEnd.setDate(wEnd.getDate() - 1); // inclusive
+
+      const overlapStart = leaveStart > wStart ? leaveStart : wStart;
+      const overlapEnd   = leaveEnd   < wEnd   ? leaveEnd   : wEnd;
+
+      if (overlapStart <= overlapEnd) {
+        const days = Math.round((overlapEnd.getTime() - overlapStart.getTime()) / 86_400_000) + 1;
+        const existing = leaveHoursPerWeek[wi].get(leave.staff_id) ?? 0;
+        leaveHoursPerWeek[wi].set(leave.staff_id, existing + days * dailyHours);
+      }
+    }
+  }
 
   // Mark staff who have no linked calendar at all
   const hasCalendarSet = new Set<string>();
@@ -228,14 +271,19 @@ export async function GET(req: NextRequest) {
   }
 
   // TOIL balance = sum of weekly variances (scheduled − contracted) over the last 4 weeks.
-  // Weeks with no calendar data contribute 0 to the balance.
+  // Approved leave hours are added to scheduled hours so leave never penalises TOIL.
+  // Weeks with no calendar data AND no leave contribute 0 to the balance.
   const toilBalanceMap = new Map<string, number>();
   for (const s of staffList as any[]) {
     const contracted = s.contracted_hours ?? 37.5;
     const allWeekMaps = [scheduledHoursMap, ...priorMaps];
-    const totalVariance = allWeekMaps.reduce((sum, weekMap) => {
-      const scheduled = weekMap.get(s.id);
-      return sum + (scheduled != null ? scheduled - contracted : 0);
+    const totalVariance = allWeekMaps.reduce((sum, weekMap, wi) => {
+      const scheduled  = weekMap.get(s.id);
+      const leaveBonus = leaveHoursPerWeek[wi]?.get(s.id) ?? 0;
+      // If no calendar data AND no leave, this week contributes nothing
+      if (scheduled == null && leaveBonus === 0) return sum;
+      const effective = (scheduled ?? 0) + leaveBonus;
+      return sum + (effective - contracted);
     }, 0);
     toilBalanceMap.set(s.id, Math.round(totalVariance * 10) / 10);
   }

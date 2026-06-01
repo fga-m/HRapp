@@ -145,6 +145,49 @@ export async function PATCH(
       is_read: false,
     });
 
+    // Auto-create an all-day calendar event on the staff member's Google Calendar.
+    // All-day events appear in the all-day row and are excluded from TOIL hour calculations
+    // (TOIL only sums timed events with dateTime). The leave hours are separately injected
+    // into TOIL via the approved-leave adjustment in the schedule route.
+    try {
+      const { data: staffRecord } = await supabaseAdmin
+        .from("staff")
+        .select("email, full_name")
+        .eq("id", leaveReq.staff_id)
+        .single();
+
+      const calToken = (session as any).accessToken;
+
+      if (calToken && staffRecord?.email) {
+        // Google Calendar all-day events use exclusive end dates (end = day after last day)
+        const endExclusive = new Date(leaveReq.end_date);
+        endExclusive.setDate(endExclusive.getDate() + 1);
+        const endDateStr = endExclusive.toISOString().split("T")[0];
+
+        await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(staffRecord.email)}/events`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${calToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              summary: leaveReq.leave_type_name,
+              description: `Approved leave`,
+              start: { date: leaveReq.start_date },
+              end: { date: endDateStr },
+              transparency: "opaque",  // shows as busy
+              status: "confirmed",
+            }),
+          }
+        );
+        // Failure is intentionally silent — the approval itself must not be blocked
+      }
+    } catch {
+      // Calendar event creation is best-effort
+    }
+
     return NextResponse.json({ status: "APPROVED", xeroId });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
