@@ -40,5 +40,30 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Notify the admin who wrote the note
+  const { data: fullNote } = await supabaseAdmin
+    .from("performance_notes")
+    .select("created_by")
+    .eq("id", noteId)
+    .single();
+
+  const { data: staffMember } = await supabaseAdmin
+    .from("staff")
+    .select("full_name")
+    .eq("id", id)
+    .single();
+
+  if (fullNote?.created_by && fullNote.created_by !== caller.id) {
+    await supabaseAdmin.from("notifications").insert({
+      staff_id: fullNote.created_by,
+      title: `${staffMember?.full_name ?? "A staff member"} acknowledged a note`,
+      message: `They have read and acknowledged the performance note you shared with them.`,
+      type: "performance",
+      link: `/dashboard/staff/${id}`,
+      is_read: false,
+    });
+  }
+
   return NextResponse.json(data);
 }

@@ -62,5 +62,38 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Notify all admins that the contract has been signed
+  const { data: contract } = await supabaseAdmin
+    .from("contracts")
+    .select("title, created_by")
+    .eq("id", id)
+    .single();
+
+  const { data: signer } = await supabaseAdmin
+    .from("staff")
+    .select("full_name")
+    .eq("id", caller.id)
+    .single();
+
+  const { data: admins } = await supabaseAdmin
+    .from("staff")
+    .select("id")
+    .eq("role", "admin")
+    .eq("is_active", true)
+    .neq("id", caller.id); // don't notify the signer if they're also an admin
+
+  if (admins && admins.length > 0 && contract) {
+    await supabaseAdmin.from("notifications").insert(
+      admins.map((a: any) => ({
+        staff_id: a.id,
+        title: `Contract signed by ${signer?.full_name ?? "a staff member"}`,
+        message: `${signer?.full_name ?? "A staff member"} has signed "${contract.title}".`,
+        type: "contract",
+        link: `/dashboard/contracts/${id}`,
+        is_read: false,
+      }))
+    );
+  }
+
   return NextResponse.json(data, { status: 201 });
 }
