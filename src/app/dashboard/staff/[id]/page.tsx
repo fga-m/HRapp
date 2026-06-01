@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, 
 import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
+import StaffQuickSearch from "@/components/staff/StaffQuickSearch";
 
 export const dynamic = "force-dynamic";
 
@@ -145,6 +146,9 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
           </Link>
           <h1 className="text-3xl font-bold text-[#223149]">Staff Profile</h1>
         </div>
+
+        {/* Quick-jump search */}
+        <StaffQuickSearch staffList={staffList} />
 
         {/* Prev / Next navigation */}
         {staffList.length > 1 && (
