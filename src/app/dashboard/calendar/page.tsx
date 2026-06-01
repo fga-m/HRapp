@@ -439,6 +439,7 @@ export default function CalendarPage() {
   const [selectedId, setSelectedId] = useState("primary");
   const [selectedLabel, setSelectedLabel] = useState("My Calendar");
   const gridRef = useRef<HTMLDivElement>(null);
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [nowTop, setNowTop] = useState(0);
   const [tooltip, setTooltip] = useState<GEvent | null>(null);
   const [editingEvent, setEditingEvent] = useState<GEvent | null>(null);
@@ -769,6 +770,19 @@ export default function CalendarPage() {
     }
   }, [nowTop]);
 
+  // ── Scrollbar width compensation ─────────────────────────────────────────
+  // The scrollable time grid is narrower than the fixed day headers by the
+  // scrollbar width. Measure it and add matching padding to the headers.
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const measure = () => setScrollbarWidth(el.offsetWidth - el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   // ── Colours ───────────────────────────────────────────────────────────────
   const colorForIndex = (i: number) => PALETTE[i % PALETTE.length];
   const staffColorMap = new Map(
@@ -982,10 +996,10 @@ export default function CalendarPage() {
       {/* ── Calendar grid ──────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 bg-white rounded-2xl shadow-sm overflow-x-auto flex flex-col">
         <div className="flex flex-col flex-1 min-h-0 min-w-[560px]">
-        {/* Day headers */}
+        {/* Day headers — paddingRight compensates for the scrollbar width in the grid below */}
         <div
           className="flex-shrink-0 grid border-b border-[#ECE3DF]"
-          style={{ gridTemplateColumns: "52px repeat(7, 1fr)" }}
+          style={{ gridTemplateColumns: "52px repeat(7, 1fr)", paddingRight: scrollbarWidth }}
         >
           <div className="border-r border-[#ECE3DF]" />
           {days.map((day) => (
@@ -1007,7 +1021,7 @@ export default function CalendarPage() {
         {days.some((d) => allDayEventsForDay(events, d).length > 0) && (
           <div
             className="flex-shrink-0 grid border-b border-[#ECE3DF]"
-            style={{ gridTemplateColumns: "52px repeat(7, 1fr)" }}
+            style={{ gridTemplateColumns: "52px repeat(7, 1fr)", paddingRight: scrollbarWidth }}
           >
             <div className="border-r border-[#ECE3DF] flex items-center justify-end pr-2">
               <span className="text-[10px] text-[#9BADB7]">all-day</span>
