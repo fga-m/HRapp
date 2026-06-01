@@ -941,7 +941,7 @@ export default function CalendarPage() {
             >
               My Calendar
             </button>
-            {staffList.map((s, i) => {
+            {staffList.filter((s) => s.email !== userEmail).map((s, i) => {
               const calId = s.email;
               const active = selectedId === calId;
               const colors = colorForIndex(i + 1);
