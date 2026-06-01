@@ -63,38 +63,63 @@ function isBusyEvent(ev: GEvent) {
 function isAllDay(ev: GEvent) {
   return !ev.start.dateTime;
 }
+// A timed event spanning more than one calendar day (e.g. a multi-day camp).
+// These should be shown in the all-day row, not as a massive tall timed block.
+function isMultiDayTimed(ev: GEvent) {
+  if (!ev.start.dateTime || !ev.end.dateTime) return false;
+  const start = new Date(ev.start.dateTime);
+  const end   = new Date(ev.end.dateTime);
+  return start.toDateString() !== end.toDateString();
+}
+// Treat both true all-day events and multi-day timed events as "all-day" for rendering
+function isAllDayLike(ev: GEvent) {
+  return isAllDay(ev) || isMultiDayTimed(ev);
+}
+
 function eventTopPx(ev: GEvent) {
-  if (isAllDay(ev)) return 0;
+  if (isAllDayLike(ev)) return 0;
   const d = new Date(ev.start.dateTime!);
   return Math.max(0, (d.getHours() + d.getMinutes() / 60 - START_H) * HOUR_H);
 }
 function eventHeightPx(ev: GEvent) {
-  if (isAllDay(ev)) return HOUR_H;
+  if (isAllDayLike(ev)) return HOUR_H;
   const start = new Date(ev.start.dateTime!);
   const end = new Date(ev.end.dateTime!);
   const mins = (end.getTime() - start.getTime()) / 60000;
   return Math.max(22, (mins / 60) * HOUR_H);
 }
+
+function dayMidnight(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
 function eventsForDay(events: GEvent[], day: Date) {
+  const dayN = dayMidnight(day);
   return events.filter((ev) => {
+    if (isMultiDayTimed(ev)) {
+      // Multi-day timed: show in every calendar day it overlaps
+      const startN = dayMidnight(new Date(ev.start.dateTime!));
+      const endN   = dayMidnight(new Date(ev.end.dateTime!));
+      return dayN >= startN && dayN <= endN;
+    }
     if (ev.start.dateTime) {
-      // Timed event: match on start day only
+      // Single-day timed event: match start day only
       return isSameDay(new Date(ev.start.dateTime), day);
     }
     // All-day event: check if `day` falls within [start, end)
     // Google uses exclusive end dates, so "Jun 2–3" has end.date = "Jun 4"
-    const dayN = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
     const startN = (() => { const d = new Date(ev.start.date!); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
     const endRaw = ev.end?.date ?? ev.start.date!;
-    const endN = (() => { const d = new Date(endRaw); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
+    const endN   = (() => { const d = new Date(endRaw); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
     return dayN >= startN && dayN < endN;
   });
 }
 function allDayEventsForDay(events: GEvent[], day: Date) {
-  return eventsForDay(events, day).filter(isAllDay);
+  return eventsForDay(events, day).filter(isAllDayLike);
 }
 function timedEventsForDay(events: GEvent[], day: Date) {
-  return eventsForDay(events, day).filter((ev) => !isAllDay(ev));
+  // Exclude both all-day and multi-day timed events — those go in the all-day row
+  return eventsForDay(events, day).filter((ev) => !isAllDayLike(ev));
 }
 
 // Only lay out busy events — free/OOO are always full-width backgrounds
@@ -690,7 +715,7 @@ export default function CalendarPage() {
   }, []);
 
   const handleEventMouseDown = useCallback((e: React.MouseEvent, ev: GEvent) => {
-    if (isAllDay(ev)) return;
+    if (isAllDayLike(ev)) return;
     e.preventDefault();
     e.stopPropagation();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -1440,7 +1465,7 @@ export default function CalendarPage() {
         const timeLabel = ev.start.dateTime
           ? `${format(new Date(ev.start.dateTime), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`
           : null;
-        const canEdit = isOwnCalendar && !ooo && !isAllDay(ev);
+        const canEdit = isOwnCalendar && !ooo && !isAllDayLike(ev);
         return (
           <div
             className="fixed z-50 bg-white rounded-xl shadow-xl border border-[#ECE3DF] p-3 w-64 pointer-events-auto"
@@ -1587,7 +1612,7 @@ export default function CalendarPage() {
               )}
 
               {/* Edit / Duplicate / Delete — only on your own calendar */}
-              {isOwnCalendar && !isAllDay(tooltip) && (
+              {isOwnCalendar && !isAllDayLike(tooltip) && (
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => { setEditingEvent(tooltip); setTooltip(null); }}
