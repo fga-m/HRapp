@@ -10,7 +10,7 @@ import {
 // ── Constants ──────────────────────────────────────────────────────────────
 const HOUR_H = 64;
 const START_H = 7;
-const END_H = 21;
+const END_H = 24;
 const HOURS = Array.from({ length: END_H - START_H }, (_, i) => START_H + i);
 
 const PALETTE = [
@@ -1071,7 +1071,7 @@ export default function CalendarPage() {
                   style={{ height: HOUR_H }}
                 >
                   <span className="text-[10px] text-[#9BADB7]">
-                    {h === 12 ? "12pm" : h > 12 ? `${h - 12}pm` : `${h}am`}
+                    {h === 0 ? "12am" : h === 12 ? "12pm" : h > 12 ? `${h - 12}pm` : `${h}am`}
                   </span>
                 </div>
               ))}
