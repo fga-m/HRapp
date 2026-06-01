@@ -126,6 +126,35 @@ function layoutEvents(events: GEvent[]): Map<string, { left: number; width: numb
 }
 
 // ── Event form modal ───────────────────────────────────────────────────────
+type RecurrenceFreq = "none" | "daily" | "weekday" | "weekly" | "fortnightly" | "monthly" | "yearly";
+
+const RECURRENCE_LABELS: Record<RecurrenceFreq, string> = {
+  none: "Does not repeat",
+  daily: "Daily",
+  weekday: "Every weekday (Mon–Fri)",
+  weekly: "Weekly",
+  fortnightly: "Every 2 weeks",
+  monthly: "Monthly",
+  yearly: "Yearly",
+};
+
+function buildRRule(freq: RecurrenceFreq, startISO: string, untilDate: string): string | null {
+  if (freq === "none") return null;
+  // UNTIL must be UTC datetime: YYYYMMDDTHHMMSSZ
+  const until = untilDate.replace(/-/g, "") + "T235959Z";
+  // Day abbreviation from start date for weekly-based rules
+  const DAY = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+  const day = DAY[new Date(startISO).getDay()];
+  switch (freq) {
+    case "daily":      return `RRULE:FREQ=DAILY;UNTIL=${until}`;
+    case "weekday":    return `RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;UNTIL=${until}`;
+    case "weekly":     return `RRULE:FREQ=WEEKLY;BYDAY=${day};UNTIL=${until}`;
+    case "fortnightly":return `RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=${day};UNTIL=${until}`;
+    case "monthly":    return `RRULE:FREQ=MONTHLY;UNTIL=${until}`;
+    case "yearly":     return `RRULE:FREQ=YEARLY;UNTIL=${until}`;
+  }
+}
+
 type EventFormProps = {
   initial?: {
     id?: string;
@@ -151,6 +180,10 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
     initial?.endDateTime ?? format(addDays(new Date(), 0), "yyyy-MM-dd'T'HH:mm")
   );
   const [transparency, setTransparency] = useState(initial?.transparency ?? "opaque");
+  const [recurrence, setRecurrence] = useState<RecurrenceFreq>("none");
+  const [recurrenceEnd, setRecurrenceEnd] = useState(
+    format(addDays(new Date(), 90), "yyyy-MM-dd") // default: 3 months out
+  );
   const [attendees, setAttendees] = useState<string[]>(initial?.attendees ?? []);
   const [attendeeInput, setAttendeeInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -183,13 +216,15 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
     setSaving(true);
     setError("");
     try {
-      const body = {
+      const rrule = !isEdit ? buildRRule(recurrence, startDateTime, recurrenceEnd) : null;
+      const body: Record<string, unknown> = {
         calendarId,
         summary: summary.trim(),
         start: { dateTime: new Date(startDateTime).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
         end: { dateTime: new Date(endDateTime).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
         transparency,
         attendees: attendees.map((email) => ({ email })),
+        ...(rrule ? { recurrence: [rrule] } : {}),
       };
       const res = isEdit
         ? await fetch(`/api/calendar/events/${initial!.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
@@ -250,6 +285,36 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
               />
             </div>
           </div>
+
+          {/* Repeat — only on new events */}
+          {!isEdit && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Repeat</label>
+                <select
+                  value={recurrence}
+                  onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
+                >
+                  {(Object.keys(RECURRENCE_LABELS) as RecurrenceFreq[]).map((key) => (
+                    <option key={key} value={key}>{RECURRENCE_LABELS[key]}</option>
+                  ))}
+                </select>
+              </div>
+              {recurrence !== "none" && (
+                <div>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Ends on</label>
+                  <input
+                    type="date"
+                    value={recurrenceEnd}
+                    min={startDateTime.split("T")[0]}
+                    onChange={(e) => setRecurrenceEnd(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Show as */}
           <div>
