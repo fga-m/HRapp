@@ -409,7 +409,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       <LeaveBalancesCard staffId={member.id} isOwnProfile={caller?.id === id} />
 
       {/* Work Schedule */}
-      <ScheduleCard staffId={member.id} canEdit={canEditSchedule} />
+      <ScheduleCard staffId={member.id} canEdit={canEditSchedule} contractedHours={member.contracted_hours ?? undefined} />
 
       {/* Performance Notes */}
       <PerformanceNotesCard

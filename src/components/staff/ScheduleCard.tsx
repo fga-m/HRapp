@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, Edit2, Check, X, Plus } from "lucide-react";
+import { Clock, Edit2, Check, X, Plus, AlertTriangle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 const DAYS = [
@@ -23,6 +23,7 @@ type WeekSchedule = Record<string, any>;
 interface ScheduleCardProps {
   staffId: string;
   canEdit: boolean;
+  contractedHours?: number; // from staff.contracted_hours — used to show mismatch warning
 }
 
 function slotHours(slot: Slot): number {
@@ -31,9 +32,18 @@ function slotHours(slot: Slot): number {
   return Math.max(0, (eh * 60 + em - (sh * 60 + sm)) / 60);
 }
 
+// Whether a day should have a 30-min lunch deduction applied:
+// only when there is a single continuous slot >= 5.5 hours (split slots already exclude lunch).
+function lunchDeduction(day: DaySchedule): number {
+  if (!day.enabled || day.slots.length !== 1) return 0;
+  const raw = slotHours(day.slots[0]);
+  return raw >= 5.5 ? 0.5 : 0;
+}
+
 function dayHours(day: DaySchedule): number {
   if (!day.enabled) return 0;
-  return day.slots.reduce((t, s) => t + slotHours(s), 0);
+  const raw = day.slots.reduce((t, s) => t + slotHours(s), 0);
+  return raw - lunchDeduction(day);
 }
 
 function totalWeekHours(schedule: WeekSchedule): number {
@@ -98,7 +108,7 @@ function SlotEditor({
   );
 }
 
-export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
+export default function ScheduleCard({ staffId, canEdit, contractedHours }: ScheduleCardProps) {
   const [schedule, setSchedule] = useState<WeekSchedule | null>(null);
   const [draft, setDraft] = useState<WeekSchedule | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
@@ -205,11 +215,16 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
     );
   }
 
-  const totalHours = totalWeekHours(current);
+  const totalHours = Math.round(totalWeekHours(current) * 10) / 10;
   const flexHours = current.flexible_hours ?? 0;
   const workingDays = Object.entries(current)
     .filter(([k, d]) => !["flexible", "flexible_hours"].includes(k) && (d as DaySchedule).enabled)
     .length;
+
+  // Mismatch: compare schedule total against contracted_hours (within 0.1h tolerance)
+  const hasMismatch = !editing
+    && contractedHours != null
+    && Math.abs(totalHours - contractedHours) > 0.1;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -218,10 +233,18 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
         <div className="flex items-center gap-2 flex-wrap">
           <Clock className="w-4 h-4 text-[#9BADB7]" />
           <span className="font-semibold text-[#223149]">Work Schedule</span>
-          <span className="text-xs text-[#9BADB7]">
-            {workingDays} {workingDays === 1 ? "day" : "days"} · {fmtHours(totalHours)}/week
-            {flexHours > 0 && ` (incl. ${fmtHours(flexHours)} flex)`}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-[#9BADB7]">
+              {workingDays} {workingDays === 1 ? "day" : "days"} · {fmtHours(totalHours)}/week
+              {flexHours > 0 && ` (incl. ${fmtHours(flexHours)} flex)`}
+            </span>
+            {hasMismatch && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-200">
+                <AlertTriangle className="w-3 h-3" />
+                Doesn't match contracted {fmtHours(contractedHours!)}
+              </span>
+            )}
+          </div>
         </div>
         {canEdit && !editing && (
           <button
@@ -295,9 +318,21 @@ export default function ScheduleCard({ staffId, canEdit }: ScheduleCardProps) {
                       {d.slots.map((slot: Slot, i: number) => (
                         <SlotDisplay key={i} slot={slot} />
                       ))}
-                      {hours > 0 && d.slots.length > 1 && (
-                        <span className="text-xs text-[#9BADB7]">= {fmtHours(hours)}</span>
-                      )}
+                      {(() => {
+                        const deduction = lunchDeduction(d);
+                        if (deduction > 0) {
+                          return (
+                            <span className="text-xs text-[#9BADB7]">
+                              = {fmtHours(hours)}
+                              <span className="ml-1 text-[#9BADB7]/70">(−30 min lunch)</span>
+                            </span>
+                          );
+                        }
+                        if (hours > 0 && d.slots.length > 1) {
+                          return <span className="text-xs text-[#9BADB7]">= {fmtHours(hours)}</span>;
+                        }
+                        return null;
+                      })()}
                     </div>
                   ) : (
                     <span className="ml-auto text-xs text-[#9BADB7]">Day off</span>
