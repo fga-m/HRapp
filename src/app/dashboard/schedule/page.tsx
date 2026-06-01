@@ -10,6 +10,7 @@ import {
   TrendingUp,
   AlertCircle,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import Link from "next/link";
@@ -234,6 +235,14 @@ export default function SchedulePage() {
           >
             Next
             <ChevronRight className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => fetchData(weekStart)}
+            disabled={loading}
+            title="Refresh from Google Calendar"
+            className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
