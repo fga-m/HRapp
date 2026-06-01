@@ -19,7 +19,7 @@ interface TopBarProps {
 
 const moreItems = [
   { label: "Calendars",     href: "/dashboard/calendar",              icon: Calendar },
-  { label: "My Leave",      href: "/dashboard/leave",                 icon: Palmtree },
+  { label: "Leave Requests", href: "/dashboard/leave",                icon: Palmtree },
   { label: "Performance",  href: "/dashboard/performance",           icon: TrendingUp },
   { label: "Team Schedule", href: "/dashboard/schedule",              icon: CalendarDays, permission: "view_team_schedule" },
   { label: "Onboarding",   href: "/dashboard/onboarding",            icon: CheckSquare },
@@ -79,7 +79,7 @@ export default function TopBar({
   const pageTitle: Record<string, string> = {
     "/dashboard": "Dashboard",
     "/dashboard/calendar": "Calendars",
-    "/dashboard/leave": "My Leave",
+    "/dashboard/leave": "Leave Requests",
     "/dashboard/meetings": "Meeting Notes",
     "/dashboard/policies": "Policies",
     "/dashboard/onboarding": "Onboarding",

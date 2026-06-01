@@ -283,7 +283,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   if (!hasXeroLink) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-[#223149]">My Leave</h1>
+        <h1 className="text-3xl font-bold text-[#223149]">Leave Requests</h1>
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center space-y-3">
           <Palmtree className="w-8 h-8 text-[#9BADB7] mx-auto" />
           <p className="font-semibold text-[#223149]">Not linked to Xero</p>
@@ -300,7 +300,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold text-[#223149]">
-              {isReviewer && activeTab === "team" ? "Team Leave" : "My Leave"}
+              {isReviewer && activeTab === "team" ? "Team Leave" : "Leave Requests"}
             </h1>
             {isReviewer && (
               <div className="flex border border-[#ECE3DF] rounded-xl overflow-hidden text-sm font-semibold">
@@ -308,7 +308,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   onClick={() => setActiveTab("my")}
                   className={`px-4 py-2 transition-colors ${activeTab === "my" ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
                 >
-                  My Leave
+                  Leave Requests
                 </button>
                 <button
                   onClick={() => setActiveTab("team")}
@@ -479,7 +479,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
           </div>
         )}
 
-        {/* ── My Leave content (hidden when viewing Team tab) ── */}
+        {/* ── Leave Requests content (hidden when viewing Team tab) ── */}
         {activeTab === "my" && <>
 
         {/* Success banner */}
