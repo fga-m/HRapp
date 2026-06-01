@@ -4,12 +4,16 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
+// Default: Mon–Fri, 9:00–12:30 and 13:00–17:00 = 7.5h/day excl. 30 min lunch (37.5h/week FTE)
 export const DEFAULT_SCHEDULE = Object.fromEntries(
   DAYS.map((day) => [
     day,
     {
       enabled: ["monday", "tuesday", "wednesday", "thursday", "friday"].includes(day),
-      slots: [{ start: "09:00", end: "17:00" }],
+      slots: [
+        { start: "09:00", end: "12:30" },
+        { start: "13:00", end: "17:00" },
+      ],
     },
   ])
 );
@@ -21,7 +25,7 @@ function normalise(schedule: Record<string, any>) {
   if (schedule.flexible !== undefined) out.flexible = !!schedule.flexible;
   if (schedule.flexible_hours !== undefined) out.flexible_hours = Number(schedule.flexible_hours) || 0;
   for (const day of DAYS) {
-    const d = schedule[day] ?? { enabled: false, slots: [{ start: "09:00", end: "17:00" }] };
+    const d = schedule[day] ?? { enabled: false, slots: [{ start: "09:00", end: "12:30" }, { start: "13:00", end: "17:00" }] };
     if (d.start !== undefined && !d.slots) {
       out[day] = { enabled: d.enabled, slots: [{ start: d.start, end: d.end }] };
     } else {
