@@ -8,6 +8,7 @@ import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
 import StaffQuickSearch from "@/components/staff/StaffQuickSearch";
 import StaffContractUpload from "@/components/staff/StaffContractUpload";
+import StaffDocumentsCard from "@/components/staff/StaffDocumentsCard";
 
 export const dynamic = "force-dynamic";
 
@@ -380,6 +381,14 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
           )}
         </div>
       )}
+
+      {/* Documents Card */}
+      <StaffDocumentsCard
+        staffId={id}
+        staffName={member.full_name}
+        canUpload={caller?.role === "admin" || isManager}
+        isOwnProfile={caller?.id === id}
+      />
 
       {/* Quick Links */}
       <div className="grid grid-cols-2 gap-4">
