@@ -1,5 +1,23 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { supabaseAdmin } from "./supabase";
+
+/** Persist Google tokens to the staff record so they can be used server-side
+ *  (e.g. creating calendar events on behalf of a staff member when they're offline). */
+async function saveTokensToStaff(email: string, accessToken: string, refreshToken: string | undefined, expiresAt: number) {
+  try {
+    await supabaseAdmin
+      .from("staff")
+      .update({
+        google_access_token: accessToken,
+        ...(refreshToken ? { google_refresh_token: refreshToken } : {}),
+        google_token_expires_at: new Date(expiresAt).toISOString(),
+      })
+      .eq("email", email);
+  } catch {
+    // Best-effort — never block auth if DB write fails
+  }
+}
 
 async function refreshAccessToken(token: Record<string, unknown>) {
   try {
@@ -15,13 +33,19 @@ async function refreshAccessToken(token: Record<string, unknown>) {
     });
     const data = await res.json();
     if (!res.ok) throw data;
-    return {
+    const expires = Date.now() + data.expires_in * 1000;
+    const refreshed = {
       ...token,
       accessToken: data.access_token,
-      accessTokenExpires: Date.now() + data.expires_in * 1000,
+      accessTokenExpires: expires,
       refreshToken: data.refresh_token ?? token.refreshToken,
       error: undefined,
     };
+    // Persist refreshed tokens so offline calendar creation stays current
+    if (token.email) {
+      await saveTokensToStaff(token.email as string, data.access_token, data.refresh_token ?? token.refreshToken as string, expires);
+    }
+    return refreshed;
   } catch {
     return { ...token, error: "RefreshAccessTokenError" };
   }
@@ -50,22 +74,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return "/unauthorized";
     },
     async jwt({ token, account }) {
-      // First sign-in: store tokens and expiry
+      // First sign-in: store tokens in JWT and persist to DB
       if (account) {
+        const expires = account.expires_at ? account.expires_at * 1000 : Date.now() + 3600 * 1000;
+        if (token.email && account.access_token) {
+          await saveTokensToStaff(token.email as string, account.access_token, account.refresh_token, expires);
+        }
         return {
           ...token,
           accessToken: account.access_token,
           refreshToken: account.refresh_token,
-          accessTokenExpires: account.expires_at
-            ? account.expires_at * 1000
-            : Date.now() + 3600 * 1000,
+          accessTokenExpires: expires,
         };
       }
       // Token still valid — return as-is
       if (Date.now() < (token.accessTokenExpires as number) - 60_000) {
         return token;
       }
-      // Token expired — refresh silently
+      // Token expired — refresh silently (also persists to DB inside refreshAccessToken)
       return refreshAccessToken(token);
     },
     async session({ session, token }) {

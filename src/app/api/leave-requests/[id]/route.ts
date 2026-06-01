@@ -145,18 +145,44 @@ export async function PATCH(
       is_read: false,
     });
 
-    // Auto-create an all-day calendar event on the staff member's Google Calendar.
-    // All-day events appear in the all-day row and are excluded from TOIL hour calculations
-    // (TOIL only sums timed events with dateTime). The leave hours are separately injected
-    // into TOIL via the approved-leave adjustment in the schedule route.
+    // Auto-create an all-day calendar event using the staff member's own Google account.
+    // All-day events are excluded from TOIL hour calculations (TOIL only sums timed events).
+    // Leave hours are separately added to TOIL via the approved-leave adjustment.
     try {
       const { data: staffRecord } = await supabaseAdmin
         .from("staff")
-        .select("email, full_name")
+        .select("email, full_name, google_access_token, google_refresh_token, google_token_expires_at")
         .eq("id", leaveReq.staff_id)
         .single();
 
-      const calToken = (session as any).accessToken;
+      let calToken = staffRecord?.google_access_token ?? null;
+
+      // Refresh the token if expired or nearly expired
+      if (calToken && staffRecord?.google_token_expires_at) {
+        const expiresAt = new Date(staffRecord.google_token_expires_at).getTime();
+        if (Date.now() > expiresAt - 60_000 && staffRecord.google_refresh_token) {
+          const refreshRes = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id: process.env.GOOGLE_CLIENT_ID!,
+              client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+              grant_type: "refresh_token",
+              refresh_token: staffRecord.google_refresh_token,
+            }),
+          });
+          if (refreshRes.ok) {
+            const refreshData = await refreshRes.json();
+            calToken = refreshData.access_token;
+            // Persist the refreshed token
+            await supabaseAdmin.from("staff").update({
+              google_access_token: refreshData.access_token,
+              google_token_expires_at: new Date(Date.now() + refreshData.expires_in * 1000).toISOString(),
+              ...(refreshData.refresh_token ? { google_refresh_token: refreshData.refresh_token } : {}),
+            }).eq("id", leaveReq.staff_id);
+          }
+        }
+      }
 
       if (calToken && staffRecord?.email) {
         // Google Calendar all-day events use exclusive end dates (end = day after last day)
@@ -174,18 +200,17 @@ export async function PATCH(
             },
             body: JSON.stringify({
               summary: leaveReq.leave_type_name,
-              description: `Approved leave`,
+              description: "Approved leave",
               start: { date: leaveReq.start_date },
               end: { date: endDateStr },
-              transparency: "opaque",  // shows as busy
+              transparency: "opaque",
               status: "confirmed",
             }),
           }
         );
-        // Failure is intentionally silent — the approval itself must not be blocked
       }
     } catch {
-      // Calendar event creation is best-effort
+      // Calendar event creation is best-effort — never blocks the approval
     }
 
     return NextResponse.json({ status: "APPROVED", xeroId });
