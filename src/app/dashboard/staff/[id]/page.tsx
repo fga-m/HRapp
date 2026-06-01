@@ -384,7 +384,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       {/* Quick Links */}
       <div className="grid grid-cols-2 gap-4">
         <Link
-          href={`/dashboard/calendar?staff=${member.id}`}
+          href={`/dashboard/calendar?staff=${encodeURIComponent(member.email)}`}
           className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-3 group"
         >
           <div className="w-9 h-9 rounded-xl bg-[#ECE3DF] flex items-center justify-center group-hover:bg-[#223149] transition-colors">

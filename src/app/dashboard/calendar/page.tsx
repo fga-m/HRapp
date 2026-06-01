@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Copy, Plus, Pencil, Trash2, X } from "lucide-react";
 import {
   format, startOfWeek, addDays, isToday, eachDayOfInterval,
@@ -538,7 +539,12 @@ export default function CalendarPage() {
   const [role, setRole] = useState<"admin" | "staff">("staff");
   const [userEmail, setUserEmail] = useState("");
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
-  const [selectedId, setSelectedId] = useState("primary");
+  const searchParams = useSearchParams();
+  const [selectedId, setSelectedId] = useState(() => {
+    // Pre-select staff calendar if ?staff=email is in the URL
+    const staffEmail = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("staff") : null;
+    return staffEmail ?? "primary";
+  });
   const [selectedLabel, setSelectedLabel] = useState("My Calendar");
   const gridRef = useRef<HTMLDivElement>(null);
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
@@ -640,6 +646,12 @@ export default function CalendarPage() {
       .then((data: StaffMember[]) => {
         if (!Array.isArray(data)) return;
         setStaffList(data);
+        // Set label for pre-selected staff from URL param
+        const staffEmail = searchParams.get("staff");
+        if (staffEmail) {
+          const match = data.find((s) => s.email === staffEmail);
+          if (match) setSelectedLabel(match.full_name);
+        }
       });
     fetch("/api/policies")
       .then((r) => r.json())
@@ -647,7 +659,7 @@ export default function CalendarPage() {
         if (d.role) setRole(d.role);
         if (d.email) setUserEmail(d.email);
       });
-  }, []);
+  }, [searchParams]);
 
   // ── Fetch pending invites (next 30 days, self + needsAction) ─────────────
   useEffect(() => {
