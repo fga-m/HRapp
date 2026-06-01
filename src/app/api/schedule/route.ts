@@ -103,60 +103,69 @@ export async function GET(req: NextRequest) {
     .map((s: any) => ({ calId: s.google_calendar_id || s.email, staffId: s.id }))
     .filter((item) => !!item.calId);
 
-  // Fetch scheduled hours via Calendar Events API (uses calendar.events scope, already granted).
-  // FreeBusy requires calendar.freebusy scope which we don't have — Events API works instead.
-  // Parallel fetch per staff member; only timed events count (all-day events are skipped).
-  const scheduledHoursMap = new Map<string, number>();
+  // Helper: fetch scheduled hours for all staff over a given week boundary
+  async function fetchWeekHours(tMin: string, tMax: string): Promise<Map<string, number>> {
+    const map = new Map<string, number>();
+    if (!token || calendarItems.length === 0) return map;
 
-  // Use Melbourne-local midnight boundaries so events on Mon morning don't bleed into the prior week
-  const weekStartStr = toISODateString(weekStart);
-  const weekEndStr = toISODateString(weekEnd);
-  const timeMin = toMelbourneISO(weekStartStr);
-  const timeMax = toMelbourneISO(weekEndStr);
-
-  if (token && calendarItems.length > 0) {
     const results = await Promise.allSettled(
-      calendarItems.map(async ({ calId, staffId }) => {
+      calendarItems.map(async ({ calId, staffId }: { calId: string; staffId: string }) => {
         const url = new URL(
           `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`
         );
-        url.searchParams.set("timeMin", timeMin);
-        url.searchParams.set("timeMax", timeMax);
+        url.searchParams.set("timeMin", tMin);
+        url.searchParams.set("timeMax", tMax);
         url.searchParams.set("singleEvents", "true");
         url.searchParams.set("maxResults", "250");
 
         const res = await fetch(url.toString(), {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         if (!res.ok) return { staffId, hours: null };
 
         const data = await res.json();
         const events: any[] = data.items ?? [];
 
-        // Sum timed events, applying the same lunch deduction logic as the Work Schedule card:
-        // any single continuous block >= 5 hours has 30 min deducted (unpaid lunch break).
+        // Sum timed events with lunch deduction (same logic as Work Schedule card):
+        // any single continuous block >= 5 h has 30 min deducted.
         let totalMinutes = 0;
         for (const event of events) {
           if (event.start?.dateTime && event.end?.dateTime) {
             const start = new Date(event.start.dateTime).getTime();
-            const end = new Date(event.end.dateTime).getTime();
+            const end   = new Date(event.end.dateTime).getTime();
             const durationMins = (end - start) / 60_000;
-            const effectiveMins = durationMins >= 300 ? durationMins - 30 : durationMins;
-            totalMinutes += effectiveMins;
+            totalMinutes += durationMins >= 300 ? durationMins - 30 : durationMins;
           }
         }
-
         return { staffId, hours: Math.round((totalMinutes / 60) * 10) / 10 };
       })
     );
 
     for (const result of results) {
       if (result.status === "fulfilled" && result.value.hours !== null) {
-        scheduledHoursMap.set(result.value.staffId, result.value.hours);
+        map.set(result.value.staffId, result.value.hours);
       }
     }
+    return map;
   }
+
+  // Use Melbourne-local midnight boundaries so events on Mon morning don't bleed into the prior week
+  const weekStartStr = toISODateString(weekStart);
+  const weekEndStr   = toISODateString(weekEnd);
+  const timeMin = toMelbourneISO(weekStartStr);
+  const timeMax = toMelbourneISO(weekEndStr);
+
+  // Previous week boundaries
+  const prevWeekStart = new Date(weekStart); prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+  const prevWeekEnd   = new Date(weekEnd);   prevWeekEnd.setDate(prevWeekEnd.getDate() - 7);
+  const prevTimeMin = toMelbourneISO(toISODateString(prevWeekStart));
+  const prevTimeMax = toMelbourneISO(toISODateString(prevWeekEnd));
+
+  // Fetch both weeks in parallel
+  const [scheduledHoursMap, prevScheduledHoursMap] = await Promise.all([
+    fetchWeekHours(timeMin, timeMax),
+    fetchWeekHours(prevTimeMin, prevTimeMax),
+  ]);
 
   // Mark staff who have no linked calendar at all
   const hasCalendarSet = new Set<string>();
@@ -164,18 +173,17 @@ export async function GET(req: NextRequest) {
     if (s.google_calendar_id || s.email) hasCalendarSet.add(s.id);
   }
 
-  // Fetch TOIL balances — only the last 14 days (2-week rollover window)
-  const twoWeeksAgo = new Date(weekStart);
-  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-  const { data: toilRows } = await supabaseAdmin
-    .from("toil_transactions")
-    .select("staff_id, hours")
-    .gte("transaction_date", toISODateString(twoWeeksAgo));
-
+  // TOIL balance = sum of weekly variances (scheduled − contracted) over the last 2 weeks.
+  // Weeks with no calendar data contribute 0 to the balance.
   const toilBalanceMap = new Map<string, number>();
-  for (const row of (toilRows || []) as any[]) {
-    const current = toilBalanceMap.get(row.staff_id) ?? 0;
-    toilBalanceMap.set(row.staff_id, current + Number(row.hours));
+  for (const s of staffList as any[]) {
+    const contracted = s.contracted_hours ?? 37.5;
+    const currentScheduled = scheduledHoursMap.get(s.id);
+    const prevScheduled    = prevScheduledHoursMap.get(s.id);
+    const currentVariance  = currentScheduled != null ? currentScheduled - contracted : 0;
+    const prevVariance     = prevScheduled    != null ? prevScheduled    - contracted : 0;
+    const toil = Math.round((currentVariance + prevVariance) * 10) / 10;
+    toilBalanceMap.set(s.id, toil);
   }
 
   // Build response
