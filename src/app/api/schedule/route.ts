@@ -134,13 +134,16 @@ export async function GET(req: NextRequest) {
         const data = await res.json();
         const events: any[] = data.items ?? [];
 
-        // Sum only timed events (skip all-day events which have .date but no .dateTime)
+        // Sum timed events, applying the same lunch deduction logic as the Work Schedule card:
+        // any single continuous block >= 5 hours has 30 min deducted (unpaid lunch break).
         let totalMinutes = 0;
         for (const event of events) {
           if (event.start?.dateTime && event.end?.dateTime) {
             const start = new Date(event.start.dateTime).getTime();
             const end = new Date(event.end.dateTime).getTime();
-            totalMinutes += (end - start) / 60_000;
+            const durationMins = (end - start) / 60_000;
+            const effectiveMins = durationMins >= 300 ? durationMins - 30 : durationMins;
+            totalMinutes += effectiveMins;
           }
         }
 
