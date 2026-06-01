@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink, FileSignature, CheckCircle, Clock } from "lucide-react";
 import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
@@ -58,6 +58,71 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       .eq("feature", "manage_staff")
       .single();
     isManager = perm?.enabled ?? false;
+  }
+
+  // Fetch contract assignments for this staff member (shown to admin or own profile)
+  const canSeeContracts = caller?.role === "admin" || caller?.id === id || isManager;
+
+  let contractRows: Array<{
+    group_id: string | null;
+    group_title: string;
+    current_version: {
+      contract_id: string;
+      version: number;
+      file_name: string;
+      signed_at: string | null;
+    };
+  }> = [];
+
+  if (canSeeContracts) {
+    const { data: contractAssignments } = await supabaseAdmin
+      .from("contract_assignments")
+      .select(`
+        contract_id,
+        contracts!inner(id, title, version, group_id, is_active,
+          contract_groups(id, title))
+      `)
+      .eq("staff_id", id)
+      .eq("contracts.is_active", true);
+
+    const { data: signatures } = await supabaseAdmin
+      .from("contract_signatures")
+      .select("contract_id, name_as_typed, signed_at")
+      .eq("staff_id", id);
+
+    const sigMap = new Map((signatures ?? []).map((s: any) => [s.contract_id, s]));
+
+    // Group by group_id, pick highest version per group
+    const groupMap = new Map<string, typeof contractRows[number]>();
+    const standaloneList: typeof contractRows = [];
+
+    for (const a of contractAssignments ?? []) {
+      const contract = a.contracts as any;
+      if (!contract) continue;
+
+      const sig = sigMap.get(a.contract_id) ?? null;
+      const entry = {
+        group_id: contract.group_id ?? null,
+        group_title: contract.contract_groups?.title ?? contract.title,
+        current_version: {
+          contract_id: contract.id,
+          version: contract.version ?? 1,
+          file_name: contract.title,
+          signed_at: sig?.signed_at ?? null,
+        },
+      };
+
+      if (contract.group_id) {
+        const existing = groupMap.get(contract.group_id);
+        if (!existing || contract.version > existing.current_version.version) {
+          groupMap.set(contract.group_id, entry);
+        }
+      } else {
+        standaloneList.push(entry);
+      }
+    }
+
+    contractRows = [...groupMap.values(), ...standaloneList];
   }
 
   const initials = member.full_name
@@ -235,6 +300,72 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
           </p>
         </div>
       </div>
+
+      {/* Contracts Card */}
+      {canSeeContracts && (
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FileSignature className="w-4 h-4 text-[#9BADB7]" />
+            <h3 className="text-sm font-semibold text-[#223149]">Contracts</h3>
+          </div>
+          {contractRows.length === 0 ? (
+            <p className="text-sm text-[#9BADB7]">No contracts assigned</p>
+          ) : (
+            <div className="space-y-2">
+              {contractRows.map((row) => {
+                const signed = !!row.current_version.signed_at;
+                const contractLink = `/dashboard/contracts/${row.current_version.contract_id}`;
+                return (
+                  <div
+                    key={row.current_version.contract_id}
+                    className="flex items-center justify-between gap-3 p-3 bg-[#F8F6F4] rounded-xl"
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      {caller?.role === "admin" ? (
+                        <Link
+                          href={contractLink}
+                          className="text-sm font-medium text-[#223149] hover:underline truncate"
+                        >
+                          {row.group_title}
+                        </Link>
+                      ) : (
+                        <span className="text-sm font-medium text-[#223149] truncate">{row.group_title}</span>
+                      )}
+                      <span className="bg-[#ECE3DF] text-[#223149] text-xs px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
+                        v{row.current_version.version}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {signed ? (
+                        <div className="flex items-center gap-1">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                            <CheckCircle className="w-3 h-3" />
+                            Signed
+                          </span>
+                          {row.current_version.signed_at && (
+                            <span className="text-xs text-[#9BADB7] hidden sm:block">
+                              {new Date(row.current_version.signed_at).toLocaleDateString("en-AU", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          <Clock className="w-3 h-3" />
+                          Pending
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Quick Links */}
       <div className="grid grid-cols-2 gap-4">

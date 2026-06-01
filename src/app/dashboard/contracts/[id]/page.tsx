@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -16,6 +16,9 @@ import {
   Trash2,
   ToggleLeft,
   ToggleRight,
+  Upload,
+  FileText,
+  GitBranch,
 } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -28,6 +31,9 @@ export default function ContractDetailPage() {
   const [signedUrl, setSignedUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [reloading, setReloading] = useState(false);
+
+  // Group version history
+  const [groupVersions, setGroupVersions] = useState<any[]>([]);
 
   // Sign state
   const [hasRead, setHasRead] = useState(false);
@@ -43,6 +49,15 @@ export default function ContractDetailPage() {
 
   // Delete state
   const [deleting, setDeleting] = useState(false);
+
+  // New version modal
+  const [showNewVersion, setShowNewVersion] = useState(false);
+  const [newVersionFile, setNewVersionFile] = useState<File | null>(null);
+  const [newVersionDesc, setNewVersionDesc] = useState("");
+  const [carryAssignments, setCarryAssignments] = useState(true);
+  const [publishingVersion, setPublishingVersion] = useState(false);
+  const [newVersionError, setNewVersionError] = useState("");
+  const newVersionFileRef = useRef<HTMLInputElement>(null);
 
   const fetchContract = useCallback(() => {
     setLoading(true);
@@ -60,6 +75,17 @@ export default function ContractDetailPage() {
   }, [id]);
 
   useEffect(() => { fetchContract(); }, [fetchContract]);
+
+  // Fetch version history when we know the group_id
+  useEffect(() => {
+    if (data?.contract?.group_id) {
+      fetch(`/api/contract-groups/${data.contract.group_id}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.versions) setGroupVersions(d.versions);
+        });
+    }
+  }, [data?.contract?.group_id]);
 
   const reloadPdf = async () => {
     setReloading(true);
@@ -144,6 +170,33 @@ export default function ContractDetailPage() {
     }
   };
 
+  const handlePublishNewVersion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newVersionFile || !data?.contract?.group_id) return;
+    setPublishingVersion(true);
+    setNewVersionError("");
+
+    const fd = new FormData();
+    fd.append("file", newVersionFile);
+    if (newVersionDesc.trim()) fd.append("description", newVersionDesc.trim());
+    fd.append("carry_assignments", carryAssignments ? "true" : "false");
+
+    try {
+      const res = await fetch(`/api/contract-groups/${data.contract.group_id}/new-version`, {
+        method: "POST",
+        body: fd,
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error ?? "Failed to publish");
+      setShowNewVersion(false);
+      router.push(`/dashboard/contracts/${d.id}`);
+    } catch (err: any) {
+      setNewVersionError(err.message);
+    } finally {
+      setPublishingVersion(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -161,6 +214,9 @@ export default function ContractDetailPage() {
   const signedCount = (assignments ?? []).filter((a: any) => !!a.signature).length;
   const totalAssigned = (assignments ?? []).length;
 
+  // Determine if this is the latest version (for "Publish New Version" button)
+  const isLatestVersion = groupVersions.length === 0 || (groupVersions[0]?.id === contract.id);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -174,6 +230,11 @@ export default function ContractDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold text-[#223149]">{contract.title}</h1>
+            {contract.version && (
+              <span className="bg-[#ECE3DF] text-[#223149] text-xs px-2 py-0.5 rounded-full font-semibold">
+                v{contract.version}
+              </span>
+            )}
             {!contract.is_active && (
               <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">Inactive</span>
             )}
@@ -392,10 +453,61 @@ export default function ContractDetailPage() {
             </div>
           )}
 
-          {/* Admin: danger zone */}
+          {/* Admin: version history */}
+          {role === "admin" && contract.group_id && groupVersions.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-[#ECE3DF] flex items-center gap-2">
+                <GitBranch className="w-4 h-4 text-[#9BADB7]" />
+                <span className="font-semibold text-[#223149] text-sm">Version History</span>
+              </div>
+              <div className="divide-y divide-[#ECE3DF]">
+                {groupVersions.map((v: any) => {
+                  const isCurrent = v.id === contract.id;
+                  return (
+                    <Link
+                      key={v.id}
+                      href={`/dashboard/contracts/${v.id}`}
+                      className={`flex items-center justify-between px-5 py-3 transition-colors group ${
+                        isCurrent ? "bg-[#ECE3DF]/50" : "hover:bg-[#F8F6F4]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                          isCurrent ? "bg-[#223149] text-white" : "bg-[#ECE3DF] text-[#5F7C84]"
+                        }`}>
+                          v{v.version}
+                        </span>
+                        <span className={`text-xs ${isCurrent ? "font-semibold text-[#223149]" : "text-[#5F7C84] group-hover:underline"}`}>
+                          {format(new Date(v.created_at), "d MMM yyyy")}
+                        </span>
+                        {isCurrent && (
+                          <span className="text-xs text-[#9BADB7]">(current)</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-[#9BADB7]">{v.signed_count}/{v.assigned_count}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Admin: admin actions */}
           {role === "admin" && (
             <div className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
               <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Admin Actions</p>
+
+              {/* Publish New Version button */}
+              {contract.group_id && isLatestVersion && (
+                <button
+                  onClick={() => setShowNewVersion(true)}
+                  className="flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
+                >
+                  <Upload className="w-4 h-4" />
+                  Publish New Version
+                </button>
+              )}
+
               <button
                 onClick={handleToggleActive}
                 className="flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
@@ -480,6 +592,112 @@ export default function ContractDetailPage() {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Publish New Version Modal */}
+      {showNewVersion && (
+        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
+          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-lg pb-safe">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
+              <h2 className="text-lg font-bold text-[#223149]">Publish New Version</h2>
+              <button
+                onClick={() => { setShowNewVersion(false); setNewVersionError(""); }}
+                className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
+              >
+                <X className="w-5 h-5 text-[#5F7C84]" />
+              </button>
+            </div>
+            <form onSubmit={handlePublishNewVersion} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  PDF File <span className="text-red-400">*</span>
+                </label>
+                <div
+                  onClick={() => newVersionFileRef.current?.click()}
+                  className="w-full border-2 border-dashed border-[#ECE3DF] rounded-xl p-6 text-center cursor-pointer hover:border-[#223149]/30 hover:bg-[#F8F6F4] transition-colors"
+                >
+                  {newVersionFile ? (
+                    <div className="flex items-center justify-center gap-2 text-[#223149]">
+                      <FileText className="w-5 h-5 text-[#5F7C84]" />
+                      <span className="text-sm font-medium truncate max-w-xs">{newVersionFile.name}</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-[#9BADB7] mx-auto mb-2" />
+                      <p className="text-sm text-[#5F7C84]">Click to select updated PDF</p>
+                      <p className="text-xs text-[#9BADB7] mt-1">PDF only</p>
+                    </>
+                  )}
+                </div>
+                <input
+                  ref={newVersionFileRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={(e) => setNewVersionFile(e.target.files?.[0] ?? null)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  Description
+                  <span className="ml-1 text-xs font-normal text-[#9BADB7]">(optional)</span>
+                </label>
+                <textarea
+                  value={newVersionDesc}
+                  onChange={(e) => setNewVersionDesc(e.target.value)}
+                  rows={3}
+                  placeholder="What changed in this version…"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl">
+                <input
+                  type="checkbox"
+                  id="carryAssignments"
+                  checked={carryAssignments}
+                  onChange={(e) => setCarryAssignments(e.target.checked)}
+                  className="w-4 h-4 rounded border-[#9BADB7] accent-[#223149] cursor-pointer flex-shrink-0"
+                />
+                <label htmlFor="carryAssignments" className="text-sm text-[#5F7C84] cursor-pointer leading-snug">
+                  Re-assign all staff from this version (and notify them of the update)
+                </label>
+              </div>
+
+              {newVersionError && (
+                <p className="text-sm text-red-500">{newVersionError}</p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={publishingVersion || !newVersionFile}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {publishingVersion ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Publishing…
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Publish
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowNewVersion(false); setNewVersionError(""); }}
+                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
