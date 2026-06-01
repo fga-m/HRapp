@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink } from "lucide-react";
 import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
@@ -23,6 +23,18 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
   const { id } = await params;
   const member = await getStaffMember(id);
   if (!member) notFound();
+
+  // Fetch ordered staff list for prev/next navigation
+  const { data: allStaff } = await supabaseAdmin
+    .from("staff")
+    .select("id, full_name")
+    .eq("is_active", true)
+    .order("full_name", { ascending: true });
+
+  const staffList = allStaff ?? [];
+  const currentIndex = staffList.findIndex((s: any) => s.id === id);
+  const prevStaff = currentIndex > 0 ? staffList[currentIndex - 1] : null;
+  const nextStaff = currentIndex < staffList.length - 1 ? staffList[currentIndex + 1] : null;
 
   const session = await auth();
   const { data: caller } = await supabaseAdmin
@@ -57,14 +69,60 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link
-          href="/dashboard/staff"
-          className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-[#223149]" />
-        </Link>
-        <h1 className="text-3xl font-bold text-[#223149]">Staff Profile</h1>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/staff"
+            className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors"
+            title="Back to staff list"
+          >
+            <ArrowLeft className="w-5 h-5 text-[#223149]" />
+          </Link>
+          <h1 className="text-3xl font-bold text-[#223149]">Staff Profile</h1>
+        </div>
+
+        {/* Prev / Next navigation */}
+        {staffList.length > 1 && (
+          <div className="flex items-center gap-1">
+            {currentIndex >= 0 && (
+              <span className="text-xs text-[#9BADB7] mr-2 hidden sm:block">
+                {currentIndex + 1} / {staffList.length}
+              </span>
+            )}
+            {prevStaff ? (
+              <Link
+                href={`/dashboard/staff/${prevStaff.id}`}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl border border-[#ECE3DF] hover:bg-[#ECE3DF] transition-colors group"
+                title={`Previous: ${prevStaff.full_name}`}
+              >
+                <ChevronLeft className="w-4 h-4 text-[#223149]" />
+                <span className="text-xs font-medium text-[#5F7C84] hidden sm:block max-w-[120px] truncate">
+                  {prevStaff.full_name}
+                </span>
+              </Link>
+            ) : (
+              <span className="flex items-center px-3 py-2 rounded-xl border border-[#ECE3DF] opacity-30 cursor-not-allowed">
+                <ChevronLeft className="w-4 h-4 text-[#223149]" />
+              </span>
+            )}
+            {nextStaff ? (
+              <Link
+                href={`/dashboard/staff/${nextStaff.id}`}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl border border-[#ECE3DF] hover:bg-[#ECE3DF] transition-colors group"
+                title={`Next: ${nextStaff.full_name}`}
+              >
+                <span className="text-xs font-medium text-[#5F7C84] hidden sm:block max-w-[120px] truncate">
+                  {nextStaff.full_name}
+                </span>
+                <ChevronRight className="w-4 h-4 text-[#223149]" />
+              </Link>
+            ) : (
+              <span className="flex items-center px-3 py-2 rounded-xl border border-[#ECE3DF] opacity-30 cursor-not-allowed">
+                <ChevronRight className="w-4 h-4 text-[#223149]" />
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Profile Card */}
