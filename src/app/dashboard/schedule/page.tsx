@@ -8,11 +8,8 @@ import {
   Clock,
   Users,
   TrendingUp,
-  X,
-  Trash2,
-  Loader2,
   AlertCircle,
-  Plus,
+  Loader2,
 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import Link from "next/link";
@@ -38,15 +35,7 @@ interface ScheduleData {
   role: string;
 }
 
-interface ToilTransaction {
-  id: string;
-  staff_id: string;
-  hours: number;
-  reason: string | null;
-  transaction_date: string;
-  created_at: string;
-  created_by: string | null;
-}
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -153,229 +142,6 @@ function ToilBadge({ balance }: { balance: number }) {
   );
 }
 
-// ─── TOIL Modal ───────────────────────────────────────────────────────────────
-
-interface ToilModalProps {
-  member: StaffMember;
-  onClose: () => void;
-  onSaved: () => void;
-}
-
-function ToilModal({ member, onClose, onSaved }: ToilModalProps) {
-  const [hours, setHours] = useState("");
-  const [reason, setReason] = useState("");
-  const [date, setDate] = useState(toDateInputValue(new Date()));
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState("");
-  const [transactions, setTransactions] = useState<ToilTransaction[]>([]);
-  const [loadingTx, setLoadingTx] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const loadTransactions = useCallback(async () => {
-    setLoadingTx(true);
-    try {
-      const res = await fetch(`/api/schedule/toil?staff_id=${member.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setTransactions(data.transactions || []);
-      }
-    } finally {
-      setLoadingTx(false);
-    }
-  }, [member.id]);
-
-  useEffect(() => {
-    loadTransactions();
-  }, [loadTransactions]);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!hours || isNaN(Number(hours))) {
-      setSaveError("Please enter a valid number of hours.");
-      return;
-    }
-    setSaving(true);
-    setSaveError("");
-    try {
-      const res = await fetch("/api/schedule/toil", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          staff_id: member.id,
-          hours: Number(hours),
-          reason: reason || null,
-          transaction_date: date,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        setSaveError(data.error || "Failed to save.");
-        return;
-      }
-      setHours("");
-      setReason("");
-      setDate(toDateInputValue(new Date()));
-      await loadTransactions();
-      onSaved();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleDelete(id: string) {
-    setDeletingId(id);
-    try {
-      const res = await fetch(`/api/schedule/toil/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        await loadTransactions();
-        onSaved();
-      }
-    } finally {
-      setDeletingId(null);
-    }
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/40 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg max-h-[90vh] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)] sm:pb-0">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
-          <div className="flex items-center gap-3">
-            <Avatar member={member} />
-            <div>
-              <p className="font-semibold text-[#223149]">TOIL — {member.full_name}</p>
-              {member.position && <p className="text-xs text-[#9BADB7]">{member.position}</p>}
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-[#9BADB7] hover:bg-[#F8F6F4] hover:text-[#223149] transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto flex-1 p-6 space-y-6">
-          {/* Log form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <h3 className="text-sm font-semibold text-[#223149]">Log TOIL entry</h3>
-            <p className="text-xs text-[#9BADB7]">
-              Use a positive number to accrue TOIL (e.g. 3.5) or a negative number when someone takes it (e.g. -3.5).
-            </p>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">Hours *</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={hours}
-                  onChange={(e) => setHours(e.target.value)}
-                  placeholder="e.g. 3.5 or -3.5"
-                  className="w-full px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#5F7C84]/30 focus:border-[#5F7C84]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">Date *</label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#5F7C84]/30 focus:border-[#5F7C84]"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-[#5F7C84] mb-1">Reason</label>
-              <input
-                type="text"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="e.g. Worked Sunday service"
-                className="w-full px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#5F7C84]/30 focus:border-[#5F7C84]"
-              />
-            </div>
-
-            {saveError && (
-              <div className="flex items-center gap-2 text-red-600 text-xs">
-                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                {saveError}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#223149] text-white text-sm font-semibold hover:bg-[#2d4261] transition-colors disabled:opacity-60"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              {saving ? "Saving…" : "Log Entry"}
-            </button>
-          </form>
-
-          {/* Transaction history */}
-          <div>
-            <h3 className="text-sm font-semibold text-[#223149] mb-3">Transaction history</h3>
-            {loadingTx ? (
-              <div className="flex justify-center py-6">
-                <Loader2 className="w-5 h-5 animate-spin text-[#9BADB7]" />
-              </div>
-            ) : transactions.length === 0 ? (
-              <p className="text-sm text-[#9BADB7] text-center py-4">No TOIL transactions yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {transactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-[#F8F6F4] border border-[#ECE3DF]"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-sm font-semibold ${
-                            tx.hours > 0 ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {tx.hours > 0 ? "+" : ""}
-                          {tx.hours} hrs
-                        </span>
-                        <span className="text-xs text-[#9BADB7]">
-                          {format(new Date(tx.transaction_date + "T00:00:00"), "d MMM yyyy")}
-                        </span>
-                      </div>
-                      {tx.reason && (
-                        <p className="text-xs text-[#5F7C84] truncate mt-0.5">{tx.reason}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleDelete(tx.id)}
-                      disabled={deletingId === tx.id}
-                      className="p-1.5 rounded-lg text-[#9BADB7] hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-40"
-                      title="Delete transaction"
-                    >
-                      {deletingId === tx.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SchedulePage() {
@@ -383,7 +149,6 @@ export default function SchedulePage() {
   const [data, setData] = useState<ScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toilModal, setToilModal] = useState<StaffMember | null>(null);
 
   const fetchData = useCallback(async (ws: Date) => {
     setLoading(true);
@@ -546,11 +311,6 @@ export default function SchedulePage() {
                   <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
                     TOIL Balance
                   </th>
-                  {isAdmin && (
-                    <th className="text-right px-6 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
-                      Actions
-                    </th>
-                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F8F6F4]">
@@ -601,18 +361,6 @@ export default function SchedulePage() {
                       <ToilBadge balance={member.toil_balance} />
                     </td>
 
-                    {/* Actions */}
-                    {isAdmin && (
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => setToilModal(member)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#ECE3DF] text-[#223149] hover:bg-[#223149] hover:text-white transition-colors"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          Log TOIL
-                        </button>
-                      </td>
-                    )}
                   </tr>
                 ))}
               </tbody>
@@ -636,15 +384,6 @@ export default function SchedulePage() {
                       )}
                     </div>
                   </Link>
-                  {isAdmin && (
-                    <button
-                      onClick={() => setToilModal(member)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#ECE3DF] text-[#223149] hover:bg-[#223149] hover:text-white transition-colors"
-                    >
-                      <Plus className="w-3 h-3" />
-                      TOIL
-                    </button>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
@@ -685,14 +424,6 @@ export default function SchedulePage() {
         </>
       )}
 
-      {/* TOIL Modal */}
-      {toilModal && (
-        <ToilModal
-          member={toilModal}
-          onClose={() => setToilModal(null)}
-          onSaved={() => fetchData(weekStart)}
-        />
-      )}
     </div>
   );
 }

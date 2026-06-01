@@ -164,10 +164,13 @@ export async function GET(req: NextRequest) {
     if (s.google_calendar_id || s.email) hasCalendarSet.add(s.id);
   }
 
-  // Fetch TOIL balances
+  // Fetch TOIL balances — only the last 14 days (2-week rollover window)
+  const twoWeeksAgo = new Date(weekStart);
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
   const { data: toilRows } = await supabaseAdmin
     .from("toil_transactions")
-    .select("staff_id, hours");
+    .select("staff_id, hours")
+    .gte("transaction_date", toISODateString(twoWeeksAgo));
 
   const toilBalanceMap = new Map<string, number>();
   for (const row of (toilRows || []) as any[]) {

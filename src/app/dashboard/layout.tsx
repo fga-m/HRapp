@@ -52,8 +52,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen">
-      {/* Desktop sidebar */}
-      <div className="hidden md:block">
+      {/* Desktop sidebar — sticky to viewport height */}
+      <div className="hidden md:block flex-shrink-0">
         <Sidebar
           isAdmin={effectiveIsAdmin}
           role={caller?.role ?? "staff"}
