@@ -33,8 +33,10 @@ type GEvent = {
   htmlLink?: string;
   location?: string;
   description?: string;
-  transparency?: string;  // "opaque" (busy, default) | "transparent" (free/available)
-  eventType?: string;     // "default" | "outOfOffice" | "focusTime" | "workingLocation"
+  transparency?: string;      // "opaque" (busy, default) | "transparent" (free/available)
+  eventType?: string;         // "default" | "outOfOffice" | "focusTime" | "workingLocation"
+  recurrence?: string[];      // RRULE strings on the master recurring event
+  recurringEventId?: string;  // set on instances belonging to a recurring series
   attendees?: { email: string; displayName?: string; responseStatus?: string; self?: boolean; organizer?: boolean }[];
 };
 
@@ -138,6 +140,29 @@ const RECURRENCE_LABELS: Record<RecurrenceFreq, string> = {
   yearly: "Yearly",
 };
 
+/** Parse an RRULE string back into a RecurrenceFreq + until date */
+function parseRRule(rrules: string[]): { freq: RecurrenceFreq; until: string } {
+  const rule = (rrules ?? []).find((r) => r.startsWith("RRULE:")) ?? "";
+  const freqMatch  = rule.match(/FREQ=(\w+)/);
+  const intMatch   = rule.match(/INTERVAL=(\d+)/);
+  const untilMatch = rule.match(/UNTIL=(\d{8})/);
+  const bydayMatch = rule.match(/BYDAY=([A-Z,]+)/);
+  const freq     = freqMatch?.[1] ?? "";
+  const interval = intMatch ? parseInt(intMatch[1]) : 1;
+  const byday    = bydayMatch?.[1] ?? null;
+  const until    = untilMatch
+    ? `${untilMatch[1].slice(0, 4)}-${untilMatch[1].slice(4, 6)}-${untilMatch[1].slice(6, 8)}`
+    : format(addDays(new Date(), 90), "yyyy-MM-dd");
+  let parsedFreq: RecurrenceFreq = "none";
+  if (freq === "DAILY") parsedFreq = "daily";
+  else if (freq === "WEEKLY" && byday === "MO,TU,WE,TH,FR") parsedFreq = "weekday";
+  else if (freq === "WEEKLY" && interval === 2) parsedFreq = "fortnightly";
+  else if (freq === "WEEKLY") parsedFreq = "weekly";
+  else if (freq === "MONTHLY") parsedFreq = "monthly";
+  else if (freq === "YEARLY") parsedFreq = "yearly";
+  return { freq: parsedFreq, until };
+}
+
 function buildRRule(freq: RecurrenceFreq, startISO: string, untilDate: string): string | null {
   if (freq === "none") return null;
   // UNTIL must be UTC datetime: YYYYMMDDTHHMMSSZ
@@ -163,6 +188,8 @@ type EventFormProps = {
     endDateTime: string;
     transparency: string;
     attendees?: string[];
+    recurringEventId?: string; // set when editing an instance of a recurring series
+    existingRules?: string[];  // current RRULE(s) from the master event
   };
   calendarId: string;
   staffList?: StaffMember[];
@@ -172,6 +199,16 @@ type EventFormProps = {
 
 function EventFormModal({ initial, calendarId, staffList = [], onClose, onSuccess }: EventFormProps) {
   const isEdit = !!initial?.id;
+  const isRecurringInstance = !!initial?.recurringEventId;
+
+  // For recurring instances: "this" = edit only this occurrence, "all" = edit all
+  const [editScope, setEditScope] = useState<"this" | "all">("this");
+
+  // Pre-parse existing recurrence when editing "all events" in a series
+  const existingRule = initial?.existingRules?.length
+    ? parseRRule(initial.existingRules)
+    : null;
+
   const [summary, setSummary] = useState(initial?.summary ?? "");
   const [startDateTime, setStartDateTime] = useState(
     initial?.startDateTime ?? format(new Date(), "yyyy-MM-dd'T'HH:mm")
@@ -180,9 +217,9 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
     initial?.endDateTime ?? format(addDays(new Date(), 0), "yyyy-MM-dd'T'HH:mm")
   );
   const [transparency, setTransparency] = useState(initial?.transparency ?? "opaque");
-  const [recurrence, setRecurrence] = useState<RecurrenceFreq>("none");
+  const [recurrence, setRecurrence] = useState<RecurrenceFreq>(existingRule?.freq ?? "none");
   const [recurrenceEnd, setRecurrenceEnd] = useState(
-    format(addDays(new Date(), 90), "yyyy-MM-dd") // default: 3 months out
+    existingRule?.until ?? format(addDays(new Date(), 90), "yyyy-MM-dd")
   );
   const [attendees, setAttendees] = useState<string[]>(initial?.attendees ?? []);
   const [attendeeInput, setAttendeeInput] = useState("");
@@ -216,7 +253,11 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
     setSaving(true);
     setError("");
     try {
-      const rrule = !isEdit ? buildRRule(recurrence, startDateTime, recurrenceEnd) : null;
+      // Include recurrence for new events, or when editing all events in a series,
+      // or when adding recurrence to a previously non-recurring event
+      const includeRRule = !isEdit || (isEdit && (!isRecurringInstance || editScope === "all"));
+      const rrule = includeRRule ? buildRRule(recurrence, startDateTime, recurrenceEnd) : null;
+
       const body: Record<string, unknown> = {
         calendarId,
         summary: summary.trim(),
@@ -226,8 +267,14 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
         attendees: attendees.map((email) => ({ email })),
         ...(rrule ? { recurrence: [rrule] } : {}),
       };
+
+      // For recurring instances editing "all events", patch the master event ID
+      const targetId = (isRecurringInstance && editScope === "all")
+        ? initial!.recurringEventId
+        : initial?.id;
+
       const res = isEdit
-        ? await fetch(`/api/calendar/events/${initial!.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+        ? await fetch(`/api/calendar/events/${targetId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
         : await fetch("/api/calendar/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) {
         const d = await res.json();
@@ -286,8 +333,38 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
             </div>
           </div>
 
-          {/* Repeat — only on new events */}
-          {!isEdit && (
+          {/* Recurring series: scope selector */}
+          {isRecurringInstance && (
+            <div className="p-3 rounded-xl bg-[#F8F6F4] border border-[#ECE3DF] space-y-2">
+              <p className="text-xs font-semibold text-[#5F7C84]">This is a recurring event</p>
+              <div className="flex gap-2">
+                {(["this", "all"] as const).map((scope) => (
+                  <button
+                    key={scope}
+                    type="button"
+                    onClick={() => setEditScope(scope)}
+                    className={`flex-1 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                      editScope === scope
+                        ? "bg-[#223149] text-white border-[#223149]"
+                        : "border-[#ECE3DF] text-[#5F7C84] hover:bg-white"
+                    }`}
+                  >
+                    {scope === "this" ? "This event only" : "All events in series"}
+                  </button>
+                ))}
+              </div>
+              {editScope === "this" && (
+                <p className="text-xs text-[#9BADB7]">Only this occurrence will be changed. Other events in the series stay the same.</p>
+              )}
+              {editScope === "all" && (
+                <p className="text-xs text-[#9BADB7]">All events in the series will be updated, including future occurrences.</p>
+              )}
+            </div>
+          )}
+
+          {/* Repeat — shown for new events, and for edits when not a recurring instance
+              or when editing "all events" in a series */}
+          {(!isRecurringInstance || editScope === "all") && (
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">Repeat</label>
@@ -1600,6 +1677,8 @@ export default function CalendarPage() {
             endDateTime: format(new Date(editingEvent.end.dateTime!), "yyyy-MM-dd'T'HH:mm"),
             transparency: editingEvent.transparency ?? "opaque",
             attendees: editingEvent.attendees?.map((a) => a.email) ?? [],
+            recurringEventId: editingEvent.recurringEventId,
+            existingRules: editingEvent.recurrence,
           }}
           onClose={() => setEditingEvent(null)}
           onSuccess={() => { setEditingEvent(null); fetchEvents(); }}
