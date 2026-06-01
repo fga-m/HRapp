@@ -45,12 +45,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
     .eq("email", session?.user?.email ?? "")
     .single();
 
-  const canEditSchedule =
-    caller?.id === id ||
-    caller?.role === "admin" ||
-    caller?.role === "manager";
-
-  // Check manager's manage_staff permission for performance notes
+  // Check manager's manage_staff permission (used for schedule editing, performance notes, etc.)
   let isManager = caller?.role === "admin";
   if (caller?.role === "manager") {
     const { data: perm } = await supabaseAdmin
@@ -61,6 +56,9 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       .single();
     isManager = perm?.enabled ?? false;
   }
+
+  // Only admins and managers with manage_staff permission can edit the regular work schedule
+  const canEditSchedule = caller?.role === "admin" || isManager;
 
   // Fetch contract assignments for this staff member (shown to admin or own profile)
   const canSeeContracts = caller?.role === "admin" || caller?.id === id || isManager;

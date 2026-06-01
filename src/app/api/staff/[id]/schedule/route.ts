@@ -35,8 +35,9 @@ function normalise(schedule: Record<string, any>) {
   return out;
 }
 
-async function canEdit(callerRole: string, callerId: string, targetId: string): Promise<boolean> {
-  if (callerId === targetId) return true;
+// Only admins, and managers with the manage_staff permission, can edit work schedules.
+// Staff cannot edit their own schedule (it's set by HR/admin).
+async function canEdit(callerRole: string): Promise<boolean> {
   if (callerRole === "admin") return true;
   if (callerRole === "manager") {
     const { data } = await supabaseAdmin
@@ -82,7 +83,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     .single();
 
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (!(await canEdit(caller.role, caller.id, id))) {
+  if (!(await canEdit(caller.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
