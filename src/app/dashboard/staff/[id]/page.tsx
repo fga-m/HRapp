@@ -316,21 +316,18 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
                 const signed = !!row.current_version.signed_at;
                 const contractLink = `/dashboard/contracts/${row.current_version.contract_id}`;
                 return (
-                  <div
+                  <Link
                     key={row.current_version.contract_id}
-                    className="flex items-center justify-between gap-3 p-3 bg-[#F8F6F4] rounded-xl"
+                    href={contractLink}
+                    className="flex items-center justify-between gap-3 p-3 bg-[#F8F6F4] rounded-xl hover:bg-[#ECE3DF] transition-colors group"
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      {caller?.role === "admin" ? (
-                        <Link
-                          href={contractLink}
-                          className="text-sm font-medium text-[#223149] hover:underline truncate"
-                        >
-                          {row.group_title}
-                        </Link>
-                      ) : (
-                        <span className="text-sm font-medium text-[#223149] truncate">{row.group_title}</span>
-                      )}
+                      <Link
+                        href={contractLink}
+                        className="text-sm font-medium text-[#223149] hover:underline truncate"
+                      >
+                        {row.group_title}
+                      </Link>
                       <span className="bg-[#ECE3DF] text-[#223149] text-xs px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
                         v{row.current_version.version}
                       </span>
@@ -359,7 +356,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
                         </span>
                       )}
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
