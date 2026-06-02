@@ -76,7 +76,7 @@ function leaveColour(name: string) {
 function formatBalance(balance: number, units: string) {
   const rounded = Math.round(balance * 10) / 10;
   if (units.toLowerCase() === "days") return `${rounded} ${rounded === 1 ? "day" : "days"}`;
-  const days = balance / 7.6;
+  const days = balance / 7.5;
   if (days >= 1) return `${rounded} hrs (${Math.round(days * 10) / 10} days)`;
   return `${rounded} hrs`;
 }
@@ -985,7 +985,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                       <span className="font-bold text-[#223149] tabular-nums">
                         {selectedBalance.units.toLowerCase() === "days"
                           ? businessDays
-                          : Math.round(businessDays * 7.6 * 10) / 10}
+                          : Math.round(businessDays * 7.5 * 10) / 10}
                       </span>
                     </div>
                   )}
