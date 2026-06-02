@@ -25,6 +25,7 @@ interface LeaveApplication {
   endDate: string;
   status: string; // PENDING | REJECTED | CANCELLED | SCHEDULED | COMPLETED
   units: number;
+  hours?: number | null;
   source?: "local" | "xero";
 }
 
@@ -35,6 +36,7 @@ interface TeamLeaveRequest {
   start_date: string;
   end_date: string;
   description: string | null;
+  hours: number | null;
   status: string;
   submitted_at: string;
   reviewed_at: string | null;
@@ -56,6 +58,7 @@ interface Props {
   staffName: string;
   hasXeroLink: boolean;
   isReviewer: boolean;
+  contractedHours: number;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -127,7 +130,8 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function LeavePageClient({ staffId, staffName, hasXeroLink, isReviewer }: Props) {
+export default function LeavePageClient({ staffId, staffName, hasXeroLink, isReviewer, contractedHours }: Props) {
+  const dailyHours = contractedHours / 5; // approximate hours per working day
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [applications, setApplications] = useState<LeaveApplication[]>([]);
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -147,9 +151,10 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   const [reviewNote, setReviewNote] = useState("");
   const [reviewError, setReviewError] = useState("");
 
-  // New request form
+  // New / edit request form
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ leaveTypeId: "", startDate: "", endDate: "", description: "" });
+  const [editingReqId, setEditingReqId] = useState<string | null>(null); // null = new, string = editing
+  const [form, setForm] = useState({ leaveTypeId: "", startDate: "", endDate: "", hours: "", description: "" });
   const [approvers, setApprovers] = useState<Approver[]>([]);
   const [approverId, setApproverId] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -231,22 +236,34 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
     setSubmitting(true);
     setSubmitError("");
     const selectedBalance = balances.find(b => b.leaveTypeId === form.leaveTypeId);
+    const effectiveHours = form.hours !== "" ? Number(form.hours) : autoHours || null;
     try {
-      const res = await fetch(`/api/staff/${staffId}/leave-requests`, {
-        method: "POST",
+      const isEdit = editingReqId !== null;
+      const url = isEdit
+        ? `/api/staff/${staffId}/leave-requests/${editingReqId}`
+        : `/api/staff/${staffId}/leave-requests`;
+      const res = await fetch(url, {
+        method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          leaveTypeId: form.leaveTypeId,
           leaveTypeName: selectedBalance?.name ?? "",
+          startDate: form.startDate,
+          endDate: form.endDate,
+          hours: effectiveHours,
+          description: form.description,
           approverId: approverId || undefined,
         }),
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error ?? "Failed to submit");
+      if (!res.ok) throw new Error(d.error ?? (isEdit ? "Failed to update" : "Failed to submit"));
       setShowModal(false);
-      setForm({ leaveTypeId: "", startDate: "", endDate: "", description: "" });
+      setForm({ leaveTypeId: "", startDate: "", endDate: "", hours: "", description: "" });
+      setEditingReqId(null);
       setApproverId("");
-      setSuccessMsg("Your leave request has been submitted and is awaiting approval.");
+      setSuccessMsg(isEdit
+        ? "Your leave request has been updated."
+        : "Your leave request has been submitted and is awaiting approval.");
       setTimeout(() => setSuccessMsg(""), 6000);
       fetchAll(true);
     } catch (err: any) {
@@ -279,6 +296,30 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
 
   const selectedBalance = balances.find(b => b.leaveTypeId === form.leaveTypeId);
   const businessDays = form.startDate && form.endDate ? businessDayCount(form.startDate, form.endDate) : 0;
+  // Auto-calculated hours (business days × daily contracted hours)
+  const autoHours = businessDays > 0 ? Math.round(businessDays * dailyHours * 10) / 10 : 0;
+
+  const openNewModal = () => {
+    setEditingReqId(null);
+    setForm({ leaveTypeId: "", startDate: "", endDate: "", hours: "", description: "" });
+    setApproverId("");
+    setSubmitError("");
+    setShowModal(true);
+  };
+
+  const openEditModal = (app: LeaveApplication) => {
+    setEditingReqId(app.id);
+    setForm({
+      leaveTypeId: app.leaveTypeId,
+      startDate: app.startDate,
+      endDate: app.endDate,
+      hours: app.hours != null ? String(app.hours) : "",
+      description: app.title || "",
+    });
+    setApproverId("");
+    setSubmitError("");
+    setShowModal(true);
+  };
 
   if (!hasXeroLink) {
     return (
@@ -334,7 +375,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
             </button>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={openNewModal}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -522,6 +563,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         </p>
                         <p className="text-sm text-[#5F7C84] mt-0.5">
                           {req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}
+                          {req.hours != null && <span className="ml-1 font-medium text-[#223149]">· {req.hours}h</span>}
                         </p>
                         {req.description && (
                           <p className="text-xs text-[#9BADB7] mt-0.5 italic">{req.description}</p>
@@ -621,7 +663,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                       <tr className="bg-[#F8F6F4] text-left">
                         <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Type</th>
                         <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Description</th>
-                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Period</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Period</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Hours</th>
                         <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide text-right">Status</th>
                       </tr>
                     </thead>
@@ -633,8 +676,19 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                             <td className="px-6 py-4 font-medium text-[#223149]">{typeName}</td>
                             <td className="px-6 py-4 text-[#5F7C84]">{app.title || "—"}</td>
                             <td className="px-6 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(app.startDate, app.endDate)}</td>
+                            <td className="px-6 py-4 text-[#5F7C84] tabular-nums">{app.hours != null ? `${app.hours}h` : "—"}</td>
                             <td className="px-6 py-4 text-right">
-                              <StatusBadge status={app.status} />
+                              <div className="flex items-center justify-end gap-2">
+                                {app.status === "PENDING" && app.source === "local" && (
+                                  <button
+                                    onClick={() => openEditModal(app)}
+                                    className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline"
+                                  >
+                                    Edit
+                                  </button>
+                                )}
+                                <StatusBadge status={app.status} />
+                              </div>
                             </td>
                           </tr>
                         );
@@ -648,13 +702,26 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   {applications.map(app => {
                     const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
                     return (
-                      <div key={app.id} className="px-4 py-4 flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-[#223149]">{typeName}</p>
-                          {app.title && <p className="text-xs text-[#5F7C84] mt-0.5">{app.title}</p>}
-                          <p className="text-xs text-[#9BADB7] mt-1">{formatLeavePeriod(app.startDate, app.endDate)}</p>
+                      <div key={app.id} className="px-4 py-4 space-y-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#223149]">{typeName}</p>
+                            {app.title && <p className="text-xs text-[#5F7C84] mt-0.5">{app.title}</p>}
+                            <p className="text-xs text-[#9BADB7] mt-1">
+                              {formatLeavePeriod(app.startDate, app.endDate)}
+                              {app.hours != null && <span className="ml-2 font-medium">{app.hours}h</span>}
+                            </p>
+                          </div>
+                          <StatusBadge status={app.status} />
                         </div>
-                        <StatusBadge status={app.status} />
+                        {app.status === "PENDING" && app.source === "local" && (
+                          <button
+                            onClick={() => openEditModal(app)}
+                            className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline"
+                          >
+                            Edit request
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -672,7 +739,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
           <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md pb-safe">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
-              <h2 className="text-lg font-bold text-[#223149]">New Leave Request</h2>
+              <h2 className="text-lg font-bold text-[#223149]">{editingReqId ? "Edit Leave Request" : "New Leave Request"}</h2>
               <button
                 onClick={() => { setShowModal(false); setSubmitError(""); setApproverId(""); }}
                 className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
@@ -740,6 +807,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                       ...form,
                       startDate: e.target.value,
                       endDate: form.endDate < e.target.value ? e.target.value : form.endDate,
+                      hours: "", // reset so auto-calc kicks in
                     })}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
@@ -751,11 +819,41 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                     required
                     value={form.endDate}
                     min={form.startDate}
-                    onChange={e => setForm({ ...form, endDate: e.target.value })}
+                    onChange={e => setForm({ ...form, endDate: e.target.value, hours: "" })}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
               </div>
+
+              {/* Hours */}
+              {form.startDate && form.endDate && (
+                <div>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                    Hours
+                    <span className="ml-1.5 text-xs font-normal text-[#9BADB7]">(optional — auto-calculated)</span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      min={0.25}
+                      step={0.25}
+                      value={form.hours}
+                      placeholder={autoHours > 0 ? String(autoHours) : ""}
+                      onChange={e => setForm({ ...form, hours: e.target.value })}
+                      className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                    />
+                    <span className="text-sm text-[#5F7C84]">hours</span>
+                    {form.hours === "" && autoHours > 0 && (
+                      <span className="text-xs text-[#9BADB7]">
+                        {businessDays} {businessDays === 1 ? "day" : "days"} × {dailyHours}h = {autoHours}h
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#9BADB7] mt-1">
+                    For a half day, enter {Math.round(dailyHours / 2 * 4) / 4}h. Leave blank to use the auto-calculated total.
+                  </p>
+                </div>
+              )}
 
               {/* Current Leave Balance */}
               {selectedBalance && (
@@ -802,7 +900,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   disabled={submitting || !form.leaveTypeId || !form.startDate || !form.endDate}
                   className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {submitting ? "Submitting…" : "Submit Request"}
+                  {submitting ? (editingReqId ? "Saving…" : "Submitting…") : (editingReqId ? "Save Changes" : "Submit Request")}
                 </button>
                 <button
                   type="button"

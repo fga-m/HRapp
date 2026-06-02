@@ -144,7 +144,7 @@ export async function POST(
     );
   }
 
-  const { leaveTypeId, leaveTypeName, startDate, endDate, description, approverId } =
+  const { leaveTypeId, leaveTypeName, startDate, endDate, hours, description, approverId } =
     await req.json();
 
   if (!leaveTypeId || !leaveTypeName || !startDate || !endDate) {
@@ -169,6 +169,7 @@ export async function POST(
       leave_type_name: leaveTypeName,
       start_date: startDate,
       end_date: endDate,
+      hours: hours != null ? Number(hours) : null,
       description: description?.trim() || null,
       approver_id: approverId || null,
       status: "PENDING",

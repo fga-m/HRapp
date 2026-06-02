@@ -11,7 +11,7 @@ export default async function LeavePage() {
 
   const { data: staff } = await supabaseAdmin
     .from("staff")
-    .select("id, full_name, role, xero_employee_id")
+    .select("id, full_name, role, xero_employee_id, contracted_hours")
     .eq("email", session.user?.email ?? "")
     .single();
 
@@ -25,6 +25,7 @@ export default async function LeavePage() {
       staffName={staff.full_name}
       hasXeroLink={!!staff.xero_employee_id}
       isReviewer={isReviewer}
+      contractedHours={staff.contracted_hours ?? 37.5}
     />
   );
 }
