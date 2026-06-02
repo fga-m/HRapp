@@ -78,5 +78,32 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Notify approvers that the request was updated so they see the latest details
+  const { data: requester } = await supabaseAdmin
+    .from("staff")
+    .select("full_name")
+    .eq("id", id)
+    .single();
+
+  const { data: approvers } = await supabaseAdmin
+    .from("staff")
+    .select("id")
+    .in("role", ["admin", "leave_approver"])
+    .eq("is_active", true)
+    .neq("id", caller.id); // don't notify the editor if they're also an approver
+
+  if (approvers && approvers.length > 0) {
+    await supabaseAdmin.from("notifications").insert(
+      approvers.map((a: any) => ({
+        staff_id: a.id,
+        title: `Leave request updated by ${requester?.full_name ?? "a staff member"}`,
+        message: `${requester?.full_name ?? "A staff member"} has updated their ${leaveTypeName} request (${startDate} to ${endDate}).`,
+        type: "leave",
+        link: "/dashboard/leave",
+        is_read: false,
+      }))
+    );
+  }
+
   return NextResponse.json(data);
 }
