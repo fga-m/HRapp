@@ -702,6 +702,48 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
           </div>
         )}
 
+        {/* ── My pending requests ── */}
+        {(() => {
+          const myPending = applications.filter(a => a.status === "PENDING" && a.source === "local");
+          if (myPending.length === 0) return null;
+          return (
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#ECE3DF] flex items-center gap-3">
+                <h2 className="font-semibold text-[#223149]">Your Pending Requests</h2>
+                <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full border border-amber-100">
+                  {myPending.length}
+                </span>
+              </div>
+              <div className="divide-y divide-[#ECE3DF]">
+                {myPending.map(app => {
+                  const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
+                  return (
+                    <div key={app.id} className="px-6 py-4 flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-[#223149]">{typeName}</p>
+                        <p className="text-xs text-[#5F7C84] mt-0.5">
+                          {formatLeavePeriod(app.startDate, app.endDate)}
+                          {app.hours != null && <span className="ml-1.5 font-medium">· {app.hours}h</span>}
+                          {app.title && <span className="ml-1.5 text-[#9BADB7]">· {app.title}</span>}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <StatusBadge status="PENDING" />
+                        <button
+                          onClick={() => openEditModal(app)}
+                          className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* ── Balances + Requests two-column layout at lg ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ── Leave Balances ── */}
