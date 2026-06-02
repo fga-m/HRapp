@@ -37,6 +37,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
     contracted_hours: 37.5,
     is_active: true,
     xero_employee_id: "",
+    birthdate: "",
   });
 
   // Xero employee lookup
@@ -60,6 +61,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           contracted_hours: d.contracted_hours ?? 37.5,
           is_active: d.is_active ?? true,
           xero_employee_id: d.xero_employee_id || "",
+          birthdate: d.birthdate || "",
         });
         setLoading(false);
       });
@@ -173,6 +175,16 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
               <option value="">Select department</option>
               {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Date of Birth</label>
+            <input
+              type="date"
+              value={form.birthdate}
+              onChange={(e) => setForm({ ...form, birthdate: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+            />
           </div>
 
           <div>
