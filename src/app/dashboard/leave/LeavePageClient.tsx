@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   Palmtree, Plus, X, CheckCircle, XCircle, AlertCircle,
-  RefreshCw, Clock, ChevronRight,
+  RefreshCw, Clock, ChevronRight, ChevronLeft,
 } from "lucide-react";
-import { format, parseISO, differenceInBusinessDays, addDays } from "date-fns";
+import { format, parseISO, differenceInBusinessDays, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday } from "date-fns";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -138,11 +138,17 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   const [appLoading, setAppLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Tab for reviewers: "my" = own leave, "team" = all staff leave
-  const [activeTab, setActiveTab] = useState<"my" | "team">("my");
+  // Tab for reviewers: "my" = own leave, "team" = all staff leave, "calendar" = leave calendar
+  const [activeTab, setActiveTab] = useState<"my" | "team" | "calendar">("my");
   const [teamStatusFilter, setTeamStatusFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("PENDING");
   const [teamRequests, setTeamRequests] = useState<TeamLeaveRequest[]>([]);
   const [teamLoading, setTeamLoading] = useState(false);
+
+  // Leave calendar state
+  const [calMonth, setCalMonth] = useState(() => startOfMonth(new Date()));
+  const [calRequests, setCalRequests] = useState<TeamLeaveRequest[]>([]);
+  const [calLoading, setCalLoading] = useState(false);
+  const [calFilter, setCalFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
 
   // Pending approvals (reviewer only)
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
@@ -207,9 +213,23 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       .finally(() => setTeamLoading(false));
   }, [isReviewer]);
 
+  const fetchCalRequests = useCallback(async () => {
+    if (!isReviewer) return;
+    setCalLoading(true);
+    fetch("/api/leave-requests?status=ALL")
+      .then(r => r.json())
+      .then(d => setCalRequests(d.requests ?? []))
+      .catch(() => {})
+      .finally(() => setCalLoading(false));
+  }, [isReviewer]);
+
   useEffect(() => {
     if (activeTab === "team") fetchTeamRequests(teamStatusFilter);
   }, [activeTab, teamStatusFilter, fetchTeamRequests]);
+
+  useEffect(() => {
+    if (activeTab === "calendar") fetchCalRequests();
+  }, [activeTab, fetchCalRequests]);
 
   useEffect(() => {
     fetchAll();
@@ -361,6 +381,12 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                       {pendingRequests.length}
                     </span>
                   )}
+                </button>
+                <button
+                  onClick={() => setActiveTab("calendar")}
+                  className={`px-4 py-2 transition-colors ${activeTab === "calendar" ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+                >
+                  Calendar
                 </button>
               </div>
             )}
@@ -520,6 +546,126 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
           </div>
         )}
 
+        {/* ── Leave Calendar ── */}
+        {isReviewer && activeTab === "calendar" && (() => {
+          // Build calendar grid: Mon–Sun weeks covering the full month
+          const monthStart = startOfMonth(calMonth);
+          const monthEnd   = endOfMonth(calMonth);
+          const gridStart  = startOfWeek(monthStart, { weekStartsOn: 1 });
+          const gridEnd    = endOfWeek(monthEnd,   { weekStartsOn: 1 });
+          const days       = eachDayOfInterval({ start: gridStart, end: gridEnd });
+
+          // Filter requests by status
+          const visible = calFilter === "ALL"
+            ? calRequests
+            : calRequests.filter(r => r.status === calFilter);
+
+          // For a given day, find overlapping requests
+          const reqsForDay = (day: Date) => {
+            const d = format(day, "yyyy-MM-dd");
+            return visible.filter(r => d >= r.start_date && d <= r.end_date);
+          };
+
+          const statusColour = (status: string) => {
+            if (status === "PENDING")  return "bg-amber-100 text-amber-800 border border-amber-200";
+            if (status === "APPROVED") return "bg-green-100 text-green-800 border border-green-200";
+            if (status === "REJECTED") return "bg-red-100 text-red-700 border border-red-200";
+            return "bg-gray-100 text-gray-600";
+          };
+
+          return (
+            <div className="space-y-4">
+              {/* Month nav + filter */}
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setCalMonth(m => startOfMonth(addDays(m, -1)))}
+                    className="p-1.5 rounded-xl border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors">
+                    <ChevronLeft className="w-4 h-4 text-[#223149]" />
+                  </button>
+                  <h2 className="text-base font-bold text-[#223149] w-36 text-center">
+                    {format(calMonth, "MMMM yyyy")}
+                  </h2>
+                  <button onClick={() => setCalMonth(m => startOfMonth(addDays(endOfMonth(m), 1)))}
+                    className="p-1.5 rounded-xl border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors">
+                    <ChevronRight className="w-4 h-4 text-[#223149]" />
+                  </button>
+                  <button onClick={() => setCalMonth(startOfMonth(new Date()))}
+                    className="px-3 py-1.5 text-xs font-semibold border border-[#ECE3DF] rounded-xl text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors">
+                    Today
+                  </button>
+                </div>
+
+                {/* Status filter */}
+                <div className="flex border border-[#ECE3DF] rounded-xl overflow-hidden text-xs font-semibold">
+                  {(["ALL", "PENDING", "APPROVED", "REJECTED"] as const).map(f => (
+                    <button key={f} onClick={() => setCalFilter(f)}
+                      className={`px-3 py-1.5 transition-colors ${calFilter === f ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}>
+                      {f === "ALL" ? "All" : f === "PENDING" ? "Pending" : f === "APPROVED" ? "Approved" : "Rejected"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {calLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                  {/* Day headers */}
+                  <div className="grid grid-cols-7 border-b border-[#ECE3DF]">
+                    {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => (
+                      <div key={d} className="py-2 text-center text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Day cells */}
+                  <div className="grid grid-cols-7 divide-x divide-y divide-[#ECE3DF]">
+                    {days.map(day => {
+                      const dayReqs  = reqsForDay(day);
+                      const inMonth  = isSameMonth(day, calMonth);
+                      const todayDay = isToday(day);
+                      return (
+                        <div key={day.toISOString()}
+                          className={`min-h-[90px] p-1.5 ${!inMonth ? "bg-[#F8F6F4]/60" : ""}`}>
+                          {/* Day number */}
+                          <div className={`w-6 h-6 flex items-center justify-center text-xs font-semibold rounded-full mb-1 ${
+                            todayDay ? "bg-[#223149] text-white" : inMonth ? "text-[#223149]" : "text-[#9BADB7]"
+                          }`}>
+                            {format(day, "d")}
+                          </div>
+                          {/* Leave chips */}
+                          <div className="space-y-0.5">
+                            {dayReqs.slice(0, 3).map(req => (
+                              <div key={req.id}
+                                className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md truncate leading-tight ${statusColour(req.status)}`}
+                                title={`${req.staff?.full_name} — ${req.leave_type_name} (${req.status.toLowerCase()})`}>
+                                {req.staff?.full_name?.split(" ")[0]}
+                              </div>
+                            ))}
+                            {dayReqs.length > 3 && (
+                              <div className="text-[10px] text-[#9BADB7] px-1">+{dayReqs.length - 3} more</div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Legend */}
+              <div className="flex items-center gap-4 text-xs text-[#5F7C84]">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-100 border border-amber-200" />Pending</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-green-100 border border-green-200" />Approved</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-200" />Rejected</span>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* ── Leave Requests content (hidden when viewing Team tab) ── */}
         {activeTab === "my" && <>
 
@@ -634,6 +780,17 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         {b.units.toLowerCase() === "days" ? "Days" : "Hours"}
                       </span>
                     </p>
+                    {/* Show days equivalent for hours, and hours equivalent for days */}
+                    {b.units.toLowerCase() !== "days" && b.balance > 0 && (
+                      <p className="text-xs opacity-60 mt-0.5 tabular-nums">
+                        ≈ {Math.round((b.balance / 7.5) * 10) / 10} days
+                      </p>
+                    )}
+                    {b.units.toLowerCase() === "days" && b.balance > 0 && (
+                      <p className="text-xs opacity-60 mt-0.5 tabular-nums">
+                        ≈ {Math.round(b.balance * 7.5 * 10) / 10} hrs
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
