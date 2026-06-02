@@ -59,6 +59,10 @@ function isFreeEvent(ev: GEvent) {
 function isBusyEvent(ev: GEvent) {
   return !isOOO(ev) && !isFreeEvent(ev);
 }
+// The calendar owner declined this event — hide it from the schedule entirely
+function isDeclined(ev: GEvent) {
+  return ev.attendees?.some((a) => (a.self || a.email !== undefined) && a.self && a.responseStatus === "declined") ?? false;
+}
 
 // ── Geometry helpers ───────────────────────────────────────────────────────
 function isAllDay(ev: GEvent) {
@@ -97,6 +101,7 @@ function dayMidnight(d: Date) {
 function eventsForDay(events: GEvent[], day: Date) {
   const dayN = dayMidnight(day);
   return events.filter((ev) => {
+    if (isDeclined(ev)) return false; // never show events the calendar owner declined
     if (isMultiDayTimed(ev)) {
       // Multi-day timed: show in every calendar day it overlaps
       const startN = dayMidnight(new Date(ev.start.dateTime!));
