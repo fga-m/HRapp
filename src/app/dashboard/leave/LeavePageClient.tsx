@@ -488,6 +488,24 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                                     <span className="text-xs text-red-500">{reviewError}</span>
                                   )}
                                   <button
+                                    onClick={() => {
+                                      setEditingReqId(req.id);
+                                      setForm({
+                                        leaveTypeId: req.leave_type_name, // best we have without leaveTypeId
+                                        startDate: req.start_date,
+                                        endDate: req.end_date,
+                                        hours: req.hours != null ? String(req.hours) : "",
+                                        description: req.description || "",
+                                      });
+                                      setApproverId("");
+                                      setSubmitError("");
+                                      setShowModal(true);
+                                    }}
+                                    className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
                                     onClick={() => handleReview(req.id, "APPROVE")}
                                     disabled={reviewingId === req.id}
                                     className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
@@ -526,7 +544,14 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                           <StatusBadge status={req.status} />
                         </div>
                         {req.status === "PENDING" && (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
+                            <button onClick={() => {
+                              setEditingReqId(req.id);
+                              setForm({ leaveTypeId: req.leave_type_name, startDate: req.start_date, endDate: req.end_date, hours: req.hours != null ? String(req.hours) : "", description: req.description || "" });
+                              setApproverId(""); setSubmitError(""); setShowModal(true);
+                            }} className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline">
+                              Edit
+                            </button>
                             <button onClick={() => handleReview(req.id, "APPROVE")} disabled={reviewingId === req.id}
                               className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50">
                               <CheckCircle className="w-3 h-3" /> Approve
