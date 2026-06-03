@@ -324,6 +324,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                         </div>
                       ) : (
                         <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] text-[#9BADB7]">Visible to:</span>
                           {(doc.visibility ?? ["admin", "self"]).map((v: string) => {
                             const opt = VISIBILITY_OPTIONS.find(o => o.key === v);
                             return opt ? (
@@ -338,7 +339,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                               onClick={() => { setEditingVisId(doc.id); setEditingVis(doc.visibility ?? ["admin", "self"]); }}
                               className="text-[10px] text-[#9BADB7] hover:text-[#223149] transition-colors underline"
                             >
-                              Edit access
+                              Edit
                             </button>
                           )}
                         </div>
