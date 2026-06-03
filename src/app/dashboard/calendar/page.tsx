@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Copy, Plus, Pencil, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, Plus, Pencil, Trash2, X, Clock } from "lucide-react";
 import {
   format, startOfWeek, addDays, isToday, eachDayOfInterval,
   addWeeks, subWeeks, isSameDay,
@@ -96,6 +96,42 @@ function eventHeightPx(ev: GEvent) {
 
 function dayMidnight(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/**
+ * Calculate total work hours from a list of calendar events for the visible week.
+ * Mirrors the schedule API logic: merge overlapping intervals, apply 30-min lunch
+ * deduction for any single continuous block >= 5 hours, skip declined/multi-day events.
+ */
+function calcWeeklyHours(evs: GEvent[]): number {
+  // Only count timed, non-declined, non-multi-day events
+  const timed = evs.filter(
+    ev => ev.start.dateTime && ev.end.dateTime && !isDeclined(ev) && !isMultiDayTimed(ev)
+  );
+
+  // Build merged intervals
+  const intervals: Array<[number, number]> = timed
+    .map(ev => [new Date(ev.start.dateTime!).getTime(), new Date(ev.end.dateTime!).getTime()] as [number, number])
+    .filter(([s, e]) => e > s);
+
+  if (intervals.length === 0) return 0;
+
+  // Merge overlapping
+  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
+  const merged: Array<[number, number]> = [[sorted[0][0], sorted[0][1]]];
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1];
+    if (sorted[i][0] <= last[1]) { last[1] = Math.max(last[1], sorted[i][1]); }
+    else { merged.push([sorted[i][0], sorted[i][1]]); }
+  }
+
+  // Sum with lunch deduction
+  const totalMins = merged.reduce((sum, [s, e]) => {
+    const mins = (e - s) / 60_000;
+    return sum + (mins >= 300 ? mins - 30 : mins);
+  }, 0);
+
+  return Math.round((totalMins / 60) * 10) / 10;
 }
 
 function eventsForDay(events: GEvent[], day: Date) {
@@ -1136,23 +1172,37 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {/* Legend */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <div
-              className="w-3 h-3 rounded-sm border-l-2"
-              style={{ backgroundColor: hexA(eventColor.hex, 0.1), borderLeftColor: hexA(eventColor.hex, 0.5) }}
-            />
-            <span className="text-xs text-[#9BADB7]">Working (free)</span>
+        {/* Legend + weekly hours summary */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <div
+                className="w-3 h-3 rounded-sm border-l-2"
+                style={{ backgroundColor: hexA(eventColor.hex, 0.1), borderLeftColor: hexA(eventColor.hex, 0.5) }}
+              />
+              <span className="text-xs text-[#9BADB7]">Working (free)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: eventColor.hex }} />
+              <span className="text-xs text-[#9BADB7]">Busy</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm border-l-2 bg-rose-100 border-rose-400" />
+              <span className="text-xs text-[#9BADB7]">Out of office</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: eventColor.hex }} />
-            <span className="text-xs text-[#9BADB7]">Busy</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm border-l-2 bg-rose-100 border-rose-400" />
-            <span className="text-xs text-[#9BADB7]">Out of office</span>
-          </div>
+
+          {/* Total weekly work hours */}
+          {!loading && events.length > 0 && (() => {
+            const hrs = calcWeeklyHours(events);
+            return hrs > 0 ? (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-xl border border-[#ECE3DF] shadow-sm">
+                <Clock className="w-3.5 h-3.5 text-[#9BADB7]" />
+                <span className="text-xs font-semibold text-[#223149]">{hrs}h</span>
+                <span className="text-xs text-[#9BADB7]">this week</span>
+              </div>
+            ) : null;
+          })()}
         </div>
       </div>
 
