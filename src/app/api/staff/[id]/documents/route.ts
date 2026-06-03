@@ -51,9 +51,21 @@ export async function GET(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Generate signed URLs for each document
+  // Filter by visibility:
+  // - admin: sees everything
+  // - manager with manage_staff: sees docs where visibility includes 'manager'
+  // - self: sees docs where visibility includes 'self'
+  const filtered = (docs ?? []).filter((doc: any) => {
+    const vis: string[] = doc.visibility ?? ["admin", "self"];
+    if (caller.role === "admin") return true;
+    if (hasManageStaff && vis.includes("manager")) return true;
+    if (caller.id === id && vis.includes("self")) return true;
+    return false;
+  });
+
+  // Generate signed URLs for visible documents
   const documents = await Promise.all(
-    (docs ?? []).map(async (doc: any) => {
+    filtered.map(async (doc: any) => {
       const { data: signed } = await supabaseAdmin.storage
         .from("staff-documents")
         .createSignedUrl(doc.file_path, 3600);
@@ -87,6 +99,13 @@ export async function POST(
   const file = formData.get("file") as File | null;
   const expiryDateRaw = formData.get("expiry_date") as string | null;
   const notes = formData.get("notes") as string | null;
+  // Visibility: comma-separated list e.g. "admin,self,manager"
+  const visibilityRaw = formData.get("visibility") as string | null;
+  const visibility = visibilityRaw
+    ? visibilityRaw.split(",").map(v => v.trim()).filter(Boolean)
+    : ["admin", "self"]; // default: HR Admin + Employee
+  // Ensure 'admin' is always included
+  if (!visibility.includes("admin")) visibility.unshift("admin");
 
   if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
   if (!file) return NextResponse.json({ error: "File is required" }, { status: 400 });
@@ -117,6 +136,7 @@ export async function POST(
       expiry_date: expiryDate,
       notes: notes || null,
       uploaded_by: caller.id,
+      visibility,
     })
     .select()
     .single();

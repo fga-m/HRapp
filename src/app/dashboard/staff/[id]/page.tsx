@@ -399,6 +399,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
         staffName={member.full_name}
         canUpload={caller?.role === "admin" || isManager}
         isOwnProfile={caller?.id === id}
+        callerId={caller?.id}
       />
 
       {/* Quick Links */}

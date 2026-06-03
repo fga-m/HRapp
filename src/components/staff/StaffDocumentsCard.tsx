@@ -15,6 +15,14 @@ import {
 } from "lucide-react";
 import DropZone from "@/components/ui/DropZone";
 
+const VISIBILITY_OPTIONS = [
+  { key: "admin",   label: "HR Admin",  description: "Always included" },
+  { key: "self",    label: "Employee",  description: "The staff member themselves" },
+  { key: "manager", label: "Managers",  description: "Managers with Manage Staff permission" },
+] as const;
+
+type VisibilityKey = typeof VISIBILITY_OPTIONS[number]["key"];
+
 interface StaffDocument {
   id: string;
   staff_id: string;
@@ -26,6 +34,7 @@ interface StaffDocument {
   notes: string | null;
   uploaded_by: string;
   created_at: string;
+  visibility: VisibilityKey[] | null;
   signedUrl: string | null;
 }
 
@@ -34,6 +43,7 @@ interface Props {
   staffName: string;
   canUpload: boolean;
   isOwnProfile: boolean;
+  callerId?: string; // logged-in user's staff ID (for uploader check)
 }
 
 const CATEGORIES = [
@@ -98,7 +108,7 @@ function FileIcon({ fileName }: { fileName: string }) {
   return <FileText className="w-5 h-5 text-[#5F7C84] flex-shrink-0" />;
 }
 
-export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOwnProfile }: Props) {
+export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOwnProfile, callerId }: Props) {
   const [documents, setDocuments] = useState<StaffDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
@@ -110,11 +120,34 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
   const [expiryDate, setExpiryDate] = useState("");
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [visibility, setVisibility] = useState<VisibilityKey[]>(["admin", "self"]);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Delete confirmation
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Inline visibility editing
+  const [editingVisId, setEditingVisId] = useState<string | null>(null);
+  const [editingVis, setEditingVis] = useState<VisibilityKey[]>([]);
+  const [savingVis, setSavingVis] = useState(false);
+
+  const toggleVisKey = (key: VisibilityKey, arr: VisibilityKey[], setter: (v: VisibilityKey[]) => void) => {
+    if (key === "admin") return; // always required
+    setter(arr.includes(key) ? arr.filter(k => k !== key) : [...arr, key]);
+  };
+
+  const saveVisibility = async (docId: string) => {
+    setSavingVis(true);
+    await fetch(`/api/staff/${staffId}/documents/${docId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visibility: editingVis }),
+    });
+    setDocuments(prev => prev.map(d => d.id === docId ? { ...d, visibility: editingVis } : d));
+    setEditingVisId(null);
+    setSavingVis(false);
+  };
 
   useEffect(() => {
     fetchDocuments();
@@ -153,6 +186,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
       formData.append("title", title.trim());
       formData.append("category", category);
       formData.append("file", file);
+      formData.append("visibility", visibility.join(","));
       if (expiryDate) formData.append("expiry_date", expiryDate);
       if (notes.trim()) formData.append("notes", notes.trim());
 
@@ -172,6 +206,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
       setExpiryDate("");
       setNotes("");
       setFile(null);
+      setVisibility(["admin", "self"]);
       setShowUpload(false);
 
       // Refresh list
@@ -260,6 +295,54 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                           {getCategoryLabel(doc.category)}
                         </span>
                       </div>
+                      {/* Visibility badges */}
+                      {editingVisId === doc.id ? (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          {VISIBILITY_OPTIONS.map(opt => (
+                            <button
+                              key={opt.key}
+                              type="button"
+                              disabled={opt.key === "admin"}
+                              onClick={() => toggleVisKey(opt.key, editingVis, setEditingVis)}
+                              className={`text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors ${
+                                editingVis.includes(opt.key)
+                                  ? "bg-[#223149] text-white border-[#223149]"
+                                  : "border-[#ECE3DF] text-[#9BADB7] hover:border-[#9BADB7]"
+                              } ${opt.key === "admin" ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                          <button onClick={() => saveVisibility(doc.id)} disabled={savingVis}
+                            className="text-[10px] px-2 py-0.5 rounded-full bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50">
+                            {savingVis ? "…" : "Save"}
+                          </button>
+                          <button onClick={() => setEditingVisId(null)}
+                            className="text-[10px] px-2 py-0.5 rounded-full border border-[#ECE3DF] text-[#9BADB7] hover:bg-[#F8F6F4]">
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                          {(doc.visibility ?? ["admin", "self"]).map((v: string) => {
+                            const opt = VISIBILITY_OPTIONS.find(o => o.key === v);
+                            return opt ? (
+                              <span key={v} className="text-[10px] px-2 py-0.5 rounded-full bg-[#ECE3DF] text-[#5F7C84] font-medium">
+                                {opt.label}
+                              </span>
+                            ) : null;
+                          })}
+                          {/* Edit visibility — only uploader or admin */}
+                          {(callerId === doc.uploaded_by || canUpload) && (
+                            <button
+                              onClick={() => { setEditingVisId(doc.id); setEditingVis(doc.visibility ?? ["admin", "self"]); }}
+                              className="text-[10px] text-[#9BADB7] hover:text-[#223149] transition-colors underline"
+                            >
+                              Edit access
+                            </button>
+                          )}
+                        </div>
+                      )}
 
                       {/* Expiry status */}
                       {expiry && (
@@ -426,6 +509,39 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                   placeholder="Any additional notes…"
                   className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder-[#9BADB7] resize-none focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149]"
                 />
+              </div>
+
+              {/* Visibility */}
+              <div>
+                <label className="block text-xs font-medium text-[#5F7C84] mb-2">
+                  Visible to
+                </label>
+                <div className="space-y-2">
+                  {VISIBILITY_OPTIONS.map(opt => (
+                    <label key={opt.key} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-colors ${
+                      visibility.includes(opt.key) ? "bg-[#223149]/5 border-[#223149]/20" : "border-[#ECE3DF] hover:bg-[#F8F6F4]"
+                    } ${opt.key === "admin" ? "opacity-70 cursor-not-allowed" : ""}`}>
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                        visibility.includes(opt.key) ? "bg-[#223149] border-[#223149]" : "border-[#9BADB7]"
+                      }`}>
+                        {visibility.includes(opt.key) && (
+                          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10"><path d="M1.5 5l2.5 2.5L8.5 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+                        )}
+                      </div>
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={visibility.includes(opt.key)}
+                        disabled={opt.key === "admin"}
+                        onChange={() => toggleVisKey(opt.key, visibility, setVisibility)}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#223149]">{opt.label}</p>
+                        <p className="text-xs text-[#9BADB7]">{opt.description}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               {/* File */}
