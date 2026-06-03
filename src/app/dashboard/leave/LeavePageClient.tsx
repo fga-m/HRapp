@@ -465,6 +465,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                           <th className="px-6 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Staff</th>
                           <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Type</th>
                           <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Period</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Hours</th>
                           <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Submitted</th>
                           <th className="px-4 py-3 text-right text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Status / Action</th>
                         </tr>
@@ -478,6 +479,9 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                             </td>
                             <td className="px-4 py-4 text-[#5F7C84]">{req.leave_type_name}</td>
                             <td className="px-4 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(req.start_date, req.end_date)}</td>
+                            <td className="px-4 py-4 text-[#5F7C84] tabular-nums">
+                              {req.hours != null ? `${req.hours}h` : "—"}
+                            </td>
                             <td className="px-4 py-4 text-[#9BADB7] tabular-nums text-xs">
                               {format(parseISO(req.submitted_at), "d MMM yyyy")}
                             </td>
@@ -539,7 +543,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <p className="font-semibold text-[#223149] text-sm">{req.staff?.full_name}</p>
-                            <p className="text-xs text-[#9BADB7]">{req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}</p>
+                            <p className="text-xs text-[#9BADB7]">{req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{req.hours != null ? ` · ${req.hours}h` : ""}</p>
                           </div>
                           <StatusBadge status={req.status} />
                         </div>
