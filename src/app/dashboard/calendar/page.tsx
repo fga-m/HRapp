@@ -61,7 +61,14 @@ function isBusyEvent(ev: GEvent) {
 }
 // The calendar owner declined this event — hide it from the schedule entirely
 function isDeclined(ev: GEvent) {
-  return ev.attendees?.some((a) => (a.self || a.email !== undefined) && a.self && a.responseStatus === "declined") ?? false;
+  return ev.attendees?.some((a) => a.self && a.responseStatus === "declined") ?? false;
+}
+// The calendar owner hasn't accepted yet (needsAction = no response, tentative = maybe)
+// These show differently and don't count as confirmed work hours
+function isPendingEvent(ev: GEvent) {
+  if (!ev.attendees) return false;
+  const self = ev.attendees.find(a => a.self);
+  return self?.responseStatus === "needsAction" || self?.responseStatus === "tentative";
 }
 
 // ── Geometry helpers ───────────────────────────────────────────────────────
@@ -105,8 +112,9 @@ function dayMidnight(d: Date) {
  */
 function calcWeeklyHours(evs: GEvent[]): number {
   // Only count timed, non-declined, non-multi-day events
+  // Exclude declined, pending (not yet accepted), and multi-day events
   const timed = evs.filter(
-    ev => ev.start.dateTime && ev.end.dateTime && !isDeclined(ev) && !isMultiDayTimed(ev)
+    ev => ev.start.dateTime && ev.end.dateTime && !isDeclined(ev) && !isPendingEvent(ev) && !isMultiDayTimed(ev)
   );
 
   // Build merged intervals
@@ -1190,6 +1198,10 @@ export default function CalendarPage() {
               <div className="w-3 h-3 rounded-sm border-l-2 bg-rose-100 border-rose-400" />
               <span className="text-xs text-[#9BADB7]">Out of office</span>
             </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm border border-dashed border-amber-400 bg-amber-50" />
+              <span className="text-xs text-[#9BADB7]">Pending (not counted)</span>
+            </div>
           </div>
 
           {/* Total weekly work hours */}
@@ -1384,9 +1396,10 @@ export default function CalendarPage() {
             {/* Day columns */}
             {days.map((day) => {
               const timed = timedEventsForDay(events, day);
-              const freeEvs  = timed.filter(isFreeEvent);
-              const oooEvs   = timed.filter(isOOO);
-              const busyEvs  = timed.filter(isBusyEvent);
+              const freeEvs    = timed.filter(ev => isFreeEvent(ev) && !isPendingEvent(ev));
+              const oooEvs     = timed.filter(isOOO);
+              const pendingEvs = timed.filter(ev => isPendingEvent(ev) && !isOOO(ev));
+              const busyEvs    = timed.filter(ev => isBusyEvent(ev) && !isPendingEvent(ev));
               const positions = layoutEvents(busyEvs);
               const isCurrentDay = isToday(day);
 
@@ -1514,6 +1527,44 @@ export default function CalendarPage() {
                             )}
                             {isExtraTall && ev.location && (
                               <p className="text-[10px] truncate text-rose-300 leading-tight">📍 {ev.location}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* ── Layer 2b: Pending events (not yet accepted) ── */}
+                  {pendingEvs.map((ev) => {
+                    const top = eventTopPx(ev);
+                    const height = eventHeightPx(ev);
+                    const isShort = height < 32;
+                    const isTall = height >= 44;
+                    return (
+                      <div
+                        key={ev.id}
+                        className="absolute left-0 right-0 overflow-hidden cursor-pointer"
+                        style={{
+                          top,
+                          height,
+                          backgroundColor: hexA(eventColor.hex, 0.06),
+                          border: `1.5px dashed ${hexA(eventColor.hex, 0.4)}`,
+                          borderRadius: 4,
+                          zIndex: 3,
+                        }}
+                        onMouseEnter={(e) => showPopup(ev, e)}
+                        onMouseLeave={hidePopup}
+                        onClick={() => setTooltip(tooltip?.id === ev.id ? null : ev)}
+                      >
+                        {!isShort && (
+                          <div className="px-1.5 pt-0.5">
+                            <p className="text-[10px] truncate font-medium leading-tight" style={{ color: hexA(eventColor.hex, 0.6) }}>
+                              ? {ev.summary || "Pending"}
+                            </p>
+                            {isTall && (
+                              <p className="text-[10px] truncate leading-tight" style={{ color: hexA(eventColor.hex, 0.4) }}>
+                                {`${format(new Date(ev.start.dateTime!), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`}
+                              </p>
                             )}
                           </div>
                         )}
@@ -1659,8 +1710,11 @@ export default function CalendarPage() {
         const ev = hoverPopup.event;
         const ooo = isOOO(ev);
         const free = isFreeEvent(ev);
+        const pending = isPendingEvent(ev);
         const badge = ooo
           ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">Out of Office</span>
+          : pending
+          ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">? Pending (not accepted)</span>
           : free
           ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Working — available</span>
           : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#223149]/10 text-[#223149]">Busy</span>;
@@ -1804,6 +1858,10 @@ export default function CalendarPage() {
               {isOOO(tooltip) ? (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
                   Out of Office
+                </span>
+              ) : isPendingEvent(tooltip) ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                  ? Pending — not yet accepted
                 </span>
               ) : isFreeEvent(tooltip) ? (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">

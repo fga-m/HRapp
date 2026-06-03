@@ -168,9 +168,10 @@ export async function GET(req: NextRequest) {
 
         for (const event of events) {
           if (!event.start?.dateTime || !event.end?.dateTime) continue;
-          // Skip events the staff member declined — they didn't attend, so hours don't count
+          // Skip events not confirmed — declined or not yet accepted (needsAction/tentative)
           const selfAttendee = (event.attendees ?? []).find((a: any) => a.self);
-          if (selfAttendee?.responseStatus === "declined") continue;
+          const status = selfAttendee?.responseStatus;
+          if (status === "declined" || status === "needsAction" || status === "tentative") continue;
           if (staffOverrides?.has(event.id)) {
             overrideMinutes += staffOverrides.get(event.id)! * 60;
           } else {
