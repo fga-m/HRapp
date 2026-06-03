@@ -45,7 +45,7 @@ export async function GET(
 
   const { data: docs, error } = await supabaseAdmin
     .from("staff_documents")
-    .select("*")
+    .select("*, uploader:uploaded_by(full_name)")
     .eq("staff_id", id)
     .order("created_at", { ascending: false });
 

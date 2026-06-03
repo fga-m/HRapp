@@ -35,6 +35,7 @@ interface StaffDocument {
   uploaded_by: string;
   created_at: string;
   visibility: VisibilityKey[] | null;
+  uploader: { full_name: string } | null;
   signedUrl: string | null;
 }
 
@@ -344,6 +345,12 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                           )}
                         </div>
                       )}
+
+                      {/* Uploaded by + timestamp */}
+                      <p className="text-[10px] text-[#9BADB7] mt-0.5">
+                        Uploaded by {doc.uploader?.full_name ?? "unknown"} · {new Date(doc.created_at).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}{" "}
+                        {new Date(doc.created_at).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", hour12: true })}
+                      </p>
 
                       {/* Expiry status */}
                       {expiry && (
