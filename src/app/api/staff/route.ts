@@ -6,9 +6,11 @@ export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Directory listing: return only non-sensitive columns. Never expose
+  // google_access_token / google_refresh_token / birthdate / xero_employee_id.
   const { data, error } = await supabaseAdmin
     .from("staff")
-    .select("*")
+    .select("id, full_name, email, role, position, department, avatar_url, is_active, google_calendar_id")
     .order("full_name");
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
