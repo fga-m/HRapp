@@ -24,11 +24,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   if (error || !note) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Access control: admin must be creator, staff must be attendee + shared
-  if (caller.role === "admin" && note.created_by !== caller.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  if (caller.role === "staff" && (!note.is_shared_with_staff || !note.attendees?.includes(caller.id))) {
+  // Access control (deny-by-default): only the note's creator, or a shared
+  // attendee, may read it. Previously roles other than admin/staff (e.g.
+  // manager, leave_approver) fell through both checks and saw every note.
+  const isCreator = note.created_by === caller.id;
+  const isSharedAttendee = !!note.is_shared_with_staff && !!note.attendees?.includes(caller.id);
+  if (!isCreator && !isSharedAttendee) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
