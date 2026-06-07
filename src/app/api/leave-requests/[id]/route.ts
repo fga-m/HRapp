@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { xeroRequest } from "@/lib/xero";
+import { getGoogleTokensByStaffId, saveGoogleTokensByStaffId } from "@/lib/google-tokens";
 
 export const dynamic = "force-dynamic";
 
@@ -151,16 +152,17 @@ export async function PATCH(
     try {
       const { data: staffRecord } = await supabaseAdmin
         .from("staff")
-        .select("email, full_name, google_access_token, google_refresh_token, google_token_expires_at")
+        .select("email, full_name")
         .eq("id", leaveReq.staff_id)
         .single();
 
-      let calToken = staffRecord?.google_access_token ?? null;
+      const tokens = await getGoogleTokensByStaffId(leaveReq.staff_id);
+      let calToken = tokens?.access_token ?? null;
 
       // Refresh the token if expired or nearly expired
-      if (calToken && staffRecord?.google_token_expires_at) {
-        const expiresAt = new Date(staffRecord.google_token_expires_at).getTime();
-        if (Date.now() > expiresAt - 60_000 && staffRecord.google_refresh_token) {
+      if (calToken && tokens?.token_expires_at) {
+        const expiresAt = new Date(tokens.token_expires_at).getTime();
+        if (Date.now() > expiresAt - 60_000 && tokens.refresh_token) {
           const refreshRes = await fetch("https://oauth2.googleapis.com/token", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -168,18 +170,19 @@ export async function PATCH(
               client_id: process.env.GOOGLE_CLIENT_ID!,
               client_secret: process.env.GOOGLE_CLIENT_SECRET!,
               grant_type: "refresh_token",
-              refresh_token: staffRecord.google_refresh_token,
+              refresh_token: tokens.refresh_token,
             }),
           });
           if (refreshRes.ok) {
             const refreshData = await refreshRes.json();
             calToken = refreshData.access_token;
-            // Persist the refreshed token
-            await supabaseAdmin.from("staff").update({
-              google_access_token: refreshData.access_token,
-              google_token_expires_at: new Date(Date.now() + refreshData.expires_in * 1000).toISOString(),
-              ...(refreshData.refresh_token ? { google_refresh_token: refreshData.refresh_token } : {}),
-            }).eq("id", leaveReq.staff_id);
+            // Persist the refreshed token to the dedicated tokens table
+            await saveGoogleTokensByStaffId(
+              leaveReq.staff_id,
+              refreshData.access_token,
+              refreshData.refresh_token ?? undefined,
+              Date.now() + refreshData.expires_in * 1000
+            );
           }
         }
       }

@@ -18,6 +18,15 @@ create table if not exists staff (
   updated_at timestamptz default now()
 );
 
+-- GOOGLE OAUTH TOKENS (kept separate from staff so directory queries can never expose them)
+create table if not exists staff_google_tokens (
+  staff_id uuid primary key references staff(id) on delete cascade,
+  access_token text,
+  refresh_token text,
+  token_expires_at timestamptz,
+  updated_at timestamptz default now()
+);
+
 -- POLICIES
 create table if not exists policies (
   id uuid primary key default gen_random_uuid(),

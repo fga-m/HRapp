@@ -1,19 +1,13 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { supabaseAdmin } from "./supabase";
+import { saveGoogleTokensByEmail } from "./google-tokens";
 
-/** Persist Google tokens to the staff record so they can be used server-side
- *  (e.g. creating calendar events on behalf of a staff member when they're offline). */
+/** Persist Google tokens for a staff member so they can be used server-side
+ *  (e.g. creating calendar events on behalf of a staff member when offline).
+ *  Tokens live in the dedicated staff_google_tokens table, never on staff. */
 async function saveTokensToStaff(email: string, accessToken: string, refreshToken: string | undefined, expiresAt: number) {
   try {
-    await supabaseAdmin
-      .from("staff")
-      .update({
-        google_access_token: accessToken,
-        ...(refreshToken ? { google_refresh_token: refreshToken } : {}),
-        google_token_expires_at: new Date(expiresAt).toISOString(),
-      })
-      .eq("email", email);
+    await saveGoogleTokensByEmail(email, accessToken, refreshToken, expiresAt);
   } catch {
     // Best-effort — never block auth if DB write fails
   }
