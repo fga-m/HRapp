@@ -326,37 +326,43 @@ export default function SchedulePage() {
             </p>
           </div>
           {isAdmin ? (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => changeToilWindow(-1)}
-                disabled={savingWindow || data.toilWindowWeeks <= TOIL_WINDOW_MIN}
-                title="Fewer weeks"
-                className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <div className="min-w-[72px] text-center">
-                {savingWindow ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-[#5F7C84] mx-auto" />
-                ) : (
-                  <span className="text-base font-bold text-[#223149]">
-                    {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "wk" : "wks"}
-                  </span>
-                )}
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => changeToilWindow(-1)}
+                  disabled={savingWindow || data.toilWindowWeeks <= TOIL_WINDOW_MIN}
+                  title="Fewer weeks"
+                  className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <div className="min-w-[72px] text-center">
+                  {savingWindow ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-[#5F7C84] mx-auto" />
+                  ) : (
+                    <span className="text-base font-bold text-[#223149]">
+                      {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "wk" : "wks"}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => changeToilWindow(1)}
+                  disabled={savingWindow || data.toilWindowWeeks >= TOIL_WINDOW_MAX}
+                  title="More weeks"
+                  className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                onClick={() => changeToilWindow(1)}
-                disabled={savingWindow || data.toilWindowWeeks >= TOIL_WINDOW_MAX}
-                title="More weeks"
-                className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+              <span className="text-[11px] text-[#9BADB7]">includes current week</span>
             </div>
           ) : (
-            <span className="text-base font-bold text-[#223149] flex-shrink-0">
-              {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "wk" : "wks"}
-            </span>
+            <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+              <span className="text-base font-bold text-[#223149]">
+                {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "wk" : "wks"}
+              </span>
+              <span className="text-[11px] text-[#9BADB7]">includes current week</span>
+            </div>
           )}
         </div>
       )}
