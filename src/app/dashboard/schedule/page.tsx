@@ -11,6 +11,8 @@ import {
   AlertCircle,
   Loader2,
   RefreshCw,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import Link from "next/link";
@@ -34,7 +36,11 @@ interface ScheduleData {
   weekStart: string;
   weekEnd: string;
   role: string;
+  toilWindowWeeks: number;
 }
+
+const TOIL_WINDOW_MIN = 1;
+const TOIL_WINDOW_MAX = 12;
 
 
 
@@ -150,6 +156,7 @@ export default function SchedulePage() {
   const [data, setData] = useState<ScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [savingWindow, setSavingWindow] = useState(false);
 
   const fetchData = useCallback(async (ws: Date) => {
     setLoading(true);
@@ -184,6 +191,31 @@ export default function SchedulePage() {
 
   function thisWeek() {
     setWeekStart(getMonday(new Date()));
+  }
+
+  // Persist a new TOIL window length, then refetch so balances recompute.
+  async function changeToilWindow(delta: number) {
+    if (!data) return;
+    const next = Math.min(TOIL_WINDOW_MAX, Math.max(TOIL_WINDOW_MIN, data.toilWindowWeeks + delta));
+    if (next === data.toilWindowWeeks) return;
+    setSavingWindow(true);
+    try {
+      const res = await fetch("/api/settings/toil", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weeks: next }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || "Failed to update TOIL window.");
+        return;
+      }
+      await fetchData(weekStart);
+    } catch {
+      setError("Network error updating TOIL window.");
+    } finally {
+      setSavingWindow(false);
+    }
   }
 
   const isAdmin = data?.role === "admin";
@@ -282,6 +314,53 @@ export default function SchedulePage() {
         </div>
       )}
 
+      {/* TOIL rolling-window control */}
+      {data && (
+        <div className="flex items-center justify-between gap-3 bg-white rounded-2xl p-4 shadow-sm">
+          <div>
+            <p className="text-sm font-semibold text-[#223149]">TOIL rolling window</p>
+            <p className="text-xs text-[#5F7C84]">
+              Balances sum each staff member&apos;s weekly variance over the last{" "}
+              {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "week" : "weeks"} (the viewed
+              week plus the {data.toilWindowWeeks - 1} before it).
+            </p>
+          </div>
+          {isAdmin ? (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => changeToilWindow(-1)}
+                disabled={savingWindow || data.toilWindowWeeks <= TOIL_WINDOW_MIN}
+                title="Fewer weeks"
+                className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <div className="min-w-[72px] text-center">
+                {savingWindow ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-[#5F7C84] mx-auto" />
+                ) : (
+                  <span className="text-base font-bold text-[#223149]">
+                    {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "wk" : "wks"}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => changeToilWindow(1)}
+                disabled={savingWindow || data.toilWindowWeeks >= TOIL_WINDOW_MAX}
+                title="More weeks"
+                className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <span className="text-base font-bold text-[#223149] flex-shrink-0">
+              {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "wk" : "wks"}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Content area */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
@@ -319,7 +398,7 @@ export default function SchedulePage() {
                   </th>
                   <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
                     TOIL Balance
-                    <p className="text-[8px] font-normal normal-case tracking-normal mt-0.5 opacity-70">accumulates 4 wks then resets</p>
+                    <p className="text-[8px] font-normal normal-case tracking-normal mt-0.5 opacity-70">rolling {data.toilWindowWeeks}-week window</p>
                   </th>
                 </tr>
               </thead>

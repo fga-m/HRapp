@@ -27,6 +27,16 @@ create table if not exists staff_google_tokens (
   updated_at timestamptz default now()
 );
 
+-- GENERIC APP SETTINGS (key/value, e.g. toil_window_weeks)
+create table if not exists app_settings (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz default now(),
+  updated_by uuid references staff(id)
+);
+insert into app_settings (key, value) values ('toil_window_weeks', '4')
+  on conflict (key) do nothing;
+
 -- POLICIES
 create table if not exists policies (
   id uuid primary key default gen_random_uuid(),

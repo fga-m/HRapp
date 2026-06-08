@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { getToilWindowWeeks } from "@/lib/app-settings";
 
 async function callerCanDo(callerRole: string, feature: string): Promise<boolean> {
   if (callerRole === "admin") return true;
@@ -210,8 +211,9 @@ export async function GET(req: NextRequest) {
   const timeMin = toMelbourneISO(weekStartStr);
   const timeMax = toMelbourneISO(weekEndStr);
 
-  // Build boundaries for the 3 prior weeks (TOIL accumulates over 4 weeks then resets)
-  const TOIL_WEEKS = 4;
+  // Rolling TOIL window length (admin-configurable, defaults to 4 weeks).
+  // The window = the viewed week + the (TOIL_WEEKS - 1) weeks before it.
+  const TOIL_WEEKS = await getToilWindowWeeks();
   const priorWeekBounds = Array.from({ length: TOIL_WEEKS - 1 }, (_, i) => {
     const offset = (i + 1) * 7;
     const s = new Date(weekStart); s.setDate(s.getDate() - offset);
@@ -233,7 +235,11 @@ export async function GET(req: NextRequest) {
 
   // Fetch approved leave within the 4-week TOIL window.
   // Approved leave is treated as "worked" so it doesn't create a false TOIL deficit.
-  const toilWindowStart = toISODateString(priorWeekBounds[TOIL_WEEKS - 2].start);
+  // Earliest week start in the window (handles a 1-week window, where there
+  // are no prior weeks, without indexing past the array).
+  const earliestWeekStart = new Date(weekStart);
+  earliestWeekStart.setDate(earliestWeekStart.getDate() - (TOIL_WEEKS - 1) * 7);
+  const toilWindowStart = toISODateString(earliestWeekStart);
   const toilWindowEnd   = weekEndStr;
   const { data: approvedLeave } = await supabaseAdmin
     .from("leave_requests")
@@ -319,5 +325,6 @@ export async function GET(req: NextRequest) {
     weekStart: toISODateString(weekStart),
     weekEnd: toISODateString(weekEnd),
     role: caller.role,
+    toilWindowWeeks: TOIL_WEEKS,
   });
 }
