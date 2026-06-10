@@ -73,13 +73,18 @@ begin
   end loop;
 end $$;
 
--- Backfill legacy 'pending' -> 'submitted' BEFORE adding the new CHECK.
+-- Backfill existing legacy 'pending' rows -> 'submitted' so they appear in the
+-- new UI/queue.
 update expense_claims set status = 'submitted' where status = 'pending';
 
--- Add the canonical 5-value CHECK (named so the DOWN migration can drop it).
+-- Add a CHECK that allows the canonical set PLUS the legacy 'pending' value.
+-- Keeping 'pending' permitted means the OLD expense card still works on
+-- production during the trial (it inserts status='pending') — important while
+-- preview and production share one database. Tighten to the 5-value set after
+-- the feature is fully cut over to main.
 alter table expense_claims
   add constraint expense_claims_status_check
-  check (status in ('submitted', 'approved', 'rejected', 'pushed', 'push_failed'));
+  check (status in ('pending', 'submitted', 'approved', 'rejected', 'pushed', 'push_failed'));
 
 -- ------------------------------------------------------------
 -- 3. staff.xero_contact_id
