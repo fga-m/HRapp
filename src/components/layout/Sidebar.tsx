@@ -31,26 +31,27 @@ interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  adminOnly?: boolean;      // only admin can see (not configurable)
-  permission?: FeatureKey;  // visible if admin OR if user has this permission
+  adminOnly?: boolean;           // only admin can see (not configurable)
+  permission?: FeatureKey;       // visible if admin OR if user has this permission
+  hideWhenNoChecklists?: boolean; // hide for regular staff when no active checklists
 }
 
 const navItems: NavItem[] = [
-  { label: "Dashboard",    href: "/dashboard",                   icon: LayoutDashboard },
-  { label: "Calendars",   href: "/dashboard/calendar",           icon: Calendar },
-  { label: "Leave Requests", href: "/dashboard/leave",           icon: Palmtree },
-  { label: "Team Schedule", href: "/dashboard/schedule",         icon: CalendarDays,  permission: "view_team_schedule" },
-  { label: "Meeting Notes", href: "/dashboard/meetings",         icon: FileText },
-  { label: "Performance",  href: "/dashboard/performance",       icon: TrendingUp },
-  { label: "Policies",    href: "/dashboard/policies",           icon: Shield },
-  { label: "Contracts",   href: "/dashboard/contracts",          icon: FileSignature },
-  { label: "Onboarding",  href: "/dashboard/onboarding",        icon: CheckSquare },
-  { label: "Staff Hub",   href: "/dashboard/hub",               icon: BookOpen },
-  { label: "Org Chart",   href: "/dashboard/org",               icon: Network },
-  { label: "My Role",     href: "/dashboard/position-descriptions", icon: Briefcase },
-  { label: "Staff",       href: "/dashboard/staff",             icon: Users,         permission: "manage_staff" },
-  { label: "Access Levels", href: "/dashboard/access",          icon: ShieldCheck,   adminOnly: true },
-  { label: "Settings",      href: "/dashboard/settings",        icon: Settings,      adminOnly: true },
+  { label: "Dashboard",         href: "/dashboard",                       icon: LayoutDashboard },
+  { label: "Work Calendar",     href: "/dashboard/calendar",              icon: Calendar },
+  { label: "Leave Requests",    href: "/dashboard/leave",                 icon: Palmtree },
+  { label: "Hours & TOIL",      href: "/dashboard/schedule",              icon: CalendarDays,  permission: "view_team_schedule" },
+  { label: "Meeting Notes",     href: "/dashboard/meetings",              icon: FileText },
+  { label: "Performance",       href: "/dashboard/performance",           icon: TrendingUp },
+  { label: "Policies",          href: "/dashboard/policies",              icon: Shield },
+  { label: "Contracts",         href: "/dashboard/contracts",             icon: FileSignature },
+  { label: "Checklists",        href: "/dashboard/onboarding",            icon: CheckSquare,   hideWhenNoChecklists: true },
+  { label: "Resources",         href: "/dashboard/hub",                   icon: BookOpen },
+  { label: "Org Chart",         href: "/dashboard/org",                   icon: Network },
+  { label: "My Position",       href: "/dashboard/position-descriptions", icon: Briefcase },
+  { label: "Staff",             href: "/dashboard/staff",                 icon: Users,         permission: "manage_staff" },
+  { label: "Roles & Permissions", href: "/dashboard/access",              icon: ShieldCheck,   adminOnly: true },
+  { label: "Settings",          href: "/dashboard/settings",              icon: Settings,      adminOnly: true },
 ];
 
 interface SidebarProps {
@@ -62,6 +63,7 @@ interface SidebarProps {
   userId?: string;
   notificationCount?: number;
   viewAsStaff?: boolean;
+  hasActiveChecklists?: boolean;
 }
 
 export default function Sidebar({
@@ -73,15 +75,15 @@ export default function Sidebar({
   userId,
   notificationCount = 0,
   viewAsStaff = false,
+  hasActiveChecklists = true,
 }: SidebarProps) {
   const pathname = usePathname();
 
   const visibleItems = navItems.filter((item) => {
-    if (!item.adminOnly && !item.permission) return true; // visible to all
-    if (isAdmin) return true;                             // admin sees everything
-    if (item.adminOnly) return false;                     // hard admin-only, no override
-    if (item.permission) return permissions.includes(item.permission);
-    return false;
+    if (item.adminOnly) return isAdmin ?? false;
+    if (item.permission) return (isAdmin) || permissions.includes(item.permission);
+    if (item.hideWhenNoChecklists && !isAdmin) return hasActiveChecklists;
+    return true;
   });
 
   const roleBadgeLabel =
@@ -167,11 +169,6 @@ export default function Sidebar({
             )}
           </div>
           Notifications
-          {notificationCount > 0 && (
-            <span className="ml-auto text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 font-bold">
-              {notificationCount > 9 ? "9+" : notificationCount}
-            </span>
-          )}
         </Link>
 
         {userId ? (
@@ -193,6 +190,7 @@ export default function Sidebar({
           <form action={enableStaffView}>
             <button
               type="submit"
+              title="See the portal exactly as a staff member sees it"
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#9BADB7] hover:bg-white/5 hover:text-white transition-colors"
             >
               <Eye className="w-4 h-4" />

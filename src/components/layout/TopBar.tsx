@@ -15,20 +15,21 @@ interface TopBarProps {
   role?: string;
   permissions?: string[];
   notificationCount?: number;
+  hasActiveChecklists?: boolean;
 }
 
 const moreItems = [
-  { label: "Calendars",     href: "/dashboard/calendar",              icon: Calendar },
-  { label: "Leave Requests", href: "/dashboard/leave",                icon: Palmtree },
-  { label: "Performance",  href: "/dashboard/performance",           icon: TrendingUp },
-  { label: "Team Schedule", href: "/dashboard/schedule",              icon: CalendarDays, permission: "view_team_schedule" },
-  { label: "Onboarding",   href: "/dashboard/onboarding",            icon: CheckSquare },
-  { label: "Contracts",   href: "/dashboard/contracts",             icon: FileSignature },
-  { label: "Org Chart",    href: "/dashboard/org",                   icon: Network },
-  { label: "My Role",      href: "/dashboard/position-descriptions", icon: Briefcase },
-  { label: "Staff",        href: "/dashboard/staff",                 icon: Users,       permission: "manage_staff" },
-  { label: "Access Levels", href: "/dashboard/access",               icon: ShieldCheck, adminOnly: true },
-  { label: "Settings",      href: "/dashboard/settings",             icon: Settings,    adminOnly: true },
+  { label: "Work Calendar",       href: "/dashboard/calendar",              icon: Calendar },
+  { label: "Leave Requests",      href: "/dashboard/leave",                 icon: Palmtree },
+  { label: "Performance",         href: "/dashboard/performance",           icon: TrendingUp },
+  { label: "Hours & TOIL",        href: "/dashboard/schedule",              icon: CalendarDays,  permission: "view_team_schedule" },
+  { label: "Checklists",          href: "/dashboard/onboarding",            icon: CheckSquare,   hideWhenNoChecklists: true },
+  { label: "Contracts",           href: "/dashboard/contracts",             icon: FileSignature },
+  { label: "Org Chart",           href: "/dashboard/org",                   icon: Network },
+  { label: "My Position",         href: "/dashboard/position-descriptions", icon: Briefcase },
+  { label: "Staff",               href: "/dashboard/staff",                 icon: Users,         permission: "manage_staff" },
+  { label: "Roles & Permissions", href: "/dashboard/access",                icon: ShieldCheck,   adminOnly: true },
+  { label: "Settings",            href: "/dashboard/settings",              icon: Settings,      adminOnly: true },
 ];
 
 function Avatar({ src, name, size = 7 }: { src?: string; name?: string; size?: number }) {
@@ -64,6 +65,7 @@ export default function TopBar({
   role = "staff",
   permissions = [],
   notificationCount = 0,
+  hasActiveChecklists = true,
 }: TopBarProps) {
   const [showMore, setShowMore] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -78,17 +80,17 @@ export default function TopBar({
 
   const pageTitle: Record<string, string> = {
     "/dashboard": "Dashboard",
-    "/dashboard/calendar": "Calendars",
+    "/dashboard/calendar": "Work Calendar",
     "/dashboard/leave": "Leave Requests",
     "/dashboard/meetings": "Meeting Notes",
     "/dashboard/policies": "Policies",
-    "/dashboard/onboarding": "Onboarding",
-    "/dashboard/hub": "Staff Hub",
+    "/dashboard/onboarding": "Checklists",
+    "/dashboard/hub": "Resources",
     "/dashboard/staff": "Staff",
-    "/dashboard/schedule": "Team Schedule",
+    "/dashboard/schedule": "Hours & TOIL",
     "/dashboard/org": "Org Chart",
-    "/dashboard/position-descriptions": "My Role",
-    "/dashboard/access": "Access Levels",
+    "/dashboard/position-descriptions": "My Position",
+    "/dashboard/access": "Roles & Permissions",
     "/dashboard/contracts": "Contracts",
     "/dashboard/performance": "Performance",
     "/dashboard/settings": "Settings",
@@ -209,11 +211,10 @@ export default function TopBar({
             <div className="px-4 py-3 space-y-1">
               {moreItems
                 .filter(item => {
-                  if (!item.adminOnly && !(item as any).permission) return true;
-                  if (isAdmin) return true;
-                  if (item.adminOnly) return false;
-                  if ((item as any).permission) return permissions.includes((item as any).permission);
-                  return false;
+                  if (item.adminOnly) return isAdmin ?? false;
+                  if ((item as any).permission) return isAdmin || permissions.includes((item as any).permission);
+                  if ((item as any).hideWhenNoChecklists && !isAdmin) return hasActiveChecklists;
+                  return true;
                 })
                 .map(item => {
                   const Icon = item.icon;

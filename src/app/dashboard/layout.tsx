@@ -50,6 +50,42 @@ export default async function DashboardLayout({
     .eq("staff_id", caller?.id ?? "")
     .eq("is_read", false);
 
+  // Checklist nav visibility — always show for admin/manager; for staff only show when
+  // they have at least one assigned checklist with incomplete required items.
+  const isManager = caller?.role === "manager";
+  let hasActiveChecklists = isAdmin || isManager;
+
+  if (!hasActiveChecklists && caller?.id) {
+    const { data: assignedChecklists } = await supabaseAdmin
+      .from("staff_checklists")
+      .select("id")
+      .eq("staff_id", caller.id);
+
+    const checklistIds = (assignedChecklists ?? []).map((c: any) => c.id);
+
+    if (checklistIds.length > 0) {
+      // Assume visible unless we can confirm all required items are done
+      hasActiveChecklists = true;
+
+      const { data: reqItems } = await supabaseAdmin
+        .from("staff_checklist_items")
+        .select("id")
+        .in("staff_checklist_id", checklistIds)
+        .eq("is_required", true);
+
+      const reqItemIds = (reqItems ?? []).map((c: any) => c.id);
+
+      if (reqItemIds.length > 0) {
+        const { count: doneCount } = await supabaseAdmin
+          .from("checklist_completions")
+          .select("*", { count: "exact", head: true })
+          .in("staff_checklist_item_id", reqItemIds);
+
+        hasActiveChecklists = (doneCount ?? 0) < reqItemIds.length;
+      }
+    }
+  }
+
   return (
     <div className="flex min-h-screen">
       {/* Desktop sidebar — sticky to viewport height */}
@@ -63,6 +99,7 @@ export default async function DashboardLayout({
           userId={userId}
           notificationCount={unreadCount ?? 0}
           viewAsStaff={viewAsStaff}
+          hasActiveChecklists={hasActiveChecklists}
         />
       </div>
 
@@ -76,6 +113,7 @@ export default async function DashboardLayout({
         role={caller?.role ?? "staff"}
         permissions={viewAsStaff ? [] : permissions}
         notificationCount={unreadCount ?? 0}
+        hasActiveChecklists={hasActiveChecklists}
       />
 
       {/* Main content */}
