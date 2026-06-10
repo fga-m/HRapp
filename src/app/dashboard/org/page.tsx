@@ -569,11 +569,8 @@ export default function OrgChartPage() {
       {/* ── Header ── */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#223149] flex items-center justify-center">
-            <Network className="w-5 h-5 text-white" />
-          </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#223149]">Org Chart</h1>
+            <h1 className="text-3xl font-bold text-[#223149]">Org Chart</h1>
             <PageSubtitle pageKey="org" defaultDescription="A visual map of how the team is structured and who reports to whom." />
             <p className="text-[#5F7C84] text-sm">
               {allRoles.length} role{allRoles.length !== 1 ? "s" : ""}

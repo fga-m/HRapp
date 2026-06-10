@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {
-  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -231,11 +230,8 @@ export default function SchedulePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#223149] flex items-center justify-center flex-shrink-0">
-            <CalendarDays className="w-5 h-5 text-white" />
-          </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#223149]">Hours & TOIL</h1>
+            <h1 className="text-3xl font-bold text-[#223149]">Hours & TOIL</h1>
             <PageSubtitle pageKey="schedule" defaultDescription="Compare each person's scheduled hours against contracted hours and see TOIL balances." />
             {data && (
               <p className="text-sm text-[#5F7C84]">

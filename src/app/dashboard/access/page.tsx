@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShieldCheck, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { FEATURES } from "@/lib/permissions";
 import PageSubtitle from "@/components/PageSubtitle";
 
@@ -90,11 +90,8 @@ export default function AccessLevelsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#223149] flex items-center justify-center flex-shrink-0">
-          <ShieldCheck className="w-5 h-5 text-white" />
-        </div>
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#223149]">Roles & Permissions</h1>
+          <h1 className="text-3xl font-bold text-[#223149]">Roles & Permissions</h1>
           <PageSubtitle pageKey="access" defaultDescription="Control what each role can access and do within the portal." />
           <p className="text-xs text-[#9BADB7] mt-1">Turning a feature off hides it from that role entirely.</p>
         </div>
