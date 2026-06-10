@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Shield, FileText, BookOpen, MoreHorizontal } from "lucide-react";
+import { LayoutDashboard, Palmtree, FileText, BookOpen, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { label: "Home", href: "/dashboard", icon: LayoutDashboard, exact: true },
-  { label: "Policies", href: "/dashboard/policies", icon: Shield },
+  { label: "Home",    href: "/dashboard",       icon: LayoutDashboard, exact: true },
+  { label: "Leave",   href: "/dashboard/leave", icon: Palmtree },
   { label: "Meetings", href: "/dashboard/meetings", icon: FileText },
-  { label: "Hub", href: "/dashboard/hub", icon: BookOpen },
+  { label: "Resources", href: "/dashboard/hub", icon: BookOpen },
 ];
 
 export default function BottomNav() {
