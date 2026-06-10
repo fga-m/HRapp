@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree, Shield } from "lucide-react";
+import { Bell, X, LogOut, User, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree, Shield } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -19,7 +19,6 @@ interface TopBarProps {
 }
 
 const moreItems = [
-  { label: "Work Calendar",       href: "/dashboard/calendar",              icon: Calendar },
   { label: "Leave Requests",      href: "/dashboard/leave",                 icon: Palmtree },
   { label: "Performance",         href: "/dashboard/performance",           icon: TrendingUp },
   { label: "Hours & TOIL",        href: "/dashboard/schedule",              icon: CalendarDays,  permission: "view_team_schedule" },

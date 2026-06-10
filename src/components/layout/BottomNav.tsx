@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Palmtree, FileText, BookOpen, MoreHorizontal } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, BookOpen, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { label: "Home",    href: "/dashboard",       icon: LayoutDashboard, exact: true },
-  { label: "Leave",   href: "/dashboard/leave", icon: Palmtree },
+  { label: "Home",    href: "/dashboard",          icon: LayoutDashboard, exact: true },
+  { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
   { label: "Meetings", href: "/dashboard/meetings", icon: FileText },
   { label: "Resources", href: "/dashboard/hub", icon: BookOpen },
 ];
