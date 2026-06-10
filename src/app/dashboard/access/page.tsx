@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ShieldCheck, Lock } from "lucide-react";
 import { FEATURES } from "@/lib/permissions";
+import PageSubtitle from "@/components/PageSubtitle";
 
 interface RolePermission {
   id: string;
@@ -94,6 +95,7 @@ export default function AccessLevelsPage() {
         </div>
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-[#223149]">Access Levels</h1>
+          <PageSubtitle pageKey="access" defaultDescription="Control what each role can access and do within the portal." />
           <p className="text-sm text-[#9BADB7] mt-0.5">
             Configure which features each role can access
           </p>

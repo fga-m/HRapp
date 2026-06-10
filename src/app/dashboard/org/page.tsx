@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PageSubtitle from "@/components/PageSubtitle";
 import {
   Network,
   Pencil,
@@ -573,6 +574,7 @@ export default function OrgChartPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[#223149]">Org Chart</h1>
+            <PageSubtitle pageKey="org" defaultDescription="A visual map of how the team is structured and who reports to whom." />
             <p className="text-[#5F7C84] text-sm">
               {allRoles.length} role{allRoles.length !== 1 ? "s" : ""}
             </p>

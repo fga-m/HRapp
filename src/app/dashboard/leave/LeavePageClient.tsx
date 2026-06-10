@@ -6,6 +6,7 @@ import {
   RefreshCw, Clock, ChevronRight, ChevronLeft,
 } from "lucide-react";
 import { format, parseISO, differenceInBusinessDays, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday } from "date-fns";
+import PageSubtitle from "@/components/PageSubtitle";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -345,6 +346,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold text-[#223149]">Leave Requests</h1>
+        <PageSubtitle pageKey="leave" defaultDescription="Submit leave requests, track approvals, and view your available leave balance." />
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center space-y-3">
           <Palmtree className="w-8 h-8 text-[#9BADB7] mx-auto" />
           <p className="font-semibold text-[#223149]">Not linked to Xero</p>
@@ -363,6 +365,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
             <h1 className="text-3xl font-bold text-[#223149]">
               {isReviewer && activeTab === "team" ? "Team Leave" : "Leave Requests"}
             </h1>
+            <PageSubtitle pageKey="leave" defaultDescription="Submit leave requests, track approvals, and view your available leave balance." />
             {isReviewer && (
               <div className="flex border border-[#ECE3DF] rounded-xl overflow-hidden text-sm font-semibold">
                 <button

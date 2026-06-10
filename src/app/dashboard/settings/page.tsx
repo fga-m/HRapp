@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2, Link2, Link2Off, RefreshCw } from "lucide-react";
+import PageSubtitle from "@/components/PageSubtitle";
 
 interface XeroStatus {
   connected: boolean;
@@ -50,6 +51,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-[#223149]">Settings</h1>
+        <PageSubtitle pageKey="settings" defaultDescription="Configure portal-wide settings and preferences." />
         <p className="text-[#9BADB7] mt-1">Manage integrations and system configuration.</p>
       </div>
 

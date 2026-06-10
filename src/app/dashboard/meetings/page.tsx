@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, FileText, ChevronRight, CheckCircle, Clock, LayoutTemplate } from "lucide-react";
+import PageSubtitle from "@/components/PageSubtitle";
 import { format } from "date-fns";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -47,6 +48,7 @@ export default function MeetingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Meeting Notes</h1>
+          <PageSubtitle pageKey="meetings" defaultDescription="Record and share notes from team meetings, 1-on-1s, and other discussions." />
           <p className="text-[#5F7C84] mt-1 text-sm">
             {role === "admin" ? "Your private meeting notes" : "Notes shared with you"}
           </p>

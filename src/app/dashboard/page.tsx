@@ -8,6 +8,7 @@ import {
   BookOpen, Bell, Users, AlertCircle, ChevronRight,
   Palmtree, FileArchive, FileSignature,
 } from "lucide-react";
+import PageSubtitle from "@/components/PageSubtitle";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -211,6 +212,7 @@ export default async function DashboardPage() {
           Welcome back, {firstName} 👋
         </h1>
         <p className="text-[#5F7C84] mt-1">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
+        <PageSubtitle pageKey="dashboard" defaultDescription="Your overview of today's alerts, pending actions, and quick links." />
       </div>
 
       {/* ── Alert banners ───────────────────────────────────────────────── */}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Briefcase, Plus, CheckCircle, Clock, X } from "lucide-react";
+import PageSubtitle from "@/components/PageSubtitle";
 
 const DEFAULT_TEMPLATE = `## Position Overview
 
@@ -166,6 +167,7 @@ export default function PositionDescriptionsPage() {
           <Briefcase className="w-6 h-6 text-[#223149]" />
           <h1 className="text-2xl font-bold text-[#223149]">My Role</h1>
         </div>
+        <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
         <div className="bg-white rounded-2xl shadow-sm p-10 flex flex-col items-center text-center gap-4">
           <div className="w-16 h-16 rounded-full bg-[#ECE3DF] flex items-center justify-center">
             <Briefcase className="w-8 h-8 text-[#9BADB7]" />
@@ -188,6 +190,7 @@ export default function PositionDescriptionsPage() {
           <Briefcase className="w-6 h-6 text-[#223149]" />
           <h1 className="text-2xl font-bold text-[#223149]">My Role</h1>
         </div>
+        <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
         <Link href={`/dashboard/position-descriptions/${pd.id}`}>
           <div className="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-start gap-4">
@@ -235,6 +238,7 @@ export default function PositionDescriptionsPage() {
           New Position Description
         </button>
       </div>
+      <PageSubtitle pageKey="position-descriptions" defaultDescription="Manage and maintain job descriptions and role responsibilities for all staff." />
 
       {/* PD List */}
       {pds.length === 0 ? (

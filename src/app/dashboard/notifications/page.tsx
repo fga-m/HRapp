@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, FileText, CheckSquare, Bell, Check, FileSignature, Palmtree, MessageSquare, TrendingUp } from "lucide-react";
 import { formatDistanceToNow, isToday, isYesterday, format } from "date-fns";
+import PageSubtitle from "@/components/PageSubtitle";
 
 type Notification = {
   id: string;
@@ -122,6 +123,7 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Notifications</h1>
+          <PageSubtitle pageKey="notifications" defaultDescription="Your recent alerts and updates from across the portal." />
           {unreadCount > 0 && (
             <p className="text-sm text-[#5F7C84] mt-1">{unreadCount} unread</p>
           )}
