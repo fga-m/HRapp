@@ -686,6 +686,13 @@ export default function CalendarPage() {
   const [editingEvent, setEditingEvent] = useState<GEvent | null>(null);
   const [duplicatingEvent, setDuplicatingEvent] = useState<GEvent | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
+  // Mobile single-day view: which weekday is shown (0 = Mon … 6 = Sun)
+  const [mobileDayIndex, setMobileDayIndex] = useState(() => {
+    const t = new Date();
+    return (t.getDay() + 6) % 7;
+  });
+  // Pre-fill for the new-event modal when created via mobile tap-to-create
+  const [newEventInit, setNewEventInit] = useState<{ summary: string; startDateTime: string; endDateTime: string; transparency: string } | null>(null);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [hoverPopup, setHoverPopup] = useState<{ event: GEvent; x: number; y: number } | null>(null);
   const [pendingInvites, setPendingInvites] = useState<GEvent[]>([]);
@@ -771,6 +778,8 @@ export default function CalendarPage() {
   const [resizePreview, setResizePreview] = useState<{ eventId: string; topPx: number; height: number } | null>(null);
 
   const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+  // The day shown in the mobile single-day view
+  const mobileDay = days[Math.min(mobileDayIndex, days.length - 1)] ?? days[0];
 
   // ── Fetch staff + role ──────────────────────────────────────────────────
   useEffect(() => {
@@ -1142,7 +1151,7 @@ export default function CalendarPage() {
           </button>
           {isOwnCalendar && (
             <button
-              onClick={() => setShowNewEvent(true)}
+              onClick={() => { setNewEventInit(null); setShowNewEvent(true); }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#223149] text-white rounded-lg hover:bg-[#1a2638] transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -1315,8 +1324,8 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* ── Calendar grid ──────────────────────────────────────────── */}
-      <div className="flex-1 min-h-0 bg-white rounded-2xl shadow-sm overflow-x-auto flex flex-col">
+      {/* ── Calendar grid (desktop) ──────────────────────────────────── */}
+      <div className="hidden md:flex flex-1 min-h-0 bg-white rounded-2xl shadow-sm overflow-x-auto flex-col">
         <div className="flex flex-col flex-1 min-h-0 min-w-[560px]">
         {/* Day headers — paddingRight compensates for the scrollbar width in the grid below */}
         <div
@@ -1711,6 +1720,285 @@ export default function CalendarPage() {
         </div>{/* end min-w wrapper */}
       </div>
 
+      {/* ── Calendar single-day view (mobile) ───────────────────────── */}
+      <div className="md:hidden flex-1 min-h-0 bg-white rounded-2xl shadow-sm flex flex-col">
+        {/* Day-picker strip */}
+        <div className="flex-shrink-0 grid grid-cols-7 gap-1 p-1 border-b border-[#ECE3DF]">
+          {days.map((day, i) => {
+            const selected = i === mobileDayIndex;
+            const today = isToday(day);
+            return (
+              <button
+                key={day.toISOString()}
+                onClick={() => setMobileDayIndex(i)}
+                className={`min-h-[52px] flex flex-col items-center justify-center rounded-lg transition-colors ${
+                  selected
+                    ? "bg-[#223149] text-white"
+                    : today
+                    ? "bg-[#223149]/5 ring-1 ring-[#223149]/20 text-[#223149]"
+                    : "text-[#5F7C84] hover:bg-[#F8F6F4]"
+                }`}
+              >
+                <span className={`text-[10px] uppercase tracking-wide ${selected ? "text-white/70" : "text-[#9BADB7]"}`}>
+                  {format(day, "EEE")}
+                </span>
+                <span className="text-base font-bold mt-0.5">{format(day, "d")}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* All-day row for the selected day */}
+        {allDayEventsForDay(events, mobileDay).length > 0 && (
+          <div className="flex-shrink-0 grid border-b border-[#ECE3DF]" style={{ gridTemplateColumns: "52px 1fr" }}>
+            <div className="border-r border-[#ECE3DF] flex items-center justify-end pr-2">
+              <span className="text-[10px] text-[#9BADB7]">all-day</span>
+            </div>
+            <div className="p-1 min-h-[28px]">
+              {allDayEventsForDay(events, mobileDay).map((ev) => {
+                const ooo = isOOO(ev);
+                const free = isFreeEvent(ev);
+                const bg = ooo
+                  ? "bg-rose-100 text-rose-600"
+                  : free
+                  ? "text-white"
+                  : "text-white " + eventColor.event.split(" ")[0];
+                return (
+                  <div
+                    key={ev.id}
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded mb-0.5 truncate cursor-pointer ${bg}`}
+                    style={
+                      free && !ooo
+                        ? { backgroundColor: hexA(eventColor.hex, 0.15), color: eventColor.hex }
+                        : undefined
+                    }
+                    onClick={() => setTooltip(ev)}
+                  >
+                    {ev.summary || (ooo ? "Out of Office" : "(No title)")}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Single-day timeline — scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid relative" style={{ gridTemplateColumns: "52px 1fr" }}>
+            {/* Time labels */}
+            <div className="border-r border-[#ECE3DF]">
+              {HOURS.map((h) => (
+                <div
+                  key={h}
+                  className="border-b border-[#ECE3DF]/60 flex items-start justify-end pr-2 pt-1"
+                  style={{ height: HOUR_H }}
+                >
+                  <span className="text-[10px] text-[#9BADB7]">
+                    {h === 0 ? "12am" : h === 12 ? "12pm" : h > 12 ? `${h - 12}pm` : `${h}am`}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Single day column */}
+            {(() => {
+              const timed = timedEventsForDay(events, mobileDay);
+              const freeEvs    = timed.filter(ev => isFreeEvent(ev) && !isPendingEvent(ev));
+              const oooEvs     = timed.filter(isOOO);
+              const pendingEvs = timed.filter(ev => isPendingEvent(ev) && !isOOO(ev));
+              const busyEvs    = timed.filter(ev => isBusyEvent(ev) && !isPendingEvent(ev));
+              const positions = layoutEvents(busyEvs);
+              const isCurrentDay = isToday(mobileDay);
+
+              const handleEmptyTap = (e: React.MouseEvent<HTMLDivElement>) => {
+                if (!isOwnCalendar) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const y = e.clientY - rect.top;
+                let h = START_H + y / HOUR_H;
+                // round to the nearest 30 min
+                h = Math.round(h * 2) / 2;
+                const start = new Date(mobileDay);
+                start.setHours(Math.floor(h), Math.round((h % 1) * 60), 0, 0);
+                const end = new Date(start.getTime() + 60 * 60 * 1000);
+                setNewEventInit({
+                  summary: "",
+                  startDateTime: format(start, "yyyy-MM-dd'T'HH:mm"),
+                  endDateTime: format(end, "yyyy-MM-dd'T'HH:mm"),
+                  transparency: "opaque",
+                });
+                setShowNewEvent(true);
+              };
+
+              return (
+                <div
+                  className={`relative ${isCurrentDay ? "bg-[#223149]/[0.02]" : ""}`}
+                  style={{ height: HOUR_H * HOURS.length }}
+                  onClick={isOwnCalendar ? handleEmptyTap : undefined}
+                >
+                  {/* Hour lines */}
+                  {HOURS.map((h) => (
+                    <div
+                      key={h}
+                      className="absolute w-full border-b border-[#ECE3DF]/60"
+                      style={{ top: (h - START_H) * HOUR_H }}
+                    />
+                  ))}
+
+                  {/* ── Layer 1: Free / Working events (background) ── */}
+                  {freeEvs.map((ev) => {
+                    const top = eventTopPx(ev);
+                    const height = eventHeightPx(ev);
+                    const isShort = height < 32;
+                    const isTall = height >= 44;
+                    const timeLabel = `${format(new Date(ev.start.dateTime!), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`;
+                    return (
+                      <div
+                        key={ev.id}
+                        className="absolute left-0 right-0 overflow-hidden cursor-pointer"
+                        style={{
+                          top,
+                          height,
+                          backgroundColor: hexA(eventColor.hex, 0.08),
+                          borderLeft: `2px solid ${hexA(eventColor.hex, 0.35)}`,
+                          zIndex: 1,
+                        }}
+                        onClick={(e) => { e.stopPropagation(); setTooltip(ev); }}
+                      >
+                        {!isShort && (
+                          <div className="px-1.5 pt-0.5">
+                            <p className="text-[10px] truncate font-medium leading-tight" style={{ color: hexA(eventColor.hex, 0.65) }}>
+                              {ev.summary || "Working"}
+                            </p>
+                            {isTall && (
+                              <p className="text-[10px] truncate leading-tight" style={{ color: hexA(eventColor.hex, 0.45) }}>
+                                {timeLabel}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* ── Layer 2: Out of Office ── */}
+                  {oooEvs.map((ev) => {
+                    const top = eventTopPx(ev);
+                    const height = eventHeightPx(ev);
+                    const isShort = height < 32;
+                    const isTall = height >= 44;
+                    const oooTimeLabel = ev.start.dateTime
+                      ? `${format(new Date(ev.start.dateTime), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`
+                      : null;
+                    return (
+                      <div
+                        key={ev.id}
+                        className="absolute left-0 right-0 overflow-hidden cursor-pointer"
+                        style={{
+                          top,
+                          height,
+                          backgroundColor: "rgba(251, 207, 232, 0.35)",
+                          borderLeft: "2px solid #f9a8d4",
+                          zIndex: 2,
+                        }}
+                        onClick={(e) => { e.stopPropagation(); setTooltip(ev); }}
+                      >
+                        {!isShort && (
+                          <div className="px-1.5 pt-0.5">
+                            <p className="text-[10px] truncate font-medium text-rose-500 leading-tight">
+                              {ev.summary || "Out of Office"}
+                            </p>
+                            {isTall && oooTimeLabel && (
+                              <p className="text-[10px] truncate text-rose-400 leading-tight">{oooTimeLabel}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* ── Layer 2b: Pending events (not yet accepted) ── */}
+                  {pendingEvs.map((ev) => {
+                    const top = eventTopPx(ev);
+                    const height = eventHeightPx(ev);
+                    const isShort = height < 32;
+                    const isTall = height >= 44;
+                    return (
+                      <div
+                        key={ev.id}
+                        className="absolute left-0 right-0 overflow-hidden cursor-pointer"
+                        style={{
+                          top,
+                          height,
+                          backgroundColor: hexA(eventColor.hex, 0.06),
+                          border: `1.5px dashed ${hexA(eventColor.hex, 0.4)}`,
+                          borderRadius: 4,
+                          zIndex: 3,
+                        }}
+                        onClick={(e) => { e.stopPropagation(); setTooltip(ev); }}
+                      >
+                        {!isShort && (
+                          <div className="px-1.5 pt-0.5">
+                            <p className="text-[10px] truncate font-medium leading-tight" style={{ color: hexA(eventColor.hex, 0.6) }}>
+                              ? {ev.summary || "Pending"}
+                            </p>
+                            {isTall && (
+                              <p className="text-[10px] truncate leading-tight" style={{ color: hexA(eventColor.hex, 0.4) }}>
+                                {`${format(new Date(ev.start.dateTime!), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Current time line */}
+                  {isCurrentDay && nowTop >= 0 && nowTop <= HOUR_H * HOURS.length && (
+                    <div
+                      className="absolute w-full flex items-center pointer-events-none"
+                      style={{ top: nowTop, zIndex: 10 }}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 flex-shrink-0" />
+                      <div className="flex-1 border-t-2 border-red-500" />
+                    </div>
+                  )}
+
+                  {/* ── Layer 3: Busy events ── */}
+                  {busyEvs.map((ev) => {
+                    const pos = positions.get(ev.id) ?? { left: 0, width: 96 };
+                    const top = eventTopPx(ev);
+                    const height = eventHeightPx(ev);
+                    const isTall = height >= 44;
+                    const isExtraTall = height >= 60;
+                    const timeLabel = `${format(new Date(ev.start.dateTime!), "h:mm")}–${format(new Date(ev.end.dateTime!), "h:mm a")}`;
+                    return (
+                      <div
+                        key={ev.id}
+                        className={`absolute rounded-lg border-l-2 overflow-hidden cursor-pointer ${eventColor.event}`}
+                        style={{ top, height, left: `${pos.left}%`, width: `${pos.width}%`, zIndex: 5 }}
+                        onClick={(e) => { e.stopPropagation(); setTooltip(ev); }}
+                      >
+                        <div className="px-1.5 py-1">
+                          <p className="text-[11px] font-semibold text-white leading-tight truncate">
+                            {ev.summary || "(No title)"}
+                          </p>
+                          {isTall && (
+                            <p className="text-[10px] text-white/80 leading-tight truncate">{timeLabel}</p>
+                          )}
+                          {isExtraTall && ev.location && (
+                            <p className="text-[10px] text-white/60 leading-tight truncate">📍 {ev.location}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      </div>
+
       {/* ── Hover popup (all event types) ─────────────────────────── */}
       {hoverPopup && (() => {
         const ev = hoverPopup.event;
@@ -1939,6 +2227,46 @@ export default function CalendarPage() {
               )}
             </div>
 
+            {/* RSVP buttons — shown when user is an attendee */}
+            {tooltip.attendees?.some((a) => a.email === userEmail) && (() => {
+              const myRsvp = tooltip.attendees!.find((a) => a.email === userEmail)?.responseStatus;
+              return (
+                <div className="pt-3 border-t border-[#ECE3DF]">
+                  <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1.5">Your response</p>
+                  <div className="flex gap-1.5">
+                    {(["accepted", "tentative", "declined"] as const).map((status) => {
+                      const labels = { accepted: "✓ Yes", tentative: "~ Maybe", declined: "✗ No" };
+                      const activeClass = {
+                        accepted: "bg-emerald-500 text-white border-emerald-500",
+                        tentative: "bg-amber-500 text-white border-amber-500",
+                        declined: "bg-rose-500 text-white border-rose-500",
+                      };
+                      const hoverClass = {
+                        accepted: "hover:bg-emerald-50 hover:border-emerald-300",
+                        tentative: "hover:bg-amber-50 hover:border-amber-300",
+                        declined: "hover:bg-rose-50 hover:border-rose-300",
+                      };
+                      const isActive = myRsvp === status;
+                      return (
+                        <button
+                          key={status}
+                          disabled={rsvpLoading !== null}
+                          onClick={() => handleRsvp(tooltip, status)}
+                          className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-colors disabled:opacity-60 ${
+                            isActive
+                              ? activeClass[status]
+                              : `border-[#ECE3DF] text-[#5F7C84] ${hoverClass[status]}`
+                          }`}
+                        >
+                          {rsvpLoading === status ? "…" : labels[status]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Work-hour override — admin only, staff calendars only */}
             {role === "admin" && viewingStaff && (
               <div className="pt-3 border-t border-[#ECE3DF] space-y-2">
@@ -2053,8 +2381,9 @@ export default function CalendarPage() {
         <EventFormModal
           calendarId={selectedId}
           staffList={staffList}
-          onClose={() => setShowNewEvent(false)}
-          onSuccess={() => { setShowNewEvent(false); fetchEvents(); }}
+          initial={newEventInit ?? undefined}
+          onClose={() => { setShowNewEvent(false); setNewEventInit(null); }}
+          onSuccess={() => { setShowNewEvent(false); setNewEventInit(null); fetchEvents(); }}
         />
       )}
     </div>
