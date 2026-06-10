@@ -1119,7 +1119,7 @@ export default function CalendarPage() {
     <div className="space-y-2">
       <h1 className="text-3xl font-bold text-[#223149]">Work Calendar</h1>
       <PageSubtitle pageKey="calendar" defaultDescription="View and log work events. Events sync automatically from Google Calendar." />
-      <div className="flex flex-col h-[calc(100vh-200px)] md:h-[calc(100vh-140px)] min-h-0">
+      <div className="flex flex-col md:h-[calc(100vh-140px)] min-h-0">
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="flex-shrink-0 space-y-3 mb-3">
         {/* Week nav */}
@@ -2140,11 +2140,11 @@ export default function CalendarPage() {
       {/* ── Event detail modal ─────────────────────────────────────── */}
       {tooltip && (
         <div
-          className="fixed inset-0 z-40 flex items-end md:items-center justify-center p-4 bg-black/30"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/30"
           onClick={() => setTooltip(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl p-5 w-full max-w-sm space-y-3"
+            className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-5 pb-8 md:pb-5 w-full md:max-w-sm space-y-3 max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Status badge + actions */}
