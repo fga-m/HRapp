@@ -372,7 +372,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   onClick={() => setActiveTab("my")}
                   className={`px-4 py-2 transition-colors ${activeTab === "my" ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
                 >
-                  Leave Requests
+                  My Leave
                 </button>
                 <button
                   onClick={() => setActiveTab("team")}

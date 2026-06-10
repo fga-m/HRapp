@@ -41,7 +41,16 @@ export default function DropZone({
   return (
     <>
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Choose a file to upload, or drag & drop one here"
         onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragEnter={() => setDragging(true)}
@@ -66,7 +75,8 @@ export default function DropZone({
           <>
             <Upload className="w-8 h-8 text-[#9BADB7] mx-auto mb-2" />
             <p className="text-sm text-[#5F7C84]">
-              Click to select or drag & drop a file
+              Tap to choose a file
+              <span className="hidden md:inline">, or drag &amp; drop</span>
             </p>
             <p className="text-xs text-[#9BADB7] mt-1">{label}</p>
           </>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Mail, Building2, Shield, User } from "lucide-react";
+import { Search, Mail, Building2, Shield, User, X } from "lucide-react";
 
 interface StaffMember {
   id: string;
@@ -64,9 +64,11 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
         {query && (
           <button
             onClick={() => setQuery("")}
+            aria-label="Clear search"
+            title="Clear search"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9BADB7] hover:text-[#223149] transition-colors"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -137,7 +139,7 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden opacity-60">
           <div className="px-6 py-4 border-b border-[#ECE3DF] flex items-center justify-between">
             <h2 className="font-semibold text-[#223149]">
-              Inactive / Offboarded ({filteredInactive.length})
+              Former staff ({filteredInactive.length})
             </h2>
           </div>
           <div className="divide-y divide-[#ECE3DF]">

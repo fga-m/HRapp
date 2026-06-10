@@ -138,7 +138,7 @@ export default function MeetingDetailPage() {
         {role === "admin" && isShared && (
           <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-medium">
             <CheckCircle className="w-4 h-4" />
-            Shared
+            Shared with staff
           </span>
         )}
       </div>
@@ -208,7 +208,7 @@ export default function MeetingDetailPage() {
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  {acknowledging ? "Acknowledging..." : "I Agree & Acknowledge"}
+                  {acknowledging ? "Acknowledging..." : "Acknowledge I've read this"}
                 </button>
               )}
 

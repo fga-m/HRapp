@@ -11,6 +11,7 @@ export default function PoliciesPage() {
   const [role, setRole] = useState<string>("staff");
   const [staffId, setStaffId] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/policies")
@@ -20,6 +21,10 @@ export default function PoliciesPage() {
         setRole(d.role);
         setStaffId(d.staffId);
         setLoading(false);
+      })
+      .catch(() => {
+        setError("Couldn't load policies. Please try again.");
+        setLoading(false);
       });
   }, []);
 
@@ -27,6 +32,15 @@ export default function PoliciesPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+        <AlertCircle className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
+        <p className="text-[#5F7C84] font-medium">{error}</p>
       </div>
     );
   }
@@ -130,7 +144,7 @@ function PolicyRow({ policy, role, staffId }: { policy: any; role: string; staff
         {policy.requires_signoff && (
           <span className="flex items-center gap-1 text-xs text-[#9BADB7]">
             <Clock className="w-3.5 h-3.5" />
-            Sign-off required
+            Needs your signature
           </span>
         )}
         <ChevronRight className="w-4 h-4 text-[#9BADB7] group-hover:text-[#223149] transition-colors" />

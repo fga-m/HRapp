@@ -96,6 +96,7 @@ export default function AccessLevelsPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-[#223149]">Roles & Permissions</h1>
           <PageSubtitle pageKey="access" defaultDescription="Control what each role can access and do within the portal." />
+          <p className="text-xs text-[#9BADB7] mt-1">Turning a feature off hides it from that role entirely.</p>
         </div>
       </div>
 
@@ -126,10 +127,10 @@ export default function AccessLevelsPage() {
                 className={`py-3.5 ${i < FEATURES.length - 1 ? "border-b border-[#ECE3DF]" : ""}`}
               >
                 <div className="flex items-center gap-3">
-                  {/* Always-on toggle indicator */}
-                  <div className="relative w-9 h-5 rounded-full bg-[#223149] flex-shrink-0">
-                    <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow" />
-                  </div>
+                  {/* Always-on indicator — non-interactive */}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-[#ECE3DF] text-[#223149] flex-shrink-0">
+                    Always on
+                  </span>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[#223149] truncate">
                       {feature.label}
@@ -222,6 +223,13 @@ function RoleCard({ role, label, badgeColor, permMap, saving, onToggle }: RoleCa
                     }`}
                   />
                 </button>
+                <span
+                  className={`text-[10px] font-semibold uppercase tracking-wide w-7 flex-shrink-0 ${
+                    enabled ? "text-[#223149]" : "text-[#9BADB7]"
+                  }`}
+                >
+                  {enabled ? "On" : "Off"}
+                </span>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-[#223149] truncate">
                     {feature.label}

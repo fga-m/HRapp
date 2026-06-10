@@ -7,7 +7,7 @@ export const FEATURES = [
   { key: "manage_org",                   label: "Edit Org Chart",              description: "Add, edit and remove org chart roles" },
   { key: "manage_position_descriptions", label: "Manage Position Descriptions", description: "Create and assign position descriptions" },
   { key: "view_team_schedule",           label: "View Team Schedule",          description: "Access the team schedule and TOIL tracker" },
-  { key: "manage_toil",                  label: "Manage TOIL",                 description: "Log and adjust time off in lieu for staff" },
+  { key: "manage_toil",                  label: "Manage TOIL (time off in lieu)", description: "Log and adjust time off in lieu for staff" },
 ] as const;
 
 export type FeatureKey = typeof FEATURES[number]["key"];

@@ -63,7 +63,6 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const [reviewNotes, setReviewNotes] = useState("");
 
   const canView = isOwnProfile || isManager;
-  if (!canView) return null;
 
   const fetchClaims = () => {
     // Fetch only this staff member's claims — we filter client-side if admin viewing someone else's profile
@@ -78,6 +77,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   };
 
   useEffect(() => { fetchClaims(); }, [staffId]);
+
+  if (!canView) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +149,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
           </div>
         ) : claims.length === 0 ? (
           <p className="text-sm text-[#9BADB7] text-center py-4">
-            {isOwnProfile ? "No expense claims yet. Submit one above." : "No expense claims."}
+            {isOwnProfile ? "No expense claims yet. Use the New claim button to submit one." : "No expense claims."}
           </p>
         ) : (
           <div className="space-y-2">

@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
-import { UserPlus, Download } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import StaffListClient from "@/components/staff/StaffListClient";
 import PageSubtitle from "@/components/PageSubtitle";
 
@@ -34,16 +34,22 @@ export default async function StaffPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/staff/import"
+            title="Import staff from Google Workspace"
+            aria-label="Import staff from Google Workspace"
             className="flex items-center gap-2 px-3 py-2.5 border border-[#223149] text-[#223149] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
           >
-            <Download className="w-4 h-4" />
+            <Users className="w-4 h-4" />
+            <span className="sm:hidden">Import</span>
             <span className="hidden sm:inline">Import from Google</span>
           </Link>
           <Link
             href="/dashboard/staff/new"
+            title="Add staff member"
+            aria-label="Add staff member"
             className="flex items-center gap-2 px-3 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
           >
             <UserPlus className="w-4 h-4" />
+            <span className="sm:hidden">Add</span>
             <span className="hidden sm:inline">Add Staff</span>
           </Link>
         </div>

@@ -9,6 +9,7 @@ import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
 import StaffQuickSearch from "@/components/staff/StaffQuickSearch";
 import StaffContractUpload from "@/components/staff/StaffContractUpload";
 import StaffDocumentsCard from "@/components/staff/StaffDocumentsCard";
+import ExpenseClaimsCard from "@/components/staff/ExpenseClaimsCard";
 
 export const dynamic = "force-dynamic";
 
@@ -426,6 +427,9 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
 
       {/* Leave Balances */}
       <LeaveBalancesCard staffId={member.id} isOwnProfile={caller?.id === id} />
+
+      {/* Expense Claims */}
+      <ExpenseClaimsCard staffId={member.id} isOwnProfile={caller?.id === id} isManager={isManager} />
 
       {/* Work Schedule */}
       <ScheduleCard staffId={member.id} canEdit={canEditSchedule} contractedHours={member.contracted_hours ?? undefined} />

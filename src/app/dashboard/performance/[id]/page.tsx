@@ -77,6 +77,9 @@ function EvalForm({
 
   return (
     <div className="space-y-6">
+      <p className="text-xs text-[#5F7C84] bg-[#F8F6F4] border border-[#ECE3DF] rounded-xl px-3 py-2">
+        Rate each area from 1 ({SCORE_LABELS[1]}) to 5 ({SCORE_LABELS[5]}).
+      </p>
       {CRITERIA.map((criterion) => {
         const selected = data.scores[criterion.key] ?? 0;
         return (
@@ -137,23 +140,28 @@ function EvalForm({
         />
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <button
-          type="button"
-          onClick={() => onSave(data)}
-          disabled={saving}
-          className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
-        >
-          {saving ? "Saving…" : "Save draft"}
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={submitting}
-          className="px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
-        >
-          {submitting ? "Submitting…" : "Submit"}
-        </button>
+      <div className="pt-2">
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => onSave(data)}
+            disabled={saving}
+            className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save draft"}
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
+          >
+            {submitting ? "Submitting…" : "Submit"}
+          </button>
+        </div>
+        <p className="text-xs text-[#9BADB7] mt-2">
+          Submitting locks your self-evaluation — you won&apos;t be able to edit it.
+        </p>
       </div>
     </div>
   );
@@ -520,7 +528,7 @@ export default function PerformanceDetailPage() {
                     Manager
                   </th>
                   <th className="text-center py-3 pl-3 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
-                    Diff
+                    Manager − Self
                   </th>
                 </tr>
               </thead>
@@ -561,6 +569,9 @@ export default function PerformanceDetailPage() {
               </tbody>
             </table>
           </div>
+          <p className="text-xs text-[#9BADB7] mt-3">
+            &ldquo;Manager − Self&rdquo; is the difference between the manager&apos;s and your score.
+          </p>
 
           {/* Overall & goals comparison */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -587,7 +598,11 @@ export default function PerformanceDetailPage() {
       {/* Year-on-year comparison */}
       {hasMultiplePeriods && (
         <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-base font-bold text-[#223149] mb-5">Year-on-Year Comparison</h2>
+          <h2 className="text-base font-bold text-[#223149] mb-1">Year-on-Year Comparison</h2>
+          <p className="text-xs text-[#9BADB7] mb-5">
+            Large number is the self-evaluation score.
+            {(isManagerOrAdmin || review.is_visible_to_staff) ? " M = Manager score." : ""}
+          </p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -645,7 +660,7 @@ export default function PerformanceDetailPage() {
             </table>
           </div>
           <p className="text-xs text-[#9BADB7] mt-3">
-            Scores shown are self-evaluation.{isManagerOrAdmin ? " M: Manager score." : review.is_visible_to_staff ? " M: Manager score." : ""}
+            Tap a period heading to open that review.
           </p>
         </div>
       )}

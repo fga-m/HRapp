@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree } from "lucide-react";
+import { Bell, X, LogOut, User, Calendar, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree, Shield } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -25,6 +25,7 @@ const moreItems = [
   { label: "Hours & TOIL",        href: "/dashboard/schedule",              icon: CalendarDays,  permission: "view_team_schedule" },
   { label: "Checklists",          href: "/dashboard/onboarding",            icon: CheckSquare,   hideWhenNoChecklists: true },
   { label: "Contracts",           href: "/dashboard/contracts",             icon: FileSignature },
+  { label: "Policies",            href: "/dashboard/policies",              icon: Shield },
   { label: "Org Chart",           href: "/dashboard/org",                   icon: Network },
   { label: "My Position",         href: "/dashboard/position-descriptions", icon: Briefcase },
   { label: "Staff",               href: "/dashboard/staff",                 icon: Users,         permission: "manage_staff" },

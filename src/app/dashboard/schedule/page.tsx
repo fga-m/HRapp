@@ -274,6 +274,7 @@ export default function SchedulePage() {
             onClick={() => fetchData(weekStart)}
             disabled={loading}
             title="Refresh from Google Calendar"
+            aria-label="Refresh from Google Calendar"
             className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -320,9 +321,9 @@ export default function SchedulePage() {
       {data && (
         <div className="flex items-center justify-between gap-3 bg-white rounded-2xl p-4 shadow-sm">
           <div>
-            <p className="text-sm font-semibold text-[#223149]">TOIL rolling window</p>
+            <p className="text-sm font-semibold text-[#223149]">Time Off in Lieu (TOIL) rolling window</p>
             <p className="text-xs text-[#5F7C84]">
-              Balances sum each staff member&apos;s weekly variance over the last{" "}
+              Balances sum each staff member&apos;s weekly difference over the last{" "}
               {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "week" : "weeks"} (the viewed
               week plus the {data.toilWindowWeeks - 1} before it).
             </p>
@@ -334,6 +335,7 @@ export default function SchedulePage() {
                   onClick={() => changeToilWindow(-1)}
                   disabled={savingWindow || data.toilWindowWeeks <= TOIL_WINDOW_MIN}
                   title="Fewer weeks"
+                  aria-label="Decrease weeks"
                   className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
                 >
                   <Minus className="w-4 h-4" />
@@ -343,7 +345,7 @@ export default function SchedulePage() {
                     <Loader2 className="w-4 h-4 animate-spin text-[#5F7C84] mx-auto" />
                   ) : (
                     <span className="text-base font-bold text-[#223149]">
-                      {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "wk" : "wks"}
+                      {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "week" : "weeks"}
                     </span>
                   )}
                 </div>
@@ -351,6 +353,7 @@ export default function SchedulePage() {
                   onClick={() => changeToilWindow(1)}
                   disabled={savingWindow || data.toilWindowWeeks >= TOIL_WINDOW_MAX}
                   title="More weeks"
+                  aria-label="Increase weeks"
                   className="p-2 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
                 >
                   <Plus className="w-4 h-4" />
@@ -361,7 +364,7 @@ export default function SchedulePage() {
           ) : (
             <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
               <span className="text-base font-bold text-[#223149]">
-                {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "wk" : "wks"}
+                {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "week" : "weeks"}
               </span>
               <span className="text-[11px] text-[#9BADB7]">includes current week</span>
             </div>
@@ -402,7 +405,8 @@ export default function SchedulePage() {
                     Scheduled
                   </th>
                   <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
-                    Variance
+                    Difference
+                    <p className="text-[8px] font-normal normal-case tracking-normal mt-0.5 opacity-70">(over / under contracted)</p>
                   </th>
                   <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
                     TOIL Balance
@@ -504,7 +508,7 @@ export default function SchedulePage() {
                     </p>
                   </div>
                   <div className="bg-[#F8F6F4] rounded-xl px-3 py-2">
-                    <p className="text-[#9BADB7] mb-1">Variance</p>
+                    <p className="text-[#9BADB7] mb-1">Difference</p>
                     <VarianceBadge
                       contracted={member.contracted_hours}
                       scheduled={member.scheduled_hours}
