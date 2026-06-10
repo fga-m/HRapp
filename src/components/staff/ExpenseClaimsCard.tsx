@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTriangle, ChevronDown, ChevronUp, Paperclip } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 interface Claim {
   id: string;
   date: string;
   amount: number;
-  category: string;
   description: string;
-  status: "pending" | "approved" | "rejected";
-  reviewer_notes?: string;
+  account_name?: string | null;
+  spent_at?: string | null;
+  status: "submitted" | "approved" | "rejected" | "pushed" | "push_failed";
+  reviewer_notes?: string | null;
+  receipt_signed_url?: string | null;
   created_at: string;
 }
 
@@ -21,34 +23,24 @@ interface Props {
   isManager: boolean;
 }
 
-const CATEGORIES = [
-  "Travel & Transport",
-  "Meals & Entertainment",
-  "Office Supplies",
-  "Equipment",
-  "Training & Education",
-  "Ministry & Outreach",
-  "Communication",
-  "Other",
-];
+interface XeroAccount { code: string; name: string; taxType: string }
+interface XeroTaxRate { taxType: string; name: string; rate: number }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "pending") return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600">
-      <Clock className="w-3 h-3" /> Pending
+  const map: Record<string, { cls: string; icon: React.ReactNode; label: string }> = {
+    submitted: { cls: "bg-amber-50 text-amber-600", icon: <Clock className="w-3 h-3" />, label: "Submitted" },
+    approved: { cls: "bg-blue-50 text-blue-600", icon: <CheckCircle className="w-3 h-3" />, label: "Approved" },
+    pushed: { cls: "bg-green-50 text-green-600", icon: <Send className="w-3 h-3" />, label: "Sent to Xero" },
+    rejected: { cls: "bg-red-50 text-red-600", icon: <XCircle className="w-3 h-3" />, label: "Rejected" },
+    push_failed: { cls: "bg-red-50 text-red-600", icon: <AlertTriangle className="w-3 h-3" />, label: "Push failed" },
+  };
+  const m = map[status];
+  if (!m) return null;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${m.cls}`}>
+      {m.icon} {m.label}
     </span>
   );
-  if (status === "approved") return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600">
-      <CheckCircle className="w-3 h-3" /> Approved
-    </span>
-  );
-  if (status === "rejected") return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">
-      <XCircle className="w-3 h-3" /> Rejected
-    </span>
-  );
-  return null;
 }
 
 export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: Props) {
@@ -56,21 +48,31 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ date: "", amount: "", category: "", description: "" });
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [reviewingId, setReviewingId] = useState<string | null>(null);
-  const [reviewNotes, setReviewNotes] = useState("");
+
+  // form fields
+  const [amount, setAmount] = useState("");
+  const [spentOn, setSpentOn] = useState("");
+  const [description, setDescription] = useState("");
+  const [spentAt, setSpentAt] = useState("");
+  const [accountCode, setAccountCode] = useState("");
+  const [taxType, setTaxType] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+
+  // Xero dropdown data
+  const [accounts, setAccounts] = useState<XeroAccount[]>([]);
+  const [taxRates, setTaxRates] = useState<XeroTaxRate[]>([]);
+  const [metaLoading, setMetaLoading] = useState(false);
+  const [metaError, setMetaError] = useState("");
 
   const canView = isOwnProfile || isManager;
 
   const fetchClaims = () => {
-    // Fetch only this staff member's claims — we filter client-side if admin viewing someone else's profile
     fetch(`/api/expenses?staffId=${staffId}`)
-      .then(r => r.json())
-      .then(d => {
-        const list = Array.isArray(d) ? d.filter((c: any) => c.staff_id === staffId) : [];
-        setClaims(list);
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => {
+        setClaims(Array.isArray(d) ? d.filter((c: any) => c.staff_id === staffId) : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -78,39 +80,64 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
 
   useEffect(() => { fetchClaims(); }, [staffId]);
 
+  // Load the Xero account + tax-rate dropdowns when the form opens.
+  useEffect(() => {
+    if (!showModal || accounts.length > 0) return;
+    setMetaLoading(true);
+    setMetaError("");
+    Promise.all([
+      fetch("/api/xero/accounts").then((r) => (r.ok ? r.json() : Promise.reject(r))),
+      fetch("/api/xero/tax-rates").then((r) => (r.ok ? r.json() : Promise.reject(r))),
+    ])
+      .then(([accs, taxes]) => {
+        setAccounts(accs);
+        setTaxRates(taxes);
+      })
+      .catch(async (r) => {
+        const body = r?.json ? await r.json().catch(() => ({})) : {};
+        setMetaError(body.error || "Couldn't load accounts from Xero. Is Xero connected?");
+      })
+      .finally(() => setMetaLoading(false));
+  }, [showModal, accounts.length]);
+
   if (!canView) return null;
+
+  const resetForm = () => {
+    setAmount(""); setSpentOn(""); setDescription(""); setSpentAt("");
+    setAccountCode(""); setTaxType(""); setFile(null); setSubmitError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!file) { setSubmitError("Please attach a receipt."); return; }
     setSubmitting(true);
     setSubmitError("");
     try {
-      const res = await fetch("/api/expenses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const account = accounts.find((a) => a.code === accountCode);
+      const tax = taxRates.find((t) => t.taxType === taxType);
+      const fd = new FormData();
+      fd.append("amount", amount);
+      fd.append("spent_on", spentOn);
+      fd.append("description", description);
+      fd.append("spent_at", spentAt);
+      fd.append("account_code", accountCode);
+      fd.append("account_name", account?.name ?? "");
+      fd.append("tax_type", taxType);
+      fd.append("tax_rate_name", tax?.name ?? "");
+      fd.append("line_amount_type", "Inclusive");
+      fd.append("file", file);
+
+      const res = await fetch("/api/expenses", { method: "POST", body: fd });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "Failed to submit");
       setShowModal(false);
-      setForm({ date: "", amount: "", category: "", description: "" });
+      resetForm();
       fetchClaims();
     } catch (err: any) {
       setSubmitError(err.message);
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleReview = async (claimId: string, status: "approved" | "rejected") => {
-    await fetch(`/api/expenses/${claimId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, reviewer_notes: reviewNotes }),
-    });
-    setReviewingId(null);
-    setReviewNotes("");
-    fetchClaims();
   };
 
   const handleDelete = async (claimId: string) => {
@@ -153,27 +180,30 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
           </p>
         ) : (
           <div className="space-y-2">
-            {visible.map(claim => (
+            {visible.map((claim) => (
               <div key={claim.id} className="border border-[#ECE3DF] rounded-xl p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-[#223149]">
-                        ${claim.amount.toFixed(2)}
+                        ${Number(claim.amount).toFixed(2)}
                       </span>
-                      <span className="text-xs text-[#9BADB7]">{claim.category}</span>
+                      {claim.account_name && <span className="text-xs text-[#9BADB7]">{claim.account_name}</span>}
                     </div>
                     <p className="text-sm text-[#5F7C84] mt-0.5 truncate">{claim.description}</p>
                     <p className="text-xs text-[#9BADB7] mt-0.5">
                       {format(parseISO(claim.date), "d MMM yyyy")}
+                      {claim.spent_at ? ` · ${claim.spent_at}` : ""}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <StatusBadge status={claim.status} />
-                    {(isOwnProfile && claim.status === "pending") && (
+                    {isOwnProfile && claim.status === "submitted" && (
                       <button
                         onClick={() => handleDelete(claim.id)}
                         className="p-1 rounded-lg hover:bg-red-50 text-[#9BADB7] hover:text-red-400 transition-colors"
+                        title="Delete claim"
+                        aria-label="Delete claim"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -181,53 +211,28 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                   </div>
                 </div>
 
+                {claim.receipt_signed_url && (
+                  <a
+                    href={claim.receipt_signed_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-[#5F7C84] hover:text-[#223149] transition-colors"
+                  >
+                    <Paperclip className="w-3 h-3" /> View receipt
+                  </a>
+                )}
+
                 {claim.reviewer_notes && (
                   <p className="text-xs text-[#5F7C84] italic bg-[#F8F6F4] px-3 py-2 rounded-lg">
                     {claim.reviewer_notes}
                   </p>
-                )}
-
-                {/* Manager review actions */}
-                {isManager && claim.status === "pending" && (
-                  reviewingId === claim.id ? (
-                    <div className="space-y-2 pt-1">
-                      <textarea
-                        rows={2}
-                        value={reviewNotes}
-                        onChange={e => setReviewNotes(e.target.value)}
-                        placeholder="Optional notes for the staff member…"
-                        className="w-full px-3 py-2 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 resize-none"
-                      />
-                      <div className="flex gap-2">
-                        <button onClick={() => handleReview(claim.id, "approved")}
-                          className="flex-1 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 transition-colors">
-                          Approve
-                        </button>
-                        <button onClick={() => handleReview(claim.id, "rejected")}
-                          className="flex-1 py-1.5 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-colors">
-                          Reject
-                        </button>
-                        <button onClick={() => { setReviewingId(null); setReviewNotes(""); }}
-                          className="px-3 py-1.5 border border-[#ECE3DF] text-[#5F7C84] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors">
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setReviewingId(claim.id)}
-                      className="text-xs font-medium text-[#5F7C84] hover:text-[#223149] transition-colors"
-                    >
-                      Review
-                    </button>
-                  )
                 )}
               </div>
             ))}
 
             {claims.length > 3 && (
               <button
-                onClick={() => setShowAll(v => !v)}
+                onClick={() => setShowAll((v) => !v)}
                 className="flex items-center gap-1 text-xs text-[#5F7C84] hover:text-[#223149] transition-colors"
               >
                 {showAll ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -241,8 +246,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
       {/* New Claim Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
-          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md pb-safe">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
+          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md max-h-[90vh] overflow-y-auto pb-safe">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF] sticky top-0 bg-white">
               <h2 className="text-lg font-bold text-[#223149]">New Expense Claim</h2>
               <button onClick={() => { setShowModal(false); setSubmitError(""); }}
                 className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors">
@@ -250,14 +255,25 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Receipt (required) */}
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Receipt <span className="text-red-500">*</span></label>
+                <input
+                  type="file"
+                  required
+                  accept="image/png,image/jpeg,application/pdf"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  className="w-full text-sm text-[#5F7C84] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#223149] file:text-white hover:file:bg-[#1a2638]"
+                />
+                <p className="text-xs text-[#9BADB7] mt-1">A photo or PDF of the receipt (PNG, JPG or PDF).</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Date</label>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent on</label>
                   <input
-                    type="date"
-                    required
-                    value={form.date}
-                    onChange={e => setForm({ ...form, date: e.target.value })}
+                    type="date" required value={spentOn}
+                    onChange={(e) => setSpentOn(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
@@ -266,13 +282,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9BADB7] text-sm">$</span>
                     <input
-                      type="number"
-                      required
-                      min="0.01"
-                      step="0.01"
-                      value={form.amount}
-                      onChange={e => setForm({ ...form, amount: e.target.value })}
-                      placeholder="0.00"
+                      type="number" required min="0.01" step="0.01" value={amount}
+                      onChange={(e) => setAmount(e.target.value)} placeholder="0.00"
                       className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                     />
                   </div>
@@ -280,36 +291,59 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Category</label>
-                <select
-                  required
-                  value={form.category}
-                  onChange={e => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
-                >
-                  <option value="">Select category…</option>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
                 <textarea
-                  required
-                  rows={3}
-                  value={form.description}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                  placeholder="What was this expense for?"
+                  required rows={2} value={description}
+                  onChange={(e) => setDescription(e.target.value)} placeholder="What was it for?"
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#9BADB7] font-normal">(optional)</span></label>
+                <input
+                  type="text" value={spentAt}
+                  onChange={(e) => setSpentAt(e.target.value)} placeholder="Where was the money spent?"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                />
+              </div>
+
+              {metaError ? (
+                <p className="text-sm text-red-500">{metaError}</p>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Account</label>
+                    <select
+                      required value={accountCode} disabled={metaLoading}
+                      onChange={(e) => setAccountCode(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
+                    >
+                      <option value="">{metaLoading ? "Loading…" : "Select account…"}</option>
+                      {accounts.map((a) => <option key={a.code} value={a.code}>{a.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
+                    <select
+                      required value={taxType} disabled={metaLoading}
+                      onChange={(e) => setTaxType(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
+                    >
+                      <option value="">{metaLoading ? "Loading…" : "Select tax rate…"}</option>
+                      {taxRates.map((t) => <option key={t.taxType} value={t.taxType}>{t.name}</option>)}
+                    </select>
+                    <p className="text-xs text-[#9BADB7] mt-1">Amount is treated as tax-inclusive.</p>
+                  </div>
+                </>
+              )}
 
               {submitError && <p className="text-sm text-red-500">{submitError}</p>}
 
               <div className="flex gap-3 pt-1">
                 <button
-                  type="submit"
-                  disabled={submitting}
+                  type="submit" disabled={submitting || metaLoading || !!metaError}
                   className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
                 >
                   {submitting ? "Submitting…" : "Submit Claim"}

@@ -85,6 +85,23 @@ export async function GET(req: NextRequest) {
 
     if (dbError) throw new Error(dbError.message);
 
+    // Persist the granted scope string so we can later tell which Xero
+    // capabilities (payroll vs accounting) this connection actually has.
+    // Defensive: the xero_connection table may not yet have a `scopes` column
+    // (the migration agent is not adding it), so ignore the error if so.
+    if (tokens.scope) {
+      const { error: scopeErr } = await supabaseAdmin
+        .from("xero_connection")
+        .update({ scopes: tokens.scope })
+        .eq("tenant_id", tenant.tenantId);
+      if (scopeErr) {
+        console.warn(
+          "Could not store Xero granted scopes (xero_connection.scopes column may be missing):",
+          scopeErr.message
+        );
+      }
+    }
+
     return NextResponse.redirect(
       new URL("/dashboard/settings?xero_connected=1", req.url)
     );

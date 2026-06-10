@@ -7,7 +7,7 @@ import crypto from "crypto";
 export const dynamic = "force-dynamic";
 
 const XERO_AUTH_URL = "https://login.xero.com/identity/connect/authorize";
-const SCOPES = "openid profile email offline_access payroll.employees payroll.settings.read";
+const SCOPES = "openid profile email offline_access payroll.employees payroll.settings.read accounting.transactions accounting.contacts accounting.attachments accounting.settings.read";
 const REDIRECT_URI = `${process.env.NEXTAUTH_URL}/api/xero/callback`;
 
 export async function GET() {
