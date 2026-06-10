@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, Plus, X, ExternalLink, GripVertical, Pencil,
+  ArrowLeft, Plus, X, ExternalLink, Pencil,
   Trash2, Star, ToggleLeft, ToggleRight, Users
 } from "lucide-react";
 
@@ -487,7 +487,7 @@ export default function TemplateEditorPage() {
     return (
       <div className="space-y-4">
         <Link href="/dashboard/onboarding" className="inline-flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to Onboarding
+          <ArrowLeft className="w-4 h-4" /> Back to Checklists
         </Link>
         <p className="text-[#9BADB7]">{error || "Template not found."}</p>
       </div>
@@ -501,6 +501,7 @@ export default function TemplateEditorPage() {
         <div className="flex items-start gap-3">
           <Link
             href="/dashboard/onboarding"
+            aria-label="Back to Checklists"
             className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors mt-0.5 flex-shrink-0"
           >
             <ArrowLeft className="w-5 h-5 text-[#223149]" />
@@ -528,7 +529,7 @@ export default function TemplateEditorPage() {
             <span className="hidden sm:inline">Edit</span>
           </button>
           <Link
-            href="/dashboard/onboarding"
+            href={`/dashboard/onboarding?assign=${id}`}
             className="flex items-center gap-1.5 px-3 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
           >
             <Users className="w-3.5 h-3.5" />
@@ -574,9 +575,6 @@ export default function TemplateEditorPage() {
                       key={item.id}
                       className="flex items-start gap-3 px-6 py-4 hover:bg-[#F8F6F4] transition-colors group"
                     >
-                      {/* Drag handle (visual only) */}
-                      <GripVertical className="w-4 h-4 text-[#ECE3DF] mt-0.5 flex-shrink-0 cursor-grab" />
-
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -607,11 +605,12 @@ export default function TemplateEditorPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
                         <button
                           onClick={() => setEditItem(item)}
                           className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
                           title="Edit item"
+                          aria-label="Edit item"
                         >
                           <Pencil className="w-3.5 h-3.5 text-[#5F7C84]" />
                         </button>
@@ -620,6 +619,7 @@ export default function TemplateEditorPage() {
                           disabled={deletingId === item.id}
                           className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
                           title="Delete item"
+                          aria-label="Delete item"
                         >
                           <Trash2 className="w-3.5 h-3.5 text-rose-400" />
                         </button>
@@ -645,7 +645,7 @@ export default function TemplateEditorPage() {
 
       {/* Danger zone */}
       <div className="border border-rose-100 rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-rose-600 mb-2">Danger Zone</h3>
+        <h3 className="text-sm font-semibold text-rose-600 mb-2">Delete this template</h3>
         <p className="text-xs text-[#9BADB7] mb-3">Deleting this template cannot be undone. Assigned checklists will not be affected.</p>
         <button
           onClick={handleDeleteTemplate}

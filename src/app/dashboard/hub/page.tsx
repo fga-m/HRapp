@@ -348,8 +348,9 @@ function SortableLinkCard({
         <button
           ref={setActivatorNodeRef}
           {...listeners}
-          className="absolute -top-2 left-1/2 -translate-x-1/2 p-1 bg-white rounded-lg shadow border border-[#ECE3DF] cursor-grab active:cursor-grabbing opacity-0 group-hover/card:opacity-100 transition-opacity z-10"
+          className="absolute -top-2 left-1/2 -translate-x-1/2 p-1 bg-white rounded-lg shadow border border-[#ECE3DF] cursor-grab active:cursor-grabbing opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition-opacity z-10"
           title="Drag to reorder"
+          aria-label="Drag to reorder link"
           onClick={(e) => e.preventDefault()}
         >
           <GripHorizontal className="w-3 h-3 text-[#9BADB7]" />
@@ -383,10 +384,12 @@ function SortableLinkCard({
 
       {/* Admin edit/delete */}
       {isAdmin && (
-        <div className="absolute -bottom-2 -right-2 flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity z-10">
+        <div className="absolute -bottom-2 -right-2 flex items-center gap-0.5 opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition-opacity z-10">
           <button
             onClick={(e) => { e.preventDefault(); onEdit(); }}
             className="p-1 bg-white rounded-lg shadow border border-[#ECE3DF] hover:bg-[#F8F6F4] transition-colors"
+            title="Edit link"
+            aria-label="Edit link"
           >
             <Pencil className="w-3 h-3 text-[#5F7C84]" />
           </button>
@@ -394,6 +397,8 @@ function SortableLinkCard({
             onClick={(e) => { e.preventDefault(); onDelete(); }}
             disabled={deleting}
             className="p-1 bg-white rounded-lg shadow border border-[#ECE3DF] hover:bg-rose-50 transition-colors disabled:opacity-50"
+            title="Delete link"
+            aria-label="Delete link"
           >
             <Trash2 className="w-3 h-3 text-rose-400" />
           </button>
@@ -468,6 +473,7 @@ function SortableGroupSection({
             {...listeners}
             className="p-1 rounded cursor-grab active:cursor-grabbing text-[#C5CDD0] hover:text-[#9BADB7] transition-colors flex-shrink-0"
             title="Drag to reorder group"
+            aria-label="Drag to reorder group"
           >
             <GripVertical className="w-4 h-4" />
           </button>
@@ -480,6 +486,7 @@ function SortableGroupSection({
               onClick={onAddLink}
               className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
               title="Add link to group"
+              aria-label="Add link to group"
             >
               <Plus className="w-3.5 h-3.5 text-[#9BADB7]" />
             </button>
@@ -487,6 +494,7 @@ function SortableGroupSection({
               onClick={onEditGroup}
               className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
               title="Rename group"
+              aria-label="Rename group"
             >
               <Pencil className="w-3.5 h-3.5 text-[#9BADB7]" />
             </button>
@@ -495,6 +503,7 @@ function SortableGroupSection({
               disabled={deletingGroupId === group.id}
               className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50"
               title="Delete group"
+              aria-label="Delete group"
             >
               <Trash2 className="w-3.5 h-3.5 text-rose-300" />
             </button>
@@ -536,6 +545,7 @@ export default function StaffHubPage() {
   const [links, setLinks] = useState<HubLink[]>([]);
   const [role, setRole] = useState("staff");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const [showAddLink, setShowAddLink] = useState(false);
   const [addLinkGroupId, setAddLinkGroupId] = useState<string | null>(null);
@@ -551,14 +561,26 @@ export default function StaffHubPage() {
   );
 
   const fetchAll = async () => {
-    const [linksRes, groupsRes] = await Promise.all([
-      fetch("/api/hub/links").then((r) => r.json()),
-      fetch("/api/hub/groups").then((r) => r.json()),
-    ]);
-    setLinks(linksRes.links ?? []);
-    setGroups(groupsRes.groups ?? []);
-    setRole(linksRes.role ?? groupsRes.role ?? "staff");
-    setLoading(false);
+    setLoadError(false);
+    try {
+      const [linksRes, groupsRes] = await Promise.all([
+        fetch("/api/hub/links").then((r) => {
+          if (!r.ok) throw new Error("Failed to load links");
+          return r.json();
+        }),
+        fetch("/api/hub/groups").then((r) => {
+          if (!r.ok) throw new Error("Failed to load groups");
+          return r.json();
+        }),
+      ]);
+      setLinks(linksRes.links ?? []);
+      setGroups(groupsRes.groups ?? []);
+      setRole(linksRes.role ?? groupsRes.role ?? "staff");
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchAll(); }, []);
@@ -667,6 +689,21 @@ export default function StaffHubPage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
+        <p className="font-semibold text-[#223149]">Couldn&apos;t load resources</p>
+        <p className="text-sm text-[#9BADB7]">Something went wrong. Please check your connection and try again.</p>
+        <button
+          onClick={() => { setLoading(true); fetchAll(); }}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -674,7 +711,6 @@ export default function StaffHubPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Resources</h1>
           <PageSubtitle pageKey="hub" defaultDescription="Shared documents, links, and reference materials for the whole team." />
-          <p className="text-[#5F7C84] mt-1 text-sm">Quick links and resources for the team</p>
         </div>
         {isAdmin && (
           <div className="flex items-center gap-2">

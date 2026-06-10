@@ -148,7 +148,7 @@ export default function PolicyDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
 
         {/* LEFT — Document */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#ECE3DF]">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-[#9BADB7]" />
@@ -161,6 +161,7 @@ export default function PolicyDetailPage() {
                     onClick={() => setDocExpanded((v) => !v)}
                     className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
                     title={docExpanded ? "Collapse" : "Expand"}
+                    aria-label={docExpanded ? "Collapse" : "Expand"}
                   >
                     {docExpanded
                       ? <Minimize2 className="w-4 h-4 text-[#9BADB7]" />
@@ -172,6 +173,7 @@ export default function PolicyDetailPage() {
                     rel="noopener noreferrer"
                     className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
                     title="Open in Google Drive"
+                    aria-label="Open in Google Drive"
                   >
                     <ExternalLink className="w-4 h-4 text-[#9BADB7]" />
                   </a>
@@ -210,7 +212,7 @@ export default function PolicyDetailPage() {
         </div>
 
         {/* RIGHT — Sign-off action + tracker */}
-        <div className="space-y-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
+        <div className="space-y-4 order-first lg:order-none lg:sticky lg:top-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
 
           {/* Sign-off action card */}
           {policy.requires_signoff && (
@@ -224,6 +226,7 @@ export default function PolicyDetailPage() {
                   <p className="text-xs text-[#9BADB7]">
                     {format(new Date(mySignoff.signed_at), "d MMM yyyy, h:mm a")}
                   </p>
+                  <p className="text-xs text-[#9BADB7]">Renews each year.</p>
                 </>
               ) : (
                 <>

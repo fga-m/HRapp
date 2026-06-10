@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Plus, Edit, ClipboardList, LayoutTemplate, Calendar,
@@ -111,16 +111,18 @@ function Toggle({
 
 function AssignModal({
   templates,
+  initialTemplateId,
   onClose,
   onSuccess,
 }: {
   templates: Template[];
+  initialTemplateId?: string;
   onClose: () => void;
   onSuccess: () => void;
 }) {
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [staffId, setStaffId] = useState("");
-  const [templateId, setTemplateId] = useState("");
+  const [templateId, setTemplateId] = useState(initialTemplateId ?? "");
   const [title, setTitle] = useState("");
   const [isOffboarding, setIsOffboarding] = useState(false);
   const [dueDate, setDueDate] = useState("");
@@ -458,27 +460,39 @@ function NewTemplateModal({
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const assignTemplateId = searchParams.get("assign");
 
   const [tab, setTab] = useState<"active" | "templates">("active");
   const [role, setRole] = useState<string>("staff");
   const [checklists, setChecklists] = useState<AssignedChecklist[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
-    const [assignedRes, templatesRes] = await Promise.all([
-      fetch("/api/checklists/assigned"),
-      fetch("/api/checklists/templates"),
-    ]);
-    const assignedData = await assignedRes.json();
-    const templatesData = await templatesRes.json();
-    setRole(assignedData.role ?? templatesData.role ?? "staff");
-    setChecklists(assignedData.checklists ?? []);
-    setTemplates(templatesData.templates ?? []);
-    setLoading(false);
+    setLoadError("");
+    try {
+      const [assignedRes, templatesRes] = await Promise.all([
+        fetch("/api/checklists/assigned"),
+        fetch("/api/checklists/templates"),
+      ]);
+      if (!assignedRes.ok || !templatesRes.ok) {
+        throw new Error("Failed to load checklists");
+      }
+      const assignedData = await assignedRes.json();
+      const templatesData = await templatesRes.json();
+      setRole(assignedData.role ?? templatesData.role ?? "staff");
+      setChecklists(assignedData.checklists ?? []);
+      setTemplates(templatesData.templates ?? []);
+    } catch {
+      setLoadError("We couldn't load your checklists. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -487,11 +501,36 @@ export default function OnboardingPage() {
 
   const isAdmin = role === "admin";
 
+  // Deep-link from a template editor: open the Assign modal pre-selected
+  useEffect(() => {
+    if (!loading && isAdmin && assignTemplateId) {
+      setTab("active");
+      setShowAssignModal(true);
+    }
+  }, [loading, isAdmin, assignTemplateId]);
+
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // ── Error ────────────────────────────────────────────────────────────────────
+  if (loadError) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
+        <ClipboardList className="w-12 h-12 text-[#ECE3DF] mx-auto" />
+        <p className="font-semibold text-[#223149]">Something went wrong</p>
+        <p className="text-sm text-[#9BADB7]">{loadError}</p>
+        <button
+          onClick={fetchData}
+          className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
+        >
+          Try again
+        </button>
       </div>
     );
   }
@@ -503,7 +542,6 @@ export default function OnboardingPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">My Checklists</h1>
           <PageSubtitle pageKey="onboarding" defaultDescription="Track task progress for checklists assigned to you." />
-          <p className="text-[#5F7C84] mt-1 text-sm">Your onboarding & offboarding tasks</p>
         </div>
 
         {checklists.length === 0 ? (
@@ -555,7 +593,6 @@ export default function OnboardingPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Checklists</h1>
           <PageSubtitle pageKey="onboarding" defaultDescription="Track checklist progress for staff joining or leaving the organisation." />
-          <p className="text-[#5F7C84] mt-1 text-sm">Manage checklists and templates</p>
         </div>
         {tab === "active" ? (
           <button
@@ -563,6 +600,7 @@ export default function OnboardingPage() {
             className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
           >
             <Plus className="w-4 h-4" />
+            <span className="sm:hidden">Assign</span>
             <span className="hidden sm:inline">Assign Checklist</span>
           </button>
         ) : (
@@ -571,6 +609,7 @@ export default function OnboardingPage() {
             className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
           >
             <Plus className="w-4 h-4" />
+            <span className="sm:hidden">New</span>
             <span className="hidden sm:inline">New Template</span>
           </button>
         )}
@@ -745,6 +784,7 @@ export default function OnboardingPage() {
       {showAssignModal && (
         <AssignModal
           templates={templates}
+          initialTemplateId={assignTemplateId ?? undefined}
           onClose={() => setShowAssignModal(false)}
           onSuccess={() => {
             setShowAssignModal(false);

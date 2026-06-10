@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [xero, setXero] = useState<XeroStatus | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState("");
 
   const xeroConnected = searchParams.get("xero_connected") === "1";
   const xeroError = searchParams.get("xero_error");
@@ -40,11 +41,18 @@ export default function SettingsPage() {
   const handleDisconnect = async () => {
     if (!confirm("Disconnect Xero? Leave requests will no longer sync.")) return;
     setDisconnecting(true);
-    await fetch("/api/xero/disconnect", { method: "POST" });
-    setXero({ connected: false });
-    setDisconnecting(false);
-    // Remove query params cleanly
-    window.history.replaceState({}, "", "/dashboard/settings");
+    setDisconnectError("");
+    try {
+      const res = await fetch("/api/xero/disconnect", { method: "POST" });
+      if (!res.ok) throw new Error("Request failed");
+      setXero({ connected: false });
+      // Remove query params cleanly
+      window.history.replaceState({}, "", "/dashboard/settings");
+    } catch {
+      setDisconnectError("Couldn't disconnect Xero. Please try again.");
+    } finally {
+      setDisconnecting(false);
+    }
   };
 
   return (
@@ -52,7 +60,6 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold text-[#223149]">Settings</h1>
         <PageSubtitle pageKey="settings" defaultDescription="Configure portal-wide settings and preferences." />
-        <p className="text-[#9BADB7] mt-1">Manage integrations and system configuration.</p>
       </div>
 
       {/* Flash banners */}
@@ -91,14 +98,17 @@ export default function SettingsPage() {
             <div>
               <h2 className="font-semibold text-[#223149]">Xero Payroll</h2>
               <p className="text-sm text-[#9BADB7]">Sync leave requests directly to Xero AU Payroll</p>
+              <p className="text-xs text-[#9BADB7] mt-0.5">Xero is our accounting &amp; payroll system.</p>
             </div>
           </div>
           <button
             onClick={fetchStatus}
-            className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors text-[#9BADB7] hover:text-[#223149] flex-shrink-0"
-            title="Refresh status"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors text-[#9BADB7] hover:text-[#223149] flex-shrink-0 text-sm font-medium"
+            title="Refresh Xero connection status"
+            aria-label="Refresh Xero connection status"
           >
             <RefreshCw className="w-4 h-4" />
+            Refresh
           </button>
         </div>
 
@@ -144,6 +154,9 @@ export default function SettingsPage() {
                 )}
                 Disconnect Xero
               </button>
+              {disconnectError && (
+                <p className="text-sm text-red-500">{disconnectError}</p>
+              )}
             </div>
           ) : (
             <div className="space-y-4">

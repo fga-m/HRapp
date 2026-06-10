@@ -264,12 +264,12 @@ export default function PerformancePage() {
                   review.is_visible_to_staff ? (
                     <span className="flex items-center gap-1 text-xs font-medium text-[#5F7C84] bg-[#ECE3DF] px-2 py-1 rounded-lg">
                       <Eye className="w-3.5 h-3.5" />
-                      Visible
+                      Shared with staff
                     </span>
                   ) : (
                     <span className="flex items-center gap-1 text-xs font-medium text-[#9BADB7] bg-[#F8F6F4] px-2 py-1 rounded-lg">
                       <EyeOff className="w-3.5 h-3.5" />
-                      Hidden
+                      Not shared
                     </span>
                   )
                 )}

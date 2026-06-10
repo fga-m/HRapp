@@ -495,7 +495,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-2">Show as</label>
             <div className="flex gap-3">
-              {([["opaque", "Busy"], ["transparent", "Free (Working)"]] as const).map(([val, label]) => (
+              {([["opaque", "In a meeting (busy)"], ["transparent", "Working (available)"]] as const).map(([val, label]) => (
                 <button
                   key={val}
                   type="button"
@@ -1117,12 +1117,14 @@ export default function CalendarPage() {
           <div className="flex items-center gap-1">
             <button
               onClick={() => setWeekStart((w) => subWeeks(w, 1))}
+              aria-label="Previous week"
               className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors"
             >
               <ChevronLeft className="w-4 h-4 text-[#223149]" />
             </button>
             <button
               onClick={() => setWeekStart((w) => addWeeks(w, 1))}
+              aria-label="Next week"
               className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors"
             >
               <ChevronRight className="w-4 h-4 text-[#223149]" />
@@ -1191,7 +1193,7 @@ export default function CalendarPage() {
                 className="w-3 h-3 rounded-sm border-l-2"
                 style={{ backgroundColor: hexA(eventColor.hex, 0.1), borderLeftColor: hexA(eventColor.hex, 0.5) }}
               />
-              <span className="text-xs text-[#9BADB7]">Working (free)</span>
+              <span className="text-xs text-[#9BADB7]">Working (available)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: eventColor.hex }} />

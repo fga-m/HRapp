@@ -15,7 +15,6 @@ import {
   X,
   User,
   ClipboardList,
-  Minus,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -395,7 +394,7 @@ export default function ChecklistDetailPage() {
           href="/dashboard/onboarding"
           className="inline-flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Onboarding
+          <ArrowLeft className="w-4 h-4" /> Back to Checklists
         </Link>
         <p className="text-[#9BADB7]">{error || "Checklist not found."}</p>
       </div>
@@ -433,6 +432,7 @@ export default function ChecklistDetailPage() {
       <div className="flex items-start gap-3">
         <Link
           href="/dashboard/onboarding"
+          aria-label="Back to Checklists"
           className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors mt-0.5 flex-shrink-0"
         >
           <ArrowLeft className="w-5 h-5 text-[#223149]" />
@@ -502,6 +502,13 @@ export default function ChecklistDetailPage() {
         </div>
       </div>
 
+      {/* Non-admin note */}
+      {!isAdmin && allItems.length > 0 && (
+        <p className="text-xs text-[#9BADB7] -mb-2">
+          Your HR admin marks items complete as they&apos;re done.
+        </p>
+      )}
+
       {/* Checklist items */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {allItems.length === 0 ? (
@@ -537,7 +544,11 @@ export default function ChecklistDetailPage() {
                       <div
                         key={item.id}
                         className={`flex items-start gap-4 px-6 py-4 transition-colors group/item ${
-                          isDone ? "bg-[#F8F6F4]/60" : "hover:bg-[#F8F6F4]/40"
+                          isDone
+                            ? "bg-[#F8F6F4]/60"
+                            : isAdmin
+                              ? "hover:bg-[#F8F6F4]/40"
+                              : ""
                         }`}
                       >
                         {/* Checkbox */}
@@ -606,10 +617,11 @@ export default function ChecklistDetailPage() {
                             <button
                               onClick={() => handleDeleteItem(item.id)}
                               disabled={deletingItemId === item.id}
-                              className="opacity-0 group-hover/item:opacity-100 transition-opacity mt-1 p-1 rounded-lg hover:bg-rose-50 disabled:opacity-50"
+                              className="opacity-100 md:opacity-0 md:group-hover/item:opacity-100 transition-opacity mt-1 p-1 rounded-lg hover:bg-rose-50 disabled:opacity-50"
                               title="Remove item"
+                              aria-label="Remove item"
                             >
-                              <Minus className="w-3.5 h-3.5 text-rose-400" />
+                              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
                             </button>
                           )}
 
@@ -651,7 +663,7 @@ export default function ChecklistDetailPage() {
       {/* Danger zone — admin only */}
       {isAdmin && (
         <div className="border border-rose-100 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-rose-600 mb-2">Danger Zone</h3>
+          <h3 className="text-sm font-semibold text-rose-600 mb-2">Delete this checklist</h3>
           <p className="text-xs text-[#9BADB7] mb-3">
             Deleting this checklist removes all items and completion records.
           </p>

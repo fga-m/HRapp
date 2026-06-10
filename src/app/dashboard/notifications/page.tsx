@@ -78,12 +78,15 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
 
   const fetchNotifications = () => {
+    setError(null);
     fetch("/api/notifications")
       .then((r) => r.json())
-      .then((d) => { setNotifications(d.notifications ?? []); setLoading(false); });
+      .then((d) => { setNotifications(d.notifications ?? []); setLoading(false); })
+      .catch(() => { setError("Couldn't load notifications — please try again."); setLoading(false); });
   };
 
   useEffect(() => { fetchNotifications(); }, []);
@@ -141,14 +144,30 @@ export default function NotificationsPage() {
       </div>
 
       {/* Loading */}
-      {loading && (
+      {loading && !error && (
         <div className="flex items-center justify-center h-40">
           <div className="w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
+      {/* Error state */}
+      {error && (
+        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+          <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+            <Bell className="w-6 h-6 text-red-400" />
+          </div>
+          <p className="font-semibold text-[#223149]">{error}</p>
+          <button
+            onClick={() => { setLoading(true); fetchNotifications(); }}
+            className="mt-4 px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm font-semibold text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
       {/* Empty state */}
-      {!loading && notifications.length === 0 && (
+      {!loading && !error && notifications.length === 0 && (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
           <div className="w-14 h-14 rounded-full bg-[#ECE3DF] flex items-center justify-center mx-auto mb-4">
             <Bell className="w-6 h-6 text-[#9BADB7]" />
@@ -159,7 +178,7 @@ export default function NotificationsPage() {
       )}
 
       {/* Notification groups */}
-      {!loading && groups.map((group) => (
+      {!loading && !error && groups.map((group) => (
         <div key={group.label}>
           <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-2 px-1">
             {group.label}

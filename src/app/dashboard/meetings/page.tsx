@@ -24,6 +24,7 @@ export default function MeetingsPage() {
   const [notes, setNotes] = useState<any[]>([]);
   const [role, setRole] = useState("staff");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/meetings")
@@ -31,6 +32,10 @@ export default function MeetingsPage() {
       .then((d) => {
         setNotes(d.notes || []);
         setRole(d.role);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Could not load meeting notes. Please refresh and try again.");
         setLoading(false);
       });
   }, []);
@@ -69,6 +74,10 @@ export default function MeetingsPage() {
           </div>
         )}
       </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>
+      )}
 
       {notes.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
@@ -109,11 +118,11 @@ export default function MeetingsPage() {
                 {role === "admin" && (
                   note.is_shared_with_staff ? (
                     <span className="flex items-center gap-1 text-xs text-green-600">
-                      <CheckCircle className="w-3.5 h-3.5" /> Shared
+                      <CheckCircle className="w-3.5 h-3.5" /> Shared with staff
                     </span>
                   ) : (
                     <span className="flex items-center gap-1 text-xs text-[#9BADB7]">
-                      <Clock className="w-3.5 h-3.5" /> Private
+                      <Clock className="w-3.5 h-3.5" /> Not shared
                     </span>
                   )
                 )}

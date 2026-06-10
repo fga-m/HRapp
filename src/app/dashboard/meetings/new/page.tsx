@@ -20,6 +20,7 @@ export default function NewMeetingPage() {
   const [error, setError] = useState("");
   const [staff, setStaff] = useState<any[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [titleTouched, setTitleTouched] = useState(false);
   const [form, setForm] = useState({
     title: "",
     meeting_type: "1on1",
@@ -69,13 +70,14 @@ export default function NewMeetingPage() {
     }
   };
 
-  // Auto-set title based on type + attendee
+  // Auto-set title based on type + attendee, unless the user has edited it manually
   useEffect(() => {
+    if (titleTouched) return;
     const typeLabel = MEETING_TYPES.find((t) => t.value === form.meeting_type)?.label || "";
     const firstAttendee = staff.find((s) => s.id === form.attendees[0]);
     const name = firstAttendee ? ` with ${firstAttendee.full_name.split(" ")[0]}` : "";
     setForm((f) => ({ ...f, title: `${typeLabel}${name}` }));
-  }, [form.meeting_type, form.attendees[0]]);
+  }, [form.meeting_type, form.attendees[0], titleTouched]);
 
   return (
     <div className="space-y-6">
@@ -177,7 +179,7 @@ export default function NewMeetingPage() {
               type="text"
               required
               value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              onChange={(e) => { setTitleTouched(true); setForm({ ...form, title: e.target.value }); }}
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
@@ -230,6 +232,7 @@ export default function NewMeetingPage() {
               placeholder="What was discussed? Key decisions, action items, follow-ups..."
               className="w-full px-4 py-3 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none font-mono text-sm"
             />
+            <p className="text-xs text-[#9BADB7] mt-1">Tip: use ## for headings and - for bullet points.</p>
             <p className="text-xs text-[#9BADB7] mt-1">This will be saved as a Google Doc in your Drive</p>
           </div>
         </div>

@@ -249,7 +249,7 @@ export default function ContractDetailPage() {
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
         {/* LEFT — PDF Viewer */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#ECE3DF]">
             <div className="flex items-center gap-2">
               <FileSignature className="w-4 h-4 text-[#9BADB7]" />
@@ -259,7 +259,8 @@ export default function ContractDetailPage() {
               onClick={reloadPdf}
               disabled={reloading}
               className="flex items-center gap-1.5 text-xs text-[#5F7C84] hover:text-[#223149] transition-colors"
-              title="Reload PDF (URL expires after 1 hour)"
+              title="Reload PDF"
+              aria-label="Reload PDF"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${reloading ? "animate-spin" : ""}`} />
               Reload PDF
@@ -279,13 +280,11 @@ export default function ContractDetailPage() {
           <div className="px-5 py-3 border-t border-[#ECE3DF] text-xs text-[#9BADB7]">
             Uploaded {format(new Date(contract.created_at), "d MMM yyyy")}
             {contract.created_by_staff?.full_name && ` by ${contract.created_by_staff.full_name}`}
-            {" · "}
-            <span>PDF URL expires after 1 hour — use Reload PDF if needed</span>
           </div>
         </div>
 
         {/* RIGHT — Action panel */}
-        <div className="space-y-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
+        <div className="space-y-4 order-first lg:order-none lg:sticky lg:top-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
 
           {/* Status / sign card */}
           <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
@@ -451,6 +450,7 @@ export default function ContractDetailPage() {
                             onClick={() => handleRemoveAssignment(a.staff_id)}
                             className="p-1 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0"
                             title="Remove assignment"
+                            aria-label={`Remove ${a.staff?.full_name ?? "assignment"}`}
                           >
                             <X className="w-3.5 h-3.5 text-[#9BADB7] hover:text-red-500" />
                           </button>
