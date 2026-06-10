@@ -672,7 +672,7 @@ export default function StaffHubPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#223149]">Staff Hub</h1>
+          <h1 className="text-3xl font-bold text-[#223149]">Resources</h1>
           <PageSubtitle pageKey="hub" defaultDescription="Shared documents, links, and reference materials for the whole team." />
           <p className="text-[#5F7C84] mt-1 text-sm">Quick links and resources for the team</p>
         </div>

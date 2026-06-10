@@ -165,7 +165,7 @@ export default function PositionDescriptionsPage() {
       <div>
         <div className="flex items-center gap-3 mb-6">
           <Briefcase className="w-6 h-6 text-[#223149]" />
-          <h1 className="text-2xl font-bold text-[#223149]">My Role</h1>
+          <h1 className="text-2xl font-bold text-[#223149]">My Position</h1>
         </div>
         <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
         <div className="bg-white rounded-2xl shadow-sm p-10 flex flex-col items-center text-center gap-4">
@@ -188,7 +188,7 @@ export default function PositionDescriptionsPage() {
       <div>
         <div className="flex items-center gap-3 mb-6">
           <Briefcase className="w-6 h-6 text-[#223149]" />
-          <h1 className="text-2xl font-bold text-[#223149]">My Role</h1>
+          <h1 className="text-2xl font-bold text-[#223149]">My Position</h1>
         </div>
         <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
         <Link href={`/dashboard/position-descriptions/${pd.id}`}>

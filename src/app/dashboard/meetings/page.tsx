@@ -49,9 +49,6 @@ export default function MeetingsPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Meeting Notes</h1>
           <PageSubtitle pageKey="meetings" defaultDescription="Record and share notes from team meetings, 1-on-1s, and other discussions." />
-          <p className="text-[#5F7C84] mt-1 text-sm">
-            {role === "admin" ? "Your private meeting notes" : "Notes shared with you"}
-          </p>
         </div>
         {role === "admin" && (
           <div className="flex items-center gap-2">

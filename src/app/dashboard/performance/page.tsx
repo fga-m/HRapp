@@ -154,9 +154,6 @@ export default function PerformancePage() {
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Performance Reviews</h1>
           <PageSubtitle pageKey="performance" defaultDescription="Track performance conversations and review notes for staff." />
-          <p className="text-[#5F7C84] mt-1 text-sm">
-            {isManagerOrAdmin ? "Manage staff performance evaluations" : "Your performance evaluations"}
-          </p>
         </div>
         {isManagerOrAdmin && (
           <button

@@ -361,12 +361,12 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-[#223149]">
-              {isReviewer && activeTab === "team" ? "Team Leave" : "Leave Requests"}
-            </h1>
-            <PageSubtitle pageKey="leave" defaultDescription="Submit leave requests, track approvals, and view your available leave balance." />
-            {isReviewer && (
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-3xl font-bold text-[#223149]">
+                {isReviewer && activeTab === "team" ? "Team Leave" : "Leave Requests"}
+              </h1>
+              {isReviewer && (
               <div className="flex border border-[#ECE3DF] rounded-xl overflow-hidden text-sm font-semibold">
                 <button
                   onClick={() => setActiveTab("my")}
@@ -393,6 +393,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 </button>
               </div>
             )}
+            </div>
+            <PageSubtitle pageKey="leave" defaultDescription="Submit leave requests, track approvals, and view your available leave balance." />
           </div>
           <div className="flex items-center gap-2">
             <button
