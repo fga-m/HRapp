@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
 import { UserPlus, Download } from "lucide-react";
 import StaffListClient from "@/components/staff/StaffListClient";
+import PageSubtitle from "@/components/PageSubtitle";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export default async function StaffPage() {
           <p className="text-[#5F7C84] mt-1 text-sm">
             {activeStaff.length} active staff member{activeStaff.length !== 1 ? "s" : ""}
           </p>
+          <PageSubtitle pageKey="staff" defaultDescription="View and manage profiles, documents, and details for all staff members." />
         </div>
         <div className="flex items-center gap-2">
           <Link

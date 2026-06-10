@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Shield, CheckCircle, Clock, ChevronRight, AlertCircle } from "lucide-react";
+import PageSubtitle from "@/components/PageSubtitle";
 import { format } from "date-fns";
 
 export default function PoliciesPage() {
@@ -39,6 +40,7 @@ export default function PoliciesPage() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Policies</h1>
+          <PageSubtitle pageKey="policies" defaultDescription="Review company policies and sign off where your acknowledgement is required." />
           <p className="text-[#5F7C84] mt-1 text-sm">
             {policies.length} active {policies.length === 1 ? "policy" : "policies"}
           </p>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Copy, Plus, Pencil, Trash2, X, Clock } from "lucide-react";
+import PageSubtitle from "@/components/PageSubtitle";
 import {
   format, startOfWeek, addDays, isToday, eachDayOfInterval,
   addWeeks, subWeeks, isSameDay,
@@ -1106,7 +1107,9 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] md:h-[calc(100vh-120px)] min-h-0">
+    <div className="space-y-2">
+      <PageSubtitle pageKey="calendar" defaultDescription="View and log work events. Events sync automatically from Google Calendar." />
+      <div className="flex flex-col h-[calc(100vh-200px)] md:h-[calc(100vh-140px)] min-h-0">
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="flex-shrink-0 space-y-3 mb-3">
         {/* Week nav */}
@@ -2051,6 +2054,7 @@ export default function CalendarPage() {
           onSuccess={() => { setShowNewEvent(false); fetchEvents(); }}
         />
       )}
+    </div>
     </div>
   );
 }

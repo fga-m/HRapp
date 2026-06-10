@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+import PageSubtitle from "@/components/PageSubtitle";
 
 type Review = {
   id: string;
@@ -152,6 +153,7 @@ export default function PerformancePage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Performance Reviews</h1>
+          <PageSubtitle pageKey="performance" defaultDescription="Track performance conversations and review notes for staff." />
           <p className="text-[#5F7C84] mt-1 text-sm">
             {isManagerOrAdmin ? "Manage staff performance evaluations" : "Your performance evaluations"}
           </p>

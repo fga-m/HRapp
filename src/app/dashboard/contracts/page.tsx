@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import DropZone from "@/components/ui/DropZone";
+import PageSubtitle from "@/components/PageSubtitle";
 
 export default function ContractsPage() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -153,6 +154,7 @@ export default function ContractsPage() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Contracts</h1>
+          <PageSubtitle pageKey="contracts" defaultDescription="View, sign, and manage employment contracts." />
           <p className="text-[#5F7C84] mt-1 text-sm">
             {role === "admin"
               ? `${totalGroupContracts} ${totalGroupContracts === 1 ? "group" : "groups"}${totalStandalone > 0 ? ` · ${totalStandalone} standalone` : ""}`

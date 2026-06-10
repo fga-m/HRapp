@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import Link from "next/link";
+import PageSubtitle from "@/components/PageSubtitle";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -235,6 +236,7 @@ export default function SchedulePage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[#223149]">Team Schedule</h1>
+            <PageSubtitle pageKey="schedule" defaultDescription="Compare each person's scheduled hours against contracted hours and see TOIL balances." />
             {data && (
               <p className="text-sm text-[#5F7C84]">
                 {formatWeekRange(data.weekStart, data.weekEnd)}

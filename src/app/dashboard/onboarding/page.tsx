@@ -8,6 +8,7 @@ import {
   CheckCircle2, Circle, ChevronRight, X, Users, ToggleLeft, ToggleRight
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import PageSubtitle from "@/components/PageSubtitle";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -501,6 +502,7 @@ export default function OnboardingPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">My Checklists</h1>
+          <PageSubtitle pageKey="onboarding" defaultDescription="Track task progress for checklists assigned to you." />
           <p className="text-[#5F7C84] mt-1 text-sm">Your onboarding & offboarding tasks</p>
         </div>
 
@@ -552,6 +554,7 @@ export default function OnboardingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Onboarding</h1>
+          <PageSubtitle pageKey="onboarding" defaultDescription="Track checklist progress for staff joining or leaving the organisation." />
           <p className="text-[#5F7C84] mt-1 text-sm">Manage checklists and templates</p>
         </div>
         {tab === "active" ? (
