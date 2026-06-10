@@ -29,7 +29,7 @@ function leaveColour(name: string) {
 function formatBalance(balance: number, units: string) {
   const rounded = Math.round(balance * 10) / 10;
   if (units.toLowerCase() === "days") return `${rounded} ${rounded === 1 ? "day" : "days"}`;
-  const days = balance / 7.6;
+  const days = balance / 7.5; // 7.5 hrs/day — matches the leave page and the contracted-hours policy
   if (days >= 1) return `${rounded} hrs (${Math.round(days * 10) / 10} days)`;
   return `${rounded} hrs`;
 }
