@@ -1108,6 +1108,7 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-2">
+      <h1 className="text-3xl font-bold text-[#223149]">Work Calendar</h1>
       <PageSubtitle pageKey="calendar" defaultDescription="View and log work events. Events sync automatically from Google Calendar." />
       <div className="flex flex-col h-[calc(100vh-200px)] md:h-[calc(100vh-140px)] min-h-0">
       {/* ── Header ─────────────────────────────────────────────────── */}
