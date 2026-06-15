@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTriangle, ChevronDown, ChevronUp, Paperclip } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTriangle, ChevronDown, ChevronUp, Paperclip, Upload } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 interface Claim {
@@ -59,6 +59,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const [accountCode, setAccountCode] = useState("");
   const [taxType, setTaxType] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Xero dropdown data
   const [accounts, setAccounts] = useState<XeroAccount[]>([]);
@@ -107,7 +109,19 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const resetForm = () => {
     setAmount(""); setSpentOn(""); setDescription(""); setSpentAt("");
     setAccountCode(""); setTaxType(""); setFile(null); setSubmitError("");
+    setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
   };
+
+  // Set the receipt file and (for images) an object-URL preview.
+  const selectFile = (f: File | null) => {
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return f && f.type.startsWith("image/") ? URL.createObjectURL(f) : null;
+    });
+    setFile(f);
+  };
+
+  const closeModal = () => { resetForm(); setShowModal(false); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -245,53 +259,89 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
         )}
       </div>
 
-      {/* New Claim Modal */}
+      {/* New Claim — full-screen two-panel form */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
-          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md max-h-[90vh] overflow-y-auto pb-safe">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF] sticky top-0 bg-white">
-              <h2 className="text-lg font-bold text-[#223149]">New Expense Claim</h2>
-              <button onClick={() => { setShowModal(false); setSubmitError(""); }}
-                className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors">
+        <div className="fixed inset-0 z-50 bg-white flex flex-col">
+          {/* Top bar */}
+          <header className="flex items-center justify-between gap-3 h-14 px-4 border-b border-[#ECE3DF] flex-shrink-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <button onClick={closeModal} className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors" aria-label="Close">
                 <X className="w-5 h-5 text-[#5F7C84]" />
               </button>
+              <h2 className="text-base md:text-lg font-bold text-[#223149] truncate">New expense claim</h2>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {/* Receipt (required) */}
-              <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Receipt <span className="text-red-500">*</span></label>
-                <input
-                  type="file"
-                  required
-                  accept="image/png,image/jpeg,application/pdf"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  className="w-full text-sm text-[#5F7C84] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#223149] file:text-white hover:file:bg-[#1a2638]"
-                />
-                <p className="text-xs text-[#9BADB7] mt-1">A photo or PDF of the receipt (PNG, JPG or PDF).</p>
-              </div>
+            <button
+              type="submit" form="expense-claim-form"
+              disabled={submitting || metaLoading || !!metaError}
+              className="px-5 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
+            >
+              {submitting ? "Submitting…" : "Submit"}
+            </button>
+          </header>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent on</label>
+          {/* Body: receipt upload (left) + form (right) */}
+          <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden flex flex-col md:flex-row">
+            {/* LEFT — receipt upload / preview */}
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => { e.preventDefault(); selectFile(e.dataTransfer.files?.[0] ?? null); }}
+              className="md:w-1/2 md:h-full md:overflow-y-auto border-b md:border-b-0 md:border-r border-[#ECE3DF] bg-[#F8F6F4] flex items-center justify-center p-6 min-h-[240px]"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,application/pdf"
+                className="hidden"
+                onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
+              />
+              {previewUrl ? (
+                <div className="text-center space-y-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={previewUrl} alt="Receipt preview" className="max-h-[55vh] max-w-full rounded-lg shadow-sm mx-auto object-contain" />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#5F7C84] hover:text-[#223149]">Replace image</button>
+                </div>
+              ) : file ? (
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 mx-auto rounded-xl bg-white border border-[#ECE3DF] flex items-center justify-center">
+                    <Paperclip className="w-7 h-7 text-[#5F7C84]" />
+                  </div>
+                  <p className="text-sm font-medium text-[#223149] break-all max-w-xs mx-auto">{file.name}</p>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#5F7C84] hover:text-[#223149]">Replace file</button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="w-14 h-14 mx-auto rounded-xl bg-white border border-[#ECE3DF] flex items-center justify-center mb-3">
+                    <Receipt className="w-7 h-7 text-[#9BADB7]" />
+                  </div>
+                  <p className="font-semibold text-[#223149]">Upload a receipt</p>
+                  <p className="text-sm text-[#9BADB7] mt-1">Drag &amp; drop here, or select your file manually</p>
+                  <button
+                    type="button" onClick={() => fileInputRef.current?.click()}
+                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-[#ECE3DF] bg-white text-[#223149] rounded-lg text-sm font-semibold hover:bg-white/60 transition-colors"
+                  >
+                    <Upload className="w-4 h-4" /> Upload
+                  </button>
+                  <p className="text-xs text-[#9BADB7] mt-3">PNG, JPG or PDF · required</p>
+                </div>
+              )}
+            </div>
+
+            {/* RIGHT — form fields */}
+            <form id="expense-claim-form" onSubmit={handleSubmit} className="md:w-1/2 md:h-full md:overflow-y-auto p-6 space-y-5">
+              {/* Purchase amount */}
+              <div>
+                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Purchase amount</label>
+                <div className="flex items-stretch">
+                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-sm text-[#5F7C84] font-medium">AUD</span>
                   <input
-                    type="date" required value={spentOn}
-                    onChange={(e) => setSpentOn(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                    type="number" required min="0.01" step="0.01" value={amount}
+                    onChange={(e) => setAmount(e.target.value)} placeholder="0.00"
+                    className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Amount (AUD)</label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9BADB7] text-sm">$</span>
-                    <input
-                      type="number" required min="0.01" step="0.01" value={amount}
-                      onChange={(e) => setAmount(e.target.value)} placeholder="0.00"
-                      className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
-                    />
-                  </div>
-                </div>
               </div>
 
+              {/* Description */}
               <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
                 <textarea
@@ -301,31 +351,50 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#9BADB7] font-normal">(optional)</span></label>
-                <input
-                  type="text" value={spentAt}
-                  onChange={(e) => setSpentAt(e.target.value)} placeholder="Where was the money spent?"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
-                />
+              {/* Spent at + Spent on */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#9BADB7] font-normal">(optional)</span></label>
+                  <input
+                    type="text" value={spentAt}
+                    onChange={(e) => setSpentAt(e.target.value)} placeholder="Where?"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent on</label>
+                  <input
+                    type="date" required value={spentOn}
+                    onChange={(e) => setSpentOn(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                  />
+                </div>
               </div>
 
+              {/* Account */}
               {metaError ? (
                 <p className="text-sm text-red-500">{metaError}</p>
               ) : (
-                <>
-                  <div>
-                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Account</label>
-                    <select
-                      required value={accountCode} disabled={metaLoading}
-                      onChange={(e) => setAccountCode(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
-                    >
-                      <option value="">{metaLoading ? "Loading…" : "Select account…"}</option>
-                      {accounts.map((a) => <option key={a.code} value={a.code}>{a.code ? `${a.code} · ${a.name}` : a.name}</option>)}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Account</label>
+                  <select
+                    required value={accountCode} disabled={metaLoading}
+                    onChange={(e) => setAccountCode(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
+                  >
+                    <option value="">{metaLoading ? "Loading…" : "Select account…"}</option>
+                    {accounts.map((a) => <option key={a.code} value={a.code}>{a.code ? `${a.code} · ${a.name}` : a.name}</option>)}
+                  </select>
+                </div>
+              )}
 
+              {/* Totals + tax rate */}
+              <div className="border-t border-[#ECE3DF] pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#5F7C84]">Subtotal <span className="text-[#9BADB7]">(incl. tax)</span></span>
+                  <span className="text-sm text-[#223149]">AUD {amount && !isNaN(Number(amount)) ? Number(amount).toFixed(2) : "0.00"}</span>
+                </div>
+                {!metaError && (
                   <div>
                     <label className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
                     <select
@@ -336,25 +405,15 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                       <option value="">{metaLoading ? "Loading…" : "Select tax rate…"}</option>
                       {taxRates.map((t) => <option key={t.taxType} value={t.taxType}>{t.name}</option>)}
                     </select>
-                    <p className="text-xs text-[#9BADB7] mt-1">Amount is treated as tax-inclusive.</p>
                   </div>
-                </>
-              )}
+                )}
+                <div className="flex items-center justify-between pt-2 border-t border-[#ECE3DF]">
+                  <span className="font-bold text-[#223149]">Total</span>
+                  <span className="font-bold text-[#223149]">AUD {amount && !isNaN(Number(amount)) ? Number(amount).toFixed(2) : "0.00"}</span>
+                </div>
+              </div>
 
               {submitError && <p className="text-sm text-red-500">{submitError}</p>}
-
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="submit" disabled={submitting || metaLoading || !!metaError}
-                  className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
-                >
-                  {submitting ? "Submitting…" : "Submit Claim"}
-                </button>
-                <button type="button" onClick={() => { setShowModal(false); setSubmitError(""); }}
-                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
-                  Cancel
-                </button>
-              </div>
             </form>
           </div>
         </div>
