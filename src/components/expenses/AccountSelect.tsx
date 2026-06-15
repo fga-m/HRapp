@@ -1,0 +1,90 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Search, Check } from "lucide-react";
+
+interface Account { code: string; name: string; taxType: string }
+
+interface Props {
+  accounts: Account[];
+  value: string;
+  onChange: (code: string) => void;
+  disabled?: boolean;
+  loading?: boolean;
+  placeholder?: string;
+}
+
+/** Searchable account picker — filter by account code or name. */
+export default function AccountSelect({ accounts, value, onChange, disabled, loading, placeholder = "Select account…" }: Props) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) setTimeout(() => searchRef.current?.focus(), 10);
+  }, [open]);
+
+  const selected = accounts.find((a) => a.code === value);
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? accounts.filter((a) => a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))
+    : accounts;
+
+  const label = loading ? "Loading…" : selected ? `${selected.code} · ${selected.name}` : placeholder;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        disabled={disabled || loading}
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-left bg-white focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors disabled:opacity-50"
+      >
+        <span className={`truncate ${selected ? "text-[#223149]" : "text-[#9BADB7]"}`}>{label}</span>
+        <ChevronDown className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+      </button>
+
+      {open && (
+        <div className="absolute z-20 mt-1 w-full bg-white border border-[#ECE3DF] rounded-xl shadow-lg overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-[#ECE3DF]">
+            <Search className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search code or name…"
+              className="w-full text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none"
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <p className="px-3 py-3 text-sm text-[#9BADB7]">No matching accounts.</p>
+            ) : (
+              filtered.map((a) => (
+                <button
+                  type="button"
+                  key={a.code}
+                  onClick={() => { onChange(a.code); setOpen(false); setSearch(""); }}
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-[#F8F6F4] transition-colors ${a.code === value ? "bg-[#F8F6F4]" : ""}`}
+                >
+                  <span className="text-[#223149] truncate"><span className="text-[#9BADB7]">{a.code}</span> · {a.name}</span>
+                  {a.code === value && <Check className="w-4 h-4 text-[#223149] flex-shrink-0" />}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

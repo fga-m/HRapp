@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTriangle, ChevronDown, ChevronUp, Paperclip, Upload, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import ExpenseEditModal from "@/components/expenses/ExpenseEditModal";
+import AccountSelect from "@/components/expenses/AccountSelect";
 
 interface Claim {
   id: string;
@@ -99,7 +100,11 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
         // The routes return { accounts: [...] } / { taxRates: [...] }. Guard
         // against any shape so we never set a non-array (which would crash .map).
         setAccounts(Array.isArray(accs) ? accs : accs?.accounts ?? []);
-        setTaxRates(Array.isArray(taxes) ? taxes : taxes?.taxRates ?? []);
+        const taxList: XeroTaxRate[] = Array.isArray(taxes) ? taxes : taxes?.taxRates ?? [];
+        setTaxRates(taxList);
+        // Default the tax rate to "GST on Expenses".
+        const def = taxList.find((t) => /gst on expenses/i.test(t.name));
+        if (def) setTaxType((prev) => prev || def.taxType);
       })
       .catch(async (r) => {
         const body = r?.json ? await r.json().catch(() => ({})) : {};
@@ -130,6 +135,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) { setSubmitError("Please attach a receipt."); return; }
+    if (!accountCode) { setSubmitError("Please select an account."); return; }
     setSubmitting(true);
     setSubmitError("");
     try {
@@ -391,14 +397,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
               ) : (
                 <div>
                   <label className="block text-sm font-semibold text-[#223149] mb-1.5">Account</label>
-                  <select
-                    required value={accountCode} disabled={metaLoading}
-                    onChange={(e) => setAccountCode(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
-                  >
-                    <option value="">{metaLoading ? "Loading…" : "Select account…"}</option>
-                    {accounts.map((a) => <option key={a.code} value={a.code}>{a.code ? `${a.code} · ${a.name}` : a.name}</option>)}
-                  </select>
+                  <AccountSelect accounts={accounts} value={accountCode} onChange={setAccountCode} loading={metaLoading} />
                 </div>
               )}
 

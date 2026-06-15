@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import AccountSelect from "@/components/expenses/AccountSelect";
 
 export interface EditableClaim {
   id: string;
@@ -50,7 +51,14 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
     ])
       .then(([accs, taxes]) => {
         setAccounts(Array.isArray(accs) ? accs : accs?.accounts ?? []);
-        setTaxRates(Array.isArray(taxes) ? taxes : taxes?.taxRates ?? []);
+        const taxList: XeroTaxRate[] = Array.isArray(taxes) ? taxes : taxes?.taxRates ?? [];
+        setTaxRates(taxList);
+        // If the claim's current tax rate isn't one of the allowed ones, default to "GST on Expenses".
+        setForm((f) => {
+          if (taxList.some((t) => t.taxType === f.tax_type)) return f;
+          const def = taxList.find((t) => /gst on expenses/i.test(t.name));
+          return def ? { ...f, tax_type: def.taxType } : f;
+        });
       })
       .catch(async (r) => {
         const body = r?.json ? await r.json().catch(() => ({})) : {};
@@ -61,6 +69,7 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.account_code) { setError("Please select an account."); return; }
     setSaving(true);
     setError("");
     try {
@@ -144,12 +153,7 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
             <>
               <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">Account</label>
-                <select required value={form.account_code} disabled={metaLoading}
-                  onChange={(e) => setForm({ ...form, account_code: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50">
-                  <option value="">{metaLoading ? "Loading…" : "Select account…"}</option>
-                  {accounts.map((a) => <option key={a.code} value={a.code}>{a.code ? `${a.code} · ${a.name}` : a.name}</option>)}
-                </select>
+                <AccountSelect accounts={accounts} value={form.account_code} onChange={(code) => setForm({ ...form, account_code: code })} loading={metaLoading} />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>

@@ -183,7 +183,8 @@ export async function listExpenseAccounts(): Promise<
   if (!res.ok) throw new Error(await xeroErrorMessage(res, "Failed to load Xero accounts"));
   const data = await res.json();
   return (data.Accounts ?? [])
-    .filter((a: any) => a.Code)
+    // Exclude codes ending in "00" — those are ministry "header" accounts, not postable.
+    .filter((a: any) => a.Code && !String(a.Code).endsWith("00"))
     .map((a: any) => ({
       code: String(a.Code),
       name: String(a.Name ?? ""),
@@ -198,8 +199,10 @@ export async function listTaxRates(): Promise<
   const res = await xeroRequest(`${ACCOUNTING}/TaxRates`);
   if (!res.ok) throw new Error(await xeroErrorMessage(res, "Failed to load Xero tax rates"));
   const data = await res.json();
+  // Expense claims only use two rates: GST on Expenses (default) and GST Free Expenses.
+  const allowed = ["gst on expenses", "gst free expenses"];
   return (data.TaxRates ?? [])
-    .filter((t: any) => t.Status === "ACTIVE" && t.CanApplyToExpenses !== false)
+    .filter((t: any) => t.Status === "ACTIVE" && allowed.includes(String(t.Name ?? "").toLowerCase()))
     .map((t: any) => ({
       taxType: String(t.TaxType ?? ""),
       name: String(t.Name ?? ""),
