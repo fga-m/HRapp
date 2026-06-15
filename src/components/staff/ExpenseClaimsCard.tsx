@@ -322,7 +322,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                       className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
                     >
                       <option value="">{metaLoading ? "Loading…" : "Select account…"}</option>
-                      {accounts.map((a) => <option key={a.code} value={a.code}>{a.name}</option>)}
+                      {accounts.map((a) => <option key={a.code} value={a.code}>{a.code ? `${a.code} · ${a.name}` : a.name}</option>)}
                     </select>
                   </div>
 
