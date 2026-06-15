@@ -633,7 +633,9 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : (
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <>
+                {/* Desktop month grid */}
+                <div className="hidden sm:block bg-white rounded-2xl shadow-sm overflow-hidden">
                   {/* Day headers */}
                   <div className="grid grid-cols-7 border-b border-[#ECE3DF]">
                     {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => (
@@ -676,6 +678,30 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                     })}
                   </div>
                 </div>
+
+                {/* Mobile agenda list */}
+                <div className="sm:hidden space-y-2">
+                  {visible.length === 0 ? (
+                    <p className="text-sm text-[#9BADB7] text-center py-8 bg-white rounded-2xl shadow-sm">No leave in {format(calMonth, "MMMM")}.</p>
+                  ) : (
+                    [...visible]
+                      .sort((a, b) => a.start_date.localeCompare(b.start_date))
+                      .map((req) => (
+                        <div key={req.id} className="bg-white rounded-2xl shadow-sm p-4 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#223149] truncate">{req.staff?.full_name ?? "Unknown"}</p>
+                            <p className="text-xs text-[#5F7C84] mt-0.5">
+                              {req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{req.hours != null ? ` · ${req.hours}h` : ""}
+                            </p>
+                          </div>
+                          <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColour(req.status)}`}>
+                            {req.status.charAt(0) + req.status.slice(1).toLowerCase()}
+                          </span>
+                        </div>
+                      ))
+                  )}
+                </div>
+                </>
               )}
 
               {/* Legend */}
