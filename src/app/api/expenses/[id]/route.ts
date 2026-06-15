@@ -7,25 +7,9 @@ import {
   createAccpayBill,
   attachReceipt,
 } from "@/lib/xero";
+import { isExpenseApprover } from "@/lib/expenses";
 
 export const dynamic = "force-dynamic";
-
-type Caller = { id: string; role: string };
-
-/**
- * Approver = admin, OR the caller's role has the `approve_expenses` feature
- * enabled in role_permissions.
- */
-async function isApprover(caller: Caller): Promise<boolean> {
-  if (caller.role === "admin") return true;
-  const { data: perm } = await supabaseAdmin
-    .from("role_permissions")
-    .select("enabled")
-    .eq("role", caller.role)
-    .eq("feature", "approve_expenses")
-    .single();
-  return perm?.enabled ?? false;
-}
 
 function notifyOwner(staffId: string, title: string, message: string) {
   return supabaseAdmin.from("notifications").insert({
@@ -74,7 +58,7 @@ export async function PATCH(
 
   if (!claim) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const approver = await isApprover(caller);
+  const approver = await isExpenseApprover(caller.role);
   const isOwner = claim.staff_id === caller.id;
 
   // ---- UPDATE (approver edits any submission; owner edits their own while submitted) ----

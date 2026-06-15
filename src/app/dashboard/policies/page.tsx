@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Shield, CheckCircle, Clock, ChevronRight, AlertCircle } from "lucide-react";
+import { Plus, Shield, Clock, ChevronRight, AlertCircle } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
 import { format } from "date-fns";
 

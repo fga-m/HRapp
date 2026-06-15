@@ -75,19 +75,6 @@ function leaveColour(name: string) {
   return "bg-[#F8F6F4] text-[#223149] border-[#ECE3DF]";
 }
 
-function formatBalance(balance: number, units: string) {
-  const rounded = Math.round(balance * 10) / 10;
-  if (units.toLowerCase() === "days") return `${rounded} ${rounded === 1 ? "day" : "days"}`;
-  const days = balance / 7.5;
-  if (days >= 1) return `${rounded} hrs (${Math.round(days * 10) / 10} days)`;
-  return `${rounded} hrs`;
-}
-
-function toXeroDate(dateStr: string): string {
-  const ms = new Date(dateStr).getTime();
-  return `/Date(${ms}+0000)/`;
-}
-
 function formatLeavePeriod(start: string, end: string) {
   const s = parseISO(start);
   const e = parseISO(end);

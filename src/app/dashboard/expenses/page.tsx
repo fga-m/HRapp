@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { isExpenseApprover } from "@/lib/expenses";
 import { redirect } from "next/navigation";
 import { Receipt } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
@@ -20,16 +21,7 @@ export default async function ExpensesPage() {
   if (!caller) redirect("/dashboard");
 
   // Approver = admin OR the caller's role has approve_expenses enabled.
-  let isApprover = caller.role === "admin";
-  if (!isApprover) {
-    const { data: perm } = await supabaseAdmin
-      .from("role_permissions")
-      .select("enabled")
-      .eq("role", caller.role)
-      .eq("feature", "approve_expenses")
-      .single();
-    isApprover = perm?.enabled ?? false;
-  }
+  const isApprover = await isExpenseApprover(caller.role);
 
   // Pending count for the review tab badge (claims needing attention).
   let pendingCount = 0;

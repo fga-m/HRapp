@@ -1,26 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { isExpenseApprover } from "@/lib/expenses";
 
 export const dynamic = "force-dynamic";
-
-type Caller = { id: string; role: string };
-
-/**
- * Approver = admin, OR the caller's role has the `approve_expenses` feature
- * enabled in role_permissions. Mirrors getCallerAndPermission in
- * src/app/api/staff/[id]/documents/route.ts.
- */
-async function isApprover(caller: Caller): Promise<boolean> {
-  if (caller.role === "admin") return true;
-  const { data: perm } = await supabaseAdmin
-    .from("role_permissions")
-    .select("enabled")
-    .eq("role", caller.role)
-    .eq("feature", "approve_expenses")
-    .single();
-  return perm?.enabled ?? false;
-}
 
 /** Sign the receipt for a single claim row (best-effort; null on failure). */
 async function signReceipt<T extends { receipt_path?: string | null }>(
@@ -56,7 +39,7 @@ export async function GET(req: NextRequest) {
   const from = searchParams.get("from"); // YYYY-MM-DD (inclusive), filters created_at
   const to = searchParams.get("to");     // YYYY-MM-DD (inclusive)
 
-  const approver = (queue || all || staffId) ? await isApprover(caller) : false;
+  const approver = (queue || all || staffId) ? await isExpenseApprover(caller.role) : false;
 
   let query = supabaseAdmin
     .from("expense_claims")

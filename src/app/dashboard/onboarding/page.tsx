@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Plus, Edit, ClipboardList, LayoutTemplate, Calendar,
-  CheckCircle2, Circle, ChevronRight, X, Users, ToggleLeft, ToggleRight
+  ChevronRight, X, Users, ToggleLeft, ToggleRight
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import PageSubtitle from "@/components/PageSubtitle";

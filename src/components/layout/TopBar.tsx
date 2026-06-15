@@ -33,12 +33,11 @@ const moreItems = [
   { label: "Settings",            href: "/dashboard/settings",              icon: Settings,      adminOnly: true },
 ];
 
-function Avatar({ src, name, size = 7 }: { src?: string; name?: string; size?: number }) {
+function Avatar({ src, name }: { src?: string; name?: string }) {
   const initials = name
     ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
-  const sizeClass = `w-${size} h-${size}`;
-
+  // Literal classes (not `w-${size}`) so Tailwind generates them in production.
   if (src) {
     return (
       <Image
@@ -46,12 +45,12 @@ function Avatar({ src, name, size = 7 }: { src?: string; name?: string; size?: n
         alt={name ?? ""}
         width={28}
         height={28}
-        className={`${sizeClass} rounded-full object-cover ring-2 ring-white/20`}
+        className="w-7 h-7 rounded-full object-cover ring-2 ring-white/20"
       />
     );
   }
   return (
-    <div className={`${sizeClass} rounded-full bg-white/20 flex items-center justify-center ring-2 ring-white/20`}>
+    <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center ring-2 ring-white/20">
       <span className="text-white text-xs font-bold">{initials}</span>
     </div>
   );
@@ -132,7 +131,7 @@ export default function TopBar({
             className="p-1.5 rounded-xl hover:bg-white/10 transition-colors"
             style={{ touchAction: "manipulation" }}
           >
-            <Avatar src={userAvatar} name={userName} size={7} />
+            <Avatar src={userAvatar} name={userName} />
           </button>
         </div>
       </header>

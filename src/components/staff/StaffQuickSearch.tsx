@@ -12,7 +12,6 @@ interface StaffMember {
 export default function StaffQuickSearch({ staffList }: { staffList: StaffMember[] }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -43,7 +42,6 @@ export default function StaffQuickSearch({ staffList }: { staffList: StaffMember
       <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] bg-white hover:border-[#9BADB7] transition-colors w-44 sm:w-56">
         <Search className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" />
         <input
-          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
