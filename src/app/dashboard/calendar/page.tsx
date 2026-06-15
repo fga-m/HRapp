@@ -143,10 +143,10 @@ function calcWeeklyHours(evs: GEvent[]): number {
   return Math.round((totalMins / 60) * 10) / 10;
 }
 
-function eventsForDay(events: GEvent[], day: Date) {
+function eventsForDay(events: GEvent[], day: Date, includeDeclined = false) {
   const dayN = dayMidnight(day);
   return events.filter((ev) => {
-    if (isDeclined(ev)) return false; // never show events the calendar owner declined
+    if (!includeDeclined && isDeclined(ev)) return false; // hide events the owner declined unless "Show declined" is on
     if (isMultiDayTimed(ev)) {
       // Multi-day timed: show in every calendar day it overlaps
       const startN = dayMidnight(new Date(ev.start.dateTime!));
@@ -165,12 +165,12 @@ function eventsForDay(events: GEvent[], day: Date) {
     return dayN >= startN && dayN < endN;
   });
 }
-function allDayEventsForDay(events: GEvent[], day: Date) {
-  return eventsForDay(events, day).filter(isAllDayLike);
+function allDayEventsForDay(events: GEvent[], day: Date, includeDeclined = false) {
+  return eventsForDay(events, day, includeDeclined).filter(isAllDayLike);
 }
-function timedEventsForDay(events: GEvent[], day: Date) {
+function timedEventsForDay(events: GEvent[], day: Date, includeDeclined = false) {
   // Exclude both all-day and multi-day timed events — those go in the all-day row
-  return eventsForDay(events, day).filter((ev) => !isAllDayLike(ev));
+  return eventsForDay(events, day, includeDeclined).filter((ev) => !isAllDayLike(ev));
 }
 
 // Only lay out busy events — free/OOO are always full-width backgrounds
@@ -700,6 +700,7 @@ export default function CalendarPage() {
   const hoverPopupTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [rsvpLoading, setRsvpLoading] = useState<string | null>(null);
+  const [showDeclined, setShowDeclined] = useState(false);
 
   const showPopup = (ev: GEvent, e: React.MouseEvent) => {
     if (hoverPopupTimeout.current) clearTimeout(hoverPopupTimeout.current);
@@ -1232,6 +1233,19 @@ export default function CalendarPage() {
               </div>
             ) : null;
           })()}
+
+          {/* Show events you've declined (so you can re-accept one) */}
+          <button
+            onClick={() => setShowDeclined((v) => !v)}
+            title="Show events you've declined, so you can re-accept them"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border shadow-sm text-xs font-medium transition-colors ${
+              showDeclined
+                ? "bg-[#223149] text-white border-[#223149]"
+                : "bg-white text-[#5F7C84] border-[#ECE3DF] hover:bg-[#F8F6F4]"
+            }`}
+          >
+            {showDeclined ? "Hide declined" : "Show declined"}
+          </button>
         </div>
       </div>
 
@@ -1351,7 +1365,7 @@ export default function CalendarPage() {
         </div>
 
         {/* All-day row */}
-        {days.some((d) => allDayEventsForDay(events, d).length > 0) && (
+        {days.some((d) => allDayEventsForDay(events, d, showDeclined).length > 0) && (
           <div
             className="flex-shrink-0 grid border-b border-[#ECE3DF]"
             style={{ gridTemplateColumns: "52px repeat(7, 1fr)", paddingRight: scrollbarWidth }}
@@ -1360,7 +1374,7 @@ export default function CalendarPage() {
               <span className="text-[10px] text-[#9BADB7]">all-day</span>
             </div>
             {days.map((day) => {
-              const allDay = allDayEventsForDay(events, day);
+              const allDay = allDayEventsForDay(events, day, showDeclined);
               return (
                 <div key={day.toISOString()} className="border-r border-[#ECE3DF] last:border-r-0 p-1 min-h-[28px]">
                   {allDay.map((ev) => {
@@ -1412,7 +1426,7 @@ export default function CalendarPage() {
 
             {/* Day columns */}
             {days.map((day) => {
-              const timed = timedEventsForDay(events, day);
+              const timed = timedEventsForDay(events, day, showDeclined);
               const freeEvs    = timed.filter(ev => isFreeEvent(ev) && !isPendingEvent(ev));
               const oooEvs     = timed.filter(isOOO);
               const pendingEvs = timed.filter(ev => isPendingEvent(ev) && !isOOO(ev));
@@ -1622,7 +1636,7 @@ export default function CalendarPage() {
                     return (
                       <div
                         key={ev.id}
-                        className={`absolute group/ev rounded-lg border-l-2 overflow-hidden transition-opacity ${eventColor.event} ${isOwnCalendar ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-30" : "hover:brightness-95"}`}
+                        className={`absolute group/ev rounded-lg border-l-2 overflow-hidden transition-opacity ${eventColor.event} ${isOwnCalendar ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-30" : "hover:brightness-95"} ${isDeclined(ev) ? "opacity-50 ring-1 ring-rose-300" : ""}`}
                         style={{ top, height, left: `${pos.left}%`, width: `${pos.width}%`, zIndex: hoveredEventId === ev.id ? 15 : 5 }}
                         onMouseEnter={(e) => { setHoveredEventId(ev.id); showPopup(ev, e); }}
                         onMouseLeave={() => { setHoveredEventId(null); hidePopup(); }}
@@ -1751,13 +1765,13 @@ export default function CalendarPage() {
         </div>
 
         {/* All-day row for the selected day */}
-        {allDayEventsForDay(events, mobileDay).length > 0 && (
+        {allDayEventsForDay(events, mobileDay, showDeclined).length > 0 && (
           <div className="flex-shrink-0 grid border-b border-[#ECE3DF]" style={{ gridTemplateColumns: "52px 1fr" }}>
             <div className="border-r border-[#ECE3DF] flex items-center justify-end pr-2">
               <span className="text-[10px] text-[#9BADB7]">all-day</span>
             </div>
             <div className="p-1 min-h-[28px]">
-              {allDayEventsForDay(events, mobileDay).map((ev) => {
+              {allDayEventsForDay(events, mobileDay, showDeclined).map((ev) => {
                 const ooo = isOOO(ev);
                 const free = isFreeEvent(ev);
                 const bg = ooo
@@ -1804,7 +1818,7 @@ export default function CalendarPage() {
 
             {/* Single day column */}
             {(() => {
-              const timed = timedEventsForDay(events, mobileDay);
+              const timed = timedEventsForDay(events, mobileDay, showDeclined);
               const freeEvs    = timed.filter(ev => isFreeEvent(ev) && !isPendingEvent(ev));
               const oooEvs     = timed.filter(isOOO);
               const pendingEvs = timed.filter(ev => isPendingEvent(ev) && !isOOO(ev));
@@ -1976,7 +1990,7 @@ export default function CalendarPage() {
                     return (
                       <div
                         key={ev.id}
-                        className={`absolute rounded-lg border-l-2 overflow-hidden cursor-pointer ${eventColor.event}`}
+                        className={`absolute rounded-lg border-l-2 overflow-hidden cursor-pointer ${eventColor.event} ${isDeclined(ev) ? "opacity-50 ring-1 ring-rose-300" : ""}`}
                         style={{ top, height, left: `${pos.left}%`, width: `${pos.width}%`, zIndex: 5 }}
                         onClick={(e) => { e.stopPropagation(); setTooltip(ev); }}
                       >
