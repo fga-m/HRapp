@@ -60,13 +60,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { action, note } = (await req.json()) as {
-    action: "APPROVE" | "REJECT";
+  const { action, note, fields } = (await req.json()) as {
+    action: "APPROVE" | "REJECT" | "UPDATE";
     note?: string;
+    fields?: Record<string, unknown>;
   };
 
-  if (action !== "APPROVE" && action !== "REJECT") {
-    return NextResponse.json({ error: "action must be APPROVE or REJECT" }, { status: 400 });
+  if (action !== "APPROVE" && action !== "REJECT" && action !== "UPDATE") {
+    return NextResponse.json({ error: "action must be APPROVE, REJECT or UPDATE" }, { status: 400 });
   }
 
   const { data: claim } = await supabaseAdmin
@@ -76,6 +77,38 @@ export async function PATCH(
     .single();
 
   if (!claim) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // ---- UPDATE (approver fixes a submission before approving) ----
+  if (action === "UPDATE") {
+    if (claim.status !== "submitted" && claim.status !== "push_failed") {
+      return NextResponse.json({ error: "Only submitted or failed claims can be edited" }, { status: 400 });
+    }
+    const f = fields ?? {};
+    const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (f.amount !== undefined) {
+      const n = Number(f.amount);
+      if (isNaN(n) || n <= 0) {
+        return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 });
+      }
+      update.amount = n;
+    }
+    if (f.description !== undefined) update.description = String(f.description);
+    if (f.spent_on !== undefined) update.date = String(f.spent_on);
+    if (f.spent_at !== undefined) update.spent_at = f.spent_at ? String(f.spent_at) : null;
+    if (f.account_code !== undefined) update.account_code = f.account_code ? String(f.account_code) : null;
+    if (f.account_name !== undefined) update.account_name = f.account_name ? String(f.account_name) : null;
+    if (f.tax_type !== undefined) update.tax_type = f.tax_type ? String(f.tax_type) : null;
+    if (f.tax_rate_name !== undefined) update.tax_rate_name = f.tax_rate_name ? String(f.tax_rate_name) : null;
+
+    const { data, error } = await supabaseAdmin
+      .from("expense_claims")
+      .update(update)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
+  }
 
   // ---- REJECT ----
   if (action === "REJECT") {
