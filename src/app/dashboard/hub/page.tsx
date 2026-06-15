@@ -121,7 +121,7 @@ function LinkModal({
       <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#223149]">{initial ? "Edit Link" : "Add Link"}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
+          <button onClick={onClose} className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
             <X className="w-5 h-5 text-[#9BADB7]" />
           </button>
         </div>
@@ -281,7 +281,7 @@ function GroupModal({
       <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-sm p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#223149]">{initial ? "Rename Group" : "New Group"}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
+          <button onClick={onClose} className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
             <X className="w-5 h-5 text-[#9BADB7]" />
           </button>
         </div>
@@ -484,7 +484,7 @@ function SortableGroupSection({
           <div className="flex items-center gap-1">
             <button
               onClick={onAddLink}
-              className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
+              className="p-2.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
               title="Add link to group"
               aria-label="Add link to group"
             >
@@ -492,7 +492,7 @@ function SortableGroupSection({
             </button>
             <button
               onClick={onEditGroup}
-              className="p-1.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
+              className="p-2.5 rounded-lg hover:bg-[#ECE3DF] transition-colors"
               title="Rename group"
               aria-label="Rename group"
             >
@@ -501,7 +501,7 @@ function SortableGroupSection({
             <button
               onClick={onDeleteGroup}
               disabled={deletingGroupId === group.id}
-              className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50"
+              className="p-2.5 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50"
               title="Delete group"
               aria-label="Delete group"
             >

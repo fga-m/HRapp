@@ -235,7 +235,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     {isOwnProfile && claim.status === "submitted" && (
                       <button
                         onClick={() => setEditingClaim(claim)}
-                        className="p-1 rounded-lg hover:bg-[#F8F6F4] text-[#9BADB7] hover:text-[#223149] transition-colors"
+                        className="p-2 rounded-lg hover:bg-[#F8F6F4] text-[#9BADB7] hover:text-[#223149] transition-colors"
                         title="Edit claim"
                         aria-label="Edit claim"
                       >
@@ -245,7 +245,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     {isOwnProfile && claim.status === "submitted" && (
                       <button
                         onClick={() => handleDelete(claim.id)}
-                        className="p-1 rounded-lg hover:bg-red-50 text-[#9BADB7] hover:text-red-400 transition-colors"
+                        className="p-2 rounded-lg hover:bg-red-50 text-[#9BADB7] hover:text-red-400 transition-colors"
                         title="Delete claim"
                         aria-label="Delete claim"
                       >

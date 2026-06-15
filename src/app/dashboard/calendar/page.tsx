@@ -390,7 +390,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
       <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#223149]">{isEdit ? "Edit Event" : "New Event"}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
+          <button onClick={onClose} className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
             <X className="w-5 h-5 text-[#9BADB7]" />
           </button>
         </div>
@@ -2188,21 +2188,21 @@ export default function CalendarPage() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => { setEditingEvent(tooltip); setTooltip(null); }}
-                    className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
+                    className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
                     title="Edit event"
                   >
                     <Pencil className="w-4 h-4 text-[#5F7C84]" />
                   </button>
                   <button
                     onClick={() => { setDuplicatingEvent(tooltip); setTooltip(null); }}
-                    className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
+                    className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
                     title="Duplicate event"
                   >
                     <Copy className="w-4 h-4 text-[#5F7C84]" />
                   </button>
                   <button
                     onClick={() => handleDelete(tooltip)}
-                    className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
+                    className="p-2.5 rounded-lg hover:bg-rose-50 transition-colors"
                     title="Delete event"
                   >
                     <Trash2 className="w-4 h-4 text-rose-400" />
