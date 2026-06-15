@@ -90,8 +90,10 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
       fetch("/api/xero/tax-rates").then((r) => (r.ok ? r.json() : Promise.reject(r))),
     ])
       .then(([accs, taxes]) => {
-        setAccounts(accs);
-        setTaxRates(taxes);
+        // The routes return { accounts: [...] } / { taxRates: [...] }. Guard
+        // against any shape so we never set a non-array (which would crash .map).
+        setAccounts(Array.isArray(accs) ? accs : accs?.accounts ?? []);
+        setTaxRates(Array.isArray(taxes) ? taxes : taxes?.taxRates ?? []);
       })
       .catch(async (r) => {
         const body = r?.json ? await r.json().catch(() => ({})) : {};
