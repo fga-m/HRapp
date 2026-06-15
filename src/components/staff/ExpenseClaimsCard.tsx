@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTriangle, ChevronDown, ChevronUp, Paperclip, Upload } from "lucide-react";
+import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTriangle, ChevronDown, ChevronUp, Paperclip, Upload, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import ExpenseEditModal from "@/components/expenses/ExpenseEditModal";
 
 interface Claim {
   id: string;
@@ -10,6 +11,8 @@ interface Claim {
   amount: number;
   description: string;
   account_name?: string | null;
+  account_code?: string | null;
+  tax_type?: string | null;
   spent_at?: string | null;
   status: "submitted" | "approved" | "rejected" | "pushed" | "push_failed";
   reviewer_notes?: string | null;
@@ -48,6 +51,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [editingClaim, setEditingClaim] = useState<Claim | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -214,6 +218,16 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <StatusBadge status={claim.status} />
+                    {isOwnProfile && claim.status === "submitted" && (
+                      <button
+                        onClick={() => setEditingClaim(claim)}
+                        className="p-1 rounded-lg hover:bg-[#F8F6F4] text-[#9BADB7] hover:text-[#223149] transition-colors"
+                        title="Edit claim"
+                        aria-label="Edit claim"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     {isOwnProfile && claim.status === "submitted" && (
                       <button
                         onClick={() => handleDelete(claim.id)}
@@ -417,6 +431,15 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
             </form>
           </div>
         </div>
+      )}
+
+      {/* Edit own submitted claim */}
+      {editingClaim && (
+        <ExpenseEditModal
+          claim={editingClaim}
+          onClose={() => setEditingClaim(null)}
+          onSaved={() => { setEditingClaim(null); fetchClaims(); }}
+        />
       )}
     </>
   );

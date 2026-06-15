@@ -56,10 +56,6 @@ export async function PATCH(
 
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!(await isApprover(caller))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   const { action, note, fields } = (await req.json()) as {
     action: "APPROVE" | "REJECT" | "UPDATE";
     note?: string;
@@ -78,8 +74,15 @@ export async function PATCH(
 
   if (!claim) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // ---- UPDATE (approver fixes a submission before approving) ----
+  const approver = await isApprover(caller);
+  const isOwner = claim.staff_id === caller.id;
+
+  // ---- UPDATE (approver edits any submission; owner edits their own while submitted) ----
   if (action === "UPDATE") {
+    const canEdit = approver || (isOwner && claim.status === "submitted");
+    if (!canEdit) {
+      return NextResponse.json({ error: "You can't edit this claim" }, { status: 403 });
+    }
     if (claim.status !== "submitted" && claim.status !== "push_failed") {
       return NextResponse.json({ error: "Only submitted or failed claims can be edited" }, { status: 400 });
     }
@@ -108,6 +111,11 @@ export async function PATCH(
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
+  }
+
+  // APPROVE and REJECT are approver-only.
+  if (!approver) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // ---- REJECT ----
