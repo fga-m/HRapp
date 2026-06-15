@@ -99,6 +99,7 @@ export default function SettingsPage() {
               <h2 className="font-semibold text-[#223149]">Xero Payroll</h2>
               <p className="text-sm text-[#9BADB7]">Sync leave requests directly to Xero AU Payroll</p>
               <p className="text-xs text-[#9BADB7] mt-0.5">Xero is our accounting &amp; payroll system.</p>
+              <p className="text-xs text-amber-600 mt-1">Expense claims need extended Xero permissions — if approvals fail to send, click Disconnect then Connect to re-grant access.</p>
             </div>
           </div>
           <button

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, LogOut, User, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree, Shield } from "lucide-react";
+import { Bell, X, LogOut, User, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree, Shield, Receipt } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -20,6 +20,7 @@ interface TopBarProps {
 
 const moreItems = [
   { label: "Leave Requests",      href: "/dashboard/leave",                 icon: Palmtree },
+  { label: "Expenses",            href: "/dashboard/expenses",              icon: Receipt,       permission: "approve_expenses" },
   { label: "Performance",         href: "/dashboard/performance",           icon: TrendingUp },
   { label: "Hours & TOIL",        href: "/dashboard/schedule",              icon: CalendarDays,  permission: "view_team_schedule" },
   { label: "Checklists",          href: "/dashboard/onboarding",            icon: CheckSquare,   hideWhenNoChecklists: true },

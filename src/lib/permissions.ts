@@ -8,6 +8,7 @@ export const FEATURES = [
   { key: "manage_position_descriptions", label: "Manage Position Descriptions", description: "Create and assign position descriptions" },
   { key: "view_team_schedule",           label: "View Team Schedule",          description: "Access the team schedule and TOIL tracker" },
   { key: "manage_toil",                  label: "Manage TOIL (time off in lieu)", description: "Log and adjust time off in lieu for staff" },
+  { key: "approve_expenses",             label: "Approve Expense Claims",      description: "Review and approve staff expense claims (and send them to Xero)" },
 ] as const;
 
 export type FeatureKey = typeof FEATURES[number]["key"];

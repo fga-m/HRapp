@@ -157,6 +157,62 @@ create table if not exists notifications (
   created_at timestamptz default now()
 );
 
+-- EXPENSE CLAIMS
+-- ------------------------------------------------------------
+-- Reimbursable staff expense claims, reviewed by approvers (designated via the
+-- `role_permissions` "approve_expenses" feature flag; admins always allowed)
+-- and pushed to Xero as ACCPAY bills payable to the staff member's own contact.
+--
+-- This table already exists in the live DB; the canonical column set below is
+-- the result of supabase-migration-2026-06-10-expense-claims-xero.sql. The
+-- legacy `category` column is kept NULLABLE (no longer required on submit).
+--
+-- status canonical set: 'submitted','approved','rejected','pushed','push_failed'
+--   (legacy 'pending' is backfilled to 'submitted'; 'draft' is reserved/unused).
+--
+-- Receipts are stored in a PRIVATE Supabase Storage bucket named "receipts"
+-- (created manually in the dashboard); `receipt_path` holds the object path
+-- using the convention `${staff_id}/${timestamp}-${sanitisedName}`.
+create table if not exists expense_claims (
+  id uuid primary key default gen_random_uuid(),
+  staff_id uuid references staff(id) on delete cascade,
+  date date not null,                       -- = spent_on
+  amount numeric not null,
+  category text,                            -- legacy, nullable
+  description text,
+  receipt_url text,                         -- legacy receipt link
+  status text not null default 'submitted'
+    check (status in ('submitted', 'approved', 'rejected', 'pushed', 'push_failed')),
+  reviewed_by uuid references staff(id),
+  reviewed_at timestamptz,
+  reviewer_notes text,
+  -- Xero / richer claim columns (added by the 2026-06-10 migration)
+  currency text default 'AUD',
+  spent_at text,                            -- location where the spend occurred
+  account_code text,                        -- Xero expense account code
+  account_name text,                        -- Xero expense account name (denormalised)
+  tax_type text,                            -- Xero TaxType code
+  tax_rate_name text,                       -- Xero tax rate display name (denormalised)
+  line_amount_type text default 'Inclusive',-- 'Inclusive' | 'Exclusive' | 'NoTax'
+  receipt_path text,                        -- Supabase Storage object path in "receipts"
+  receipt_mime text,                        -- receipt content type
+  line_items jsonb,                         -- reserved for future itemisation
+  xero_invoice_id text,                     -- Xero ACCPAY InvoiceID once pushed
+  xero_contact_id text,                     -- Xero ContactID the bill was raised against
+  xero_pushed_at timestamptz,               -- when the bill was created in Xero
+  xero_error text,                          -- last Xero push/attachment error message
+  xero_total numeric,                       -- total returned by Xero (sanity-checked vs amount)
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+create index if not exists idx_expense_claims_status on expense_claims (status);
+create index if not exists idx_expense_claims_staff_id on expense_claims (staff_id);
+
+-- NOTE: staff.xero_contact_id (text) is also added by the 2026-06-10 migration.
+-- It maps each staff member to their OWN Xero contact so approved expense
+-- claims become ACCPAY bills payable to that contact. See the staff table
+-- above (the live column is added via `alter table ... add column if not exists`).
+
 -- ============================================================
 -- ROW LEVEL SECURITY
 -- ============================================================
