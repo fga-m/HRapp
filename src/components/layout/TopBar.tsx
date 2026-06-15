@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, LogOut, User, CalendarDays, CheckSquare, Users, Network, Briefcase, ShieldCheck, FileSignature, TrendingUp, Settings, Palmtree, Shield, Receipt } from "lucide-react";
+import { Bell, X, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { visibleMoreItems, getPageTitle } from "@/lib/nav";
 
 interface TopBarProps {
   userName?: string;
@@ -17,21 +18,6 @@ interface TopBarProps {
   notificationCount?: number;
   hasActiveChecklists?: boolean;
 }
-
-const moreItems = [
-  { label: "Leave Requests",      href: "/dashboard/leave",                 icon: Palmtree },
-  { label: "Expenses",            href: "/dashboard/expenses",              icon: Receipt },
-  { label: "Performance",         href: "/dashboard/performance",           icon: TrendingUp },
-  { label: "Hours & TOIL",        href: "/dashboard/schedule",              icon: CalendarDays,  permission: "view_team_schedule" },
-  { label: "Checklists",          href: "/dashboard/onboarding",            icon: CheckSquare,   hideWhenNoChecklists: true },
-  { label: "Contracts",           href: "/dashboard/contracts",             icon: FileSignature },
-  { label: "Policies",            href: "/dashboard/policies",              icon: Shield },
-  { label: "Org Chart",           href: "/dashboard/org",                   icon: Network },
-  { label: "My Position",         href: "/dashboard/position-descriptions", icon: Briefcase },
-  { label: "Staff",               href: "/dashboard/staff",                 icon: Users,         permission: "manage_staff" },
-  { label: "Roles & Permissions", href: "/dashboard/access",                icon: ShieldCheck,   adminOnly: true },
-  { label: "Settings",            href: "/dashboard/settings",              icon: Settings,      adminOnly: true },
-];
 
 function Avatar({ src, name }: { src?: string; name?: string }) {
   const initials = name
@@ -78,29 +64,7 @@ export default function TopBar({
     return () => window.removeEventListener("openMobileMenu", handler);
   }, []);
 
-  const pageTitle: Record<string, string> = {
-    "/dashboard": "Dashboard",
-    "/dashboard/calendar": "Work Calendar",
-    "/dashboard/leave": "Leave Requests",
-    "/dashboard/meetings": "Meeting Notes",
-    "/dashboard/policies": "Policies",
-    "/dashboard/onboarding": "Checklists",
-    "/dashboard/hub": "Resources",
-    "/dashboard/staff": "Staff",
-    "/dashboard/schedule": "Hours & TOIL",
-    "/dashboard/org": "Org Chart",
-    "/dashboard/position-descriptions": "My Position",
-    "/dashboard/access": "Roles & Permissions",
-    "/dashboard/contracts": "Contracts",
-    "/dashboard/performance": "Performance",
-    "/dashboard/expenses": "Expense Claims",
-    "/dashboard/notifications": "Notifications",
-    "/dashboard/settings": "Settings",
-  };
-
-  const title = Object.entries(pageTitle)
-    .sort((a, b) => b[0].length - a[0].length)
-    .find(([path]) => pathname.startsWith(path))?.[1] ?? "HR Portal";
+  const title = getPageTitle(pathname);
 
   const roleBadge = role === "admin" ? "Admin" : role === "manager" ? "Manager" : role === "finance" ? "Finance" : null;
 
@@ -211,13 +175,7 @@ export default function TopBar({
               </button>
             </div>
             <div className="px-4 py-3 space-y-1">
-              {moreItems
-                .filter(item => {
-                  if (item.adminOnly) return isAdmin ?? false;
-                  if ((item as any).permission) return isAdmin || permissions.includes((item as any).permission);
-                  if ((item as any).hideWhenNoChecklists && !isAdmin) return hasActiveChecklists;
-                  return true;
-                })
+              {visibleMoreItems({ isAdmin, permissions, hasActiveChecklists })
                 .map(item => {
                   const Icon = item.icon;
                   const isActive = pathname.startsWith(item.href);
