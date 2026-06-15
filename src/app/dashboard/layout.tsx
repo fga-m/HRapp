@@ -7,6 +7,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import BottomNav from "@/components/layout/BottomNav";
 import { AppContextProvider } from "@/context/AppContext";
+import { ConfirmProvider } from "@/components/ui/ConfirmDialog";
 import { Eye, EyeOff } from "lucide-react";
 
 export default async function DashboardLayout({
@@ -142,7 +143,9 @@ export default async function DashboardLayout({
 
         <main className="flex-1 p-4 md:p-8 pt-[72px] md:pt-8 pb-24 md:pb-8">
           <AppContextProvider isAdmin={effectiveIsAdmin} role={caller?.role ?? "staff"}>
-            {children}
+            <ConfirmProvider>
+              {children}
+            </ConfirmProvider>
           </AppContextProvider>
         </main>
       </div>

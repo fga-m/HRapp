@@ -7,6 +7,7 @@ import {
   ArrowLeft, Plus, X, ExternalLink, Pencil,
   Trash2, Star, ToggleLeft, ToggleRight, Users
 } from "lucide-react";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -380,6 +381,7 @@ function EditTemplateModal({
 export default function TemplateEditorPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const confirm = useConfirm();
 
   const [template, setTemplate] = useState<Template | null>(null);
   const [items, setItems] = useState<TemplateItem[]>([]);
@@ -451,7 +453,7 @@ export default function TemplateEditorPage() {
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    if (!confirm("Delete this item?")) return;
+    if (!(await confirm({ title: "Delete this item?", danger: true }))) return;
     setDeletingId(itemId);
     await fetch(`/api/checklists/templates/${id}/items/${itemId}`, { method: "DELETE" });
     setDeletingId(null);
@@ -470,7 +472,7 @@ export default function TemplateEditorPage() {
   };
 
   const handleDeleteTemplate = async () => {
-    if (!confirm("Delete this template? This cannot be undone.")) return;
+    if (!(await confirm({ title: "Delete this template?", message: "This cannot be undone.", danger: true }))) return;
     await fetch(`/api/checklists/templates/${id}`, { method: "DELETE" });
     router.push("/dashboard/onboarding");
   };

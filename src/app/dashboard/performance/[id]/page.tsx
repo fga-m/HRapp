@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { CRITERIA, SCORE_LABELS, type EvaluationData } from "@/lib/performance";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 // ─── Score colour helpers ──────────────────────────────────────────────────
 
@@ -58,6 +59,7 @@ function EvalForm({
   saving: boolean;
   submitting: boolean;
 }) {
+  const confirm = useConfirm();
   const empty: EvaluationData = {
     scores: {},
     comments: {},
@@ -72,8 +74,8 @@ function EvalForm({
   const setComment = (key: string, val: string) =>
     setData((d) => ({ ...d, comments: { ...d.comments, [key]: val } }));
 
-  const handleSubmit = () => {
-    if (!confirm("Once submitted you cannot edit your self-evaluation. Continue?")) return;
+  const handleSubmit = async () => {
+    if (!(await confirm({ title: "Submit self-evaluation?", message: "Once submitted you cannot edit it.", confirmLabel: "Submit" }))) return;
     onSubmit(data);
   };
 

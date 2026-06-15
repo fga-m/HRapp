@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MessageSquare, Plus, Lock, Eye, Check, Trash2, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import Image from "next/image";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 interface Note {
   id: string;
@@ -39,6 +40,7 @@ function AuthorAvatar({ author }: { author: Note["author"] }) {
 }
 
 export default function PerformanceNotesCard({ staffId, callerId, isManager, isOwnProfile }: Props) {
+  const confirm = useConfirm();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<string>("staff");
@@ -102,7 +104,7 @@ export default function PerformanceNotesCard({ staffId, callerId, isManager, isO
   };
 
   const deleteNote = async (noteId: string) => {
-    if (!confirm("Delete this note? This cannot be undone.")) return;
+    if (!(await confirm({ title: "Delete this note?", message: "This cannot be undone.", danger: true }))) return;
     setNotes(notes.filter((n) => n.id !== noteId));
     await fetch(`/api/staff/${staffId}/notes/${noteId}`, { method: "DELETE" });
   };

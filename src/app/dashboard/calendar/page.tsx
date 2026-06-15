@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Copy, Plus, Pencil, Trash2, X, Clock } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import {
   format, startOfWeek, addDays, isToday, eachDayOfInterval,
   addWeeks, subWeeks, isSameDay,
@@ -652,6 +653,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
 
 // ── Component ──────────────────────────────────────────────────────────────
 export default function CalendarPage() {
+  const confirm = useConfirm();
   const [weekStart, setWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
@@ -1077,7 +1079,7 @@ export default function CalendarPage() {
   };
 
   const handleDelete = async (ev: GEvent) => {
-    if (!confirm(`Delete "${ev.summary || "this event"}"?`)) return;
+    if (!(await confirm({ title: `Delete "${ev.summary || "this event"}"?`, danger: true }))) return;
     await fetch(`/api/calendar/events/${ev.id}?calendarId=${encodeURIComponent(selectedId)}`, { method: "DELETE" });
     setTooltip(null);
     fetchEvents();

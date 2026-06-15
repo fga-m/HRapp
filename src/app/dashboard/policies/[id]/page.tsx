@@ -8,6 +8,7 @@ import {
   Users, RefreshCw, Check, Maximize2, Minimize2, Edit, History, ChevronDown, ChevronUp, AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 function getEmbedUrl(url: string): string {
   if (url.includes("docs.google.com/document"))
@@ -24,6 +25,7 @@ function getEmbedUrl(url: string): string {
 export default function PolicyDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const confirm = useConfirm();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
@@ -89,7 +91,7 @@ export default function PolicyDetailPage() {
   };
 
   const handleArchive = async () => {
-    if (!confirm("Archive this policy? Staff will no longer see it.")) return;
+    if (!(await confirm({ title: "Archive this policy?", message: "Staff will no longer see it.", confirmLabel: "Archive", danger: true }))) return;
     setArchiving(true);
     await fetch(`/api/policies/${id}`, {
       method: "PATCH",

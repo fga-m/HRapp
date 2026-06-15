@@ -8,6 +8,7 @@ import {
   Clock, Send, Users, MessageSquare, Share2, AlertTriangle
 } from "lucide-react";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { format } from "date-fns";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -26,6 +27,7 @@ const TYPE_COLOURS: Record<string, string> = {
 
 export default function MeetingDetailPage() {
   const { id } = useParams();
+  const confirm = useConfirm();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
@@ -49,7 +51,7 @@ export default function MeetingDetailPage() {
   useEffect(() => { fetchNote(); }, [id]);
 
   const handleShare = async () => {
-    if (!confirm("Share these notes with the attendees? They'll be notified and can view, acknowledge, or suggest changes.")) return;
+    if (!(await confirm({ title: "Share these notes with the attendees?", message: "They'll be notified and can view, acknowledge, or suggest changes.", confirmLabel: "Share" }))) return;
     setSharing(true);
     setError("");
     try {

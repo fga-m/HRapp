@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2, Link2, Link2Off, RefreshCw } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 interface XeroStatus {
   connected: boolean;
@@ -15,6 +16,7 @@ interface XeroStatus {
 
 export default function SettingsPage() {
   const searchParams = useSearchParams();
+  const confirm = useConfirm();
   const [xero, setXero] = useState<XeroStatus | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -39,7 +41,7 @@ export default function SettingsPage() {
   }, []);
 
   const handleDisconnect = async () => {
-    if (!confirm("Disconnect Xero? Leave requests and expense claims will no longer sync.")) return;
+    if (!(await confirm({ title: "Disconnect Xero?", message: "Leave requests and expense claims will no longer sync.", confirmLabel: "Disconnect", danger: true }))) return;
     setDisconnecting(true);
     setDisconnectError("");
     try {

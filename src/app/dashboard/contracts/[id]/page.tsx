@@ -22,10 +22,12 @@ import {
 import { format } from "date-fns";
 import Image from "next/image";
 import DropZone from "@/components/ui/DropZone";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 export default function ContractDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const confirm = useConfirm();
 
   const [data, setData] = useState<any>(null);
   const [signedUrl, setSignedUrl] = useState<string>("");
@@ -141,7 +143,7 @@ export default function ContractDetailPage() {
   };
 
   const handleRemoveAssignment = async (staffId: string) => {
-    if (!confirm("Remove this assignment?")) return;
+    if (!(await confirm({ title: "Remove this assignment?", danger: true }))) return;
     await fetch(`/api/contracts/${id}/assign?staff_id=${staffId}`, { method: "DELETE" });
     fetchContract();
   };
@@ -149,7 +151,7 @@ export default function ContractDetailPage() {
   const handleToggleActive = async () => {
     if (!data?.contract) return;
     const newActive = !data.contract.is_active;
-    if (!confirm(newActive ? "Re-activate this contract?" : "Deactivate this contract? Staff will no longer see it.")) return;
+    if (!(await confirm(newActive ? "Re-activate this contract?" : "Deactivate this contract? Staff will no longer see it."))) return;
     await fetch(`/api/contracts/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -159,7 +161,7 @@ export default function ContractDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Permanently delete this contract and its file? This cannot be undone.")) return;
+    if (!(await confirm({ title: "Permanently delete this contract and its file?", message: "This cannot be undone.", danger: true }))) return;
     setDeleting(true);
     const res = await fetch(`/api/contracts/${id}`, { method: "DELETE" });
     if (res.ok) {

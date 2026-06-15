@@ -17,6 +17,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -301,6 +302,7 @@ function AddItemModal({
 export default function ChecklistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const confirm = useConfirm();
 
   const [checklist, setChecklist] = useState<Checklist | null>(null);
   const [loading, setLoading] = useState(true);
@@ -365,7 +367,7 @@ export default function ChecklistDetailPage() {
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    if (!confirm("Remove this item from the checklist?")) return;
+    if (!(await confirm({ title: "Remove this item from the checklist?", danger: true }))) return;
     setDeletingItemId(itemId);
     await fetch(`/api/checklists/assigned/${id}/items/${itemId}`, { method: "DELETE" });
     setDeletingItemId(null);
@@ -373,7 +375,7 @@ export default function ChecklistDetailPage() {
   };
 
   const handleDeleteChecklist = async () => {
-    if (!confirm("Delete this checklist? This cannot be undone.")) return;
+    if (!(await confirm({ title: "Delete this checklist?", message: "This cannot be undone.", danger: true }))) return;
     setDeletingChecklist(true);
     await fetch(`/api/checklists/assigned/${id}`, { method: "DELETE" });
     router.push("/dashboard/onboarding");

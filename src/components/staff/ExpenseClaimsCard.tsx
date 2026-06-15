@@ -5,6 +5,7 @@ import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTrian
 import { format, parseISO } from "date-fns";
 import ExpenseEditModal from "@/components/expenses/ExpenseEditModal";
 import AccountSelect from "@/components/expenses/AccountSelect";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 interface Claim {
   id: string;
@@ -48,6 +49,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: Props) {
+  const confirm = useConfirm();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
@@ -167,7 +169,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   };
 
   const handleDelete = async (claimId: string) => {
-    if (!confirm("Delete this expense claim?")) return;
+    if (!(await confirm({ title: "Delete this expense claim?", danger: true }))) return;
     await fetch(`/api/expenses/${claimId}`, { method: "DELETE" });
     fetchClaims();
   };

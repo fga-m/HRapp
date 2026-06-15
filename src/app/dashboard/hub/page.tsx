@@ -36,6 +36,7 @@ import {
   X,
 } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -541,6 +542,7 @@ function SortableGroupSection({
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function StaffHubPage() {
+  const confirm = useConfirm();
   const [groups, setGroups] = useState<HubGroup[]>([]);
   const [links, setLinks] = useState<HubLink[]>([]);
   const [role, setRole] = useState("staff");
@@ -604,7 +606,7 @@ export default function StaffHubPage() {
   };
 
   const handleDeleteLink = async (id: string) => {
-    if (!confirm("Remove this link?")) return;
+    if (!(await confirm({ title: "Remove this link?", danger: true }))) return;
     setDeletingLinkId(id);
     await fetch(`/api/hub/links/${id}`, { method: "DELETE" });
     setDeletingLinkId(null);
@@ -628,7 +630,7 @@ export default function StaffHubPage() {
   };
 
   const handleDeleteGroup = async (id: string) => {
-    if (!confirm("Delete this group? Links inside will become ungrouped.")) return;
+    if (!(await confirm({ title: "Delete this group?", message: "Links inside will become ungrouped.", danger: true }))) return;
     setDeletingGroupId(id);
     await fetch(`/api/hub/groups/${id}`, { method: "DELETE" });
     setDeletingGroupId(null);

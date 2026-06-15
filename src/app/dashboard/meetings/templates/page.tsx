@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Pencil, Trash2, X, Eye, Code, AlertTriangle } from "lucide-react";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 const MEETING_TYPES = [
   { value: "1on1",               label: "1-on-1" },
@@ -81,6 +82,7 @@ type EditorState = {
 };
 
 export default function MeetingTemplatesPage() {
+  const confirm = useConfirm();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("1on1");
@@ -154,7 +156,7 @@ export default function MeetingTemplatesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this template?")) return;
+    if (!(await confirm({ title: "Delete this template?", danger: true }))) return;
     setDeleting(id);
     setError("");
     try {

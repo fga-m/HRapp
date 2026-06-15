@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PageSubtitle from "@/components/PageSubtitle";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import {
   Network,
   Pencil,
@@ -315,6 +316,7 @@ function Modal({
 
 export default function OrgChartPage() {
   const router = useRouter();
+  const confirm = useConfirm();
 
   const [data, setData] = useState<OrgData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -454,7 +456,7 @@ export default function OrgChartPage() {
   // ─── Delete role ───────────────────────────────────────────────────────────
 
   const handleDeleteRole = async (role: OrgRole) => {
-    if (!confirm(`Delete "${role.title}"? Its child roles will become top-level roles.`)) return;
+    if (!(await confirm({ title: `Delete "${role.title}"?`, message: "Its child roles will become top-level roles.", danger: true }))) return;
     const res = await fetch(`/api/org/${role.id}`, { method: "DELETE" });
     if (res.ok) await fetchData();
   };
