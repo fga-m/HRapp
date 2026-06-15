@@ -93,17 +93,29 @@ export default function NotificationsPage() {
 
   const markAllRead = async () => {
     setMarkingAll(true);
-    await fetch("/api/notifications", { method: "PATCH" });
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    setMarkingAll(false);
+    setError(null);
+    try {
+      const res = await fetch("/api/notifications", { method: "PATCH" });
+      if (!res.ok) throw new Error("Failed to mark all read");
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    } catch {
+      setError("Couldn't mark notifications as read — please try again.");
+    } finally {
+      setMarkingAll(false);
+    }
   };
 
   const handleClick = async (n: Notification) => {
     if (!n.is_read) {
-      await fetch(`/api/notifications/${n.id}`, { method: "PATCH" });
-      setNotifications((prev) =>
-        prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x))
-      );
+      try {
+        const res = await fetch(`/api/notifications/${n.id}`, { method: "PATCH" });
+        if (!res.ok) throw new Error("Failed to mark read");
+        setNotifications((prev) =>
+          prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x))
+        );
+      } catch {
+        setError("Couldn't update that notification — please try again.");
+      }
     }
     const href = targetHref(n);
     if (href) router.push(href);

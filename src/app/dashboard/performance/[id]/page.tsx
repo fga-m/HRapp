@@ -11,6 +11,7 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { CRITERIA, SCORE_LABELS, type EvaluationData } from "@/lib/performance";
@@ -229,6 +230,7 @@ export default function PerformanceDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [success, setSuccess] = useState("");
 
   // Year-on-year data
@@ -236,19 +238,21 @@ export default function PerformanceDetailPage() {
 
   const fetchReview = useCallback(() => {
     setLoading(true);
+    setLoadError("");
     fetch(`/api/performance/${id}`)
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then((d) => {
         setData(d);
         setLoading(false);
         // Fetch year-on-year data once we know the staff_id
         if (d?.review?.staff_id) {
           fetch(`/api/performance/staff/${d.review.staff_id}`)
-            .then((r) => r.json())
-            .then((yoy) => setYoyReviews(yoy.reviews || []));
+            .then((r) => { if (!r.ok) throw new Error("Failed to load YoY"); return r.json(); })
+            .then((yoy) => setYoyReviews(yoy.reviews || []))
+            .catch(() => setYoyReviews([]));
         }
       })
-      .catch(() => setLoading(false));
+      .catch(() => { setLoadError("Could not load this review. Please try again."); setLoading(false); });
   }, [id]);
 
   useEffect(() => { fetchReview(); }, [fetchReview]);
@@ -339,6 +343,23 @@ export default function PerformanceDetailPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700">{loadError}</p>
+        </div>
+        <button
+          onClick={fetchReview}
+          className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+        >
+          Try again
+        </button>
       </div>
     );
   }

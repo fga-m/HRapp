@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Pencil, Trash2, X, Eye, Code } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Eye, Code, AlertTriangle } from "lucide-react";
 import { MarkdownContent } from "@/components/MarkdownContent";
 
 const MEETING_TYPES = [
@@ -89,16 +89,18 @@ export default function MeetingTemplatesPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
 
   const fetchTemplates = useCallback(() => {
     setLoading(true);
+    setLoadError("");
     fetch("/api/meetings/templates")
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then((d) => {
         setTemplates(d.templates || []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => { setLoadError("Could not load templates. Please try again."); setLoading(false); });
   }, []);
 
   useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
@@ -154,9 +156,19 @@ export default function MeetingTemplatesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this template?")) return;
     setDeleting(id);
-    await fetch(`/api/meetings/templates/${id}`, { method: "DELETE" });
-    setDeleting(null);
-    fetchTemplates();
+    setError("");
+    try {
+      const res = await fetch(`/api/meetings/templates/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || "Failed to delete template.");
+      }
+      fetchTemplates();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setDeleting(null);
+    }
   };
 
   const typeTemplates = templates.filter((t) => t.meeting_type === activeTab);
@@ -201,6 +213,19 @@ export default function MeetingTemplatesPage() {
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : loadError ? (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">{loadError}</p>
+          </div>
+          <button
+            onClick={fetchTemplates}
+            className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+          >
+            Try again
+          </button>
         </div>
       ) : typeTemplates.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">

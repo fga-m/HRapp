@@ -30,7 +30,10 @@ export default function NewMeetingPage() {
   });
 
   useEffect(() => {
-    fetch("/api/staff").then((r) => r.json()).then(setStaff);
+    fetch("/api/staff")
+      .then((r) => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
+      .then(setStaff)
+      .catch(() => setError("Could not load staff for the attendee list. Please refresh and try again."));
   }, []);
 
   // Fetch templates for the selected meeting type

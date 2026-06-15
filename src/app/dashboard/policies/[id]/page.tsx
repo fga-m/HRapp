@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Shield, CheckCircle, Clock, ExternalLink,
-  Users, RefreshCw, Check, Maximize2, Minimize2, Edit, History, ChevronDown, ChevronUp
+  Users, RefreshCw, Check, Maximize2, Minimize2, Edit, History, ChevronDown, ChevronUp, AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -39,9 +39,11 @@ export default function PolicyDetailPage() {
 
   const fetchPolicy = () => {
     setLoading(true);
+    setError("");
     fetch(`/api/policies/${id}`)
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); });
+      .then((r) => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
+      .then((d) => { setData(d); setLoading(false); })
+      .catch(() => { setError("Could not load this policy. Please try again."); setLoading(false); });
   };
 
   useEffect(() => { fetchPolicy(); }, [id]);
@@ -102,6 +104,23 @@ export default function PolicyDetailPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error && !data?.policy) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+        <button
+          onClick={fetchPolicy}
+          className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+        >
+          Try again
+        </button>
       </div>
     );
   }

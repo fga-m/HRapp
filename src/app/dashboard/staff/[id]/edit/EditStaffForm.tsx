@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Shield, Search, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Shield, Search, X, Loader2, AlertTriangle } from "lucide-react";
 
 interface XeroEmployee {
   id: string;
@@ -28,6 +28,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [form, setForm] = useState({
     full_name: "",
     role: "staff",
@@ -48,9 +49,11 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
   const [xeroError, setXeroError] = useState("");
   const [xeroSearch, setXeroSearch] = useState("");
 
-  useEffect(() => {
+  const loadStaff = useCallback(() => {
+    setLoading(true);
+    setLoadError("");
     fetch(`/api/staff/${id}`)
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then((d) => {
         setForm({
           full_name: d.full_name || "",
@@ -64,8 +67,11 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           birthdate: d.birthdate || "",
         });
         setLoading(false);
-      });
+      })
+      .catch(() => { setLoadError("Could not load this staff member. Please try again."); setLoading(false); });
   }, [id]);
+
+  useEffect(() => { loadStaff(); }, [loadStaff]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +130,29 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <Link href={`/dashboard/staff/${id}`} className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors">
+            <ArrowLeft className="w-5 h-5 text-[#223149]" />
+          </Link>
+          <h1 className="text-3xl font-bold text-[#223149]">Edit Staff Member</h1>
+        </div>
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700">{loadError}</p>
+        </div>
+        <button
+          onClick={loadStaff}
+          className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+        >
+          Try again
+        </button>
       </div>
     );
   }

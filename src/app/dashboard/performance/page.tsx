@@ -11,6 +11,7 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -71,6 +72,7 @@ export default function PerformancePage() {
   const [role, setRole] = useState("staff");
   const [callerId, setCallerId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
 
   // Form state
@@ -83,15 +85,16 @@ export default function PerformancePage() {
 
   const fetchReviews = () => {
     setLoading(true);
+    setError("");
     fetch("/api/performance")
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then((d) => {
         setReviews(d.reviews || []);
         setRole(d.role || "staff");
         setCallerId(d.callerId || "");
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => { setError("Could not load performance reviews. Please try again."); setLoading(false); });
   };
 
   useEffect(() => {
@@ -166,6 +169,15 @@ export default function PerformancePage() {
         )}
       </div>
 
+      {/* Load error */}
+      {error && (
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      {!error && <>
       {/* Staff: pending self-eval prompt */}
       {!isManagerOrAdmin && pendingSelfEval.length > 0 && (
         <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
@@ -280,6 +292,7 @@ export default function PerformancePage() {
           ))}
         </div>
       )}
+      </>}
 
       {/* New Review Modal */}
       {showModal && (

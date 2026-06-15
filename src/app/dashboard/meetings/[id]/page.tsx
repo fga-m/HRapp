@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, FileText, ExternalLink, CheckCircle,
-  Clock, Send, Users, MessageSquare, Share2
+  Clock, Send, Users, MessageSquare, Share2, AlertTriangle
 } from "lucide-react";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { format } from "date-fns";
@@ -34,14 +34,16 @@ export default function MeetingDetailPage() {
   const [showSuggest, setShowSuggest] = useState(false);
   const [submittingSuggestion, setSubmittingSuggestion] = useState(false);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [success, setSuccess] = useState("");
 
   const fetchNote = () => {
     setLoading(true);
+    setLoadError("");
     fetch(`/api/meetings/${id}`)
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setLoadError("Could not load this meeting note. Please try again."); setLoading(false); });
   };
 
   useEffect(() => { fetchNote(); }, [id]);
@@ -49,9 +51,17 @@ export default function MeetingDetailPage() {
   const handleShare = async () => {
     if (!confirm("Share these notes with the attendees? They'll be notified and can view, acknowledge, or suggest changes.")) return;
     setSharing(true);
-    await fetch(`/api/meetings/${id}/share`, { method: "POST" });
-    setSharing(false);
-    fetchNote();
+    setError("");
+    try {
+      const res = await fetch(`/api/meetings/${id}/share`, { method: "POST" });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.error || "Failed to share notes.");
+      fetchNote();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSharing(false);
+    }
   };
 
   const handleAcknowledge = async () => {
@@ -97,6 +107,23 @@ export default function MeetingDetailPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700">{loadError}</p>
+        </div>
+        <button
+          onClick={fetchNote}
+          className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+        >
+          Try again
+        </button>
       </div>
     );
   }
