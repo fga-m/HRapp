@@ -22,7 +22,7 @@ const TYPE_COLOURS: Record<string, string> = {
 
 export default function MeetingsPage() {
   const [notes, setNotes] = useState<any[]>([]);
-  const [role, setRole] = useState("staff");
+  const [canManage, setCanManage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -31,7 +31,7 @@ export default function MeetingsPage() {
       .then((r) => r.json())
       .then((d) => {
         setNotes(d.notes || []);
-        setRole(d.role);
+        setCanManage(!!d.canManage);
         setLoading(false);
       })
       .catch(() => {
@@ -55,7 +55,7 @@ export default function MeetingsPage() {
           <h1 className="text-3xl font-bold text-[#223149]">Meeting Notes</h1>
           <PageSubtitle pageKey="meetings" defaultDescription="Record and share notes from team meetings, 1-on-1s, and other discussions." />
         </div>
-        {role === "admin" && (
+        {canManage && (
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard/meetings/templates"
@@ -83,9 +83,9 @@ export default function MeetingsPage() {
         <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
           <FileText className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
           <p className="text-[#5F7C84] font-medium">
-            {role === "admin" ? "No meeting notes yet" : "No notes have been shared with you yet"}
+            {canManage ? "No meeting notes yet" : "No notes have been shared with you yet"}
           </p>
-          {role === "admin" && (
+          {canManage && (
             <Link href="/dashboard/meetings/new" className="text-sm text-[#223149] underline mt-1 inline-block">
               Create your first meeting note
             </Link>
@@ -111,11 +111,11 @@ export default function MeetingsPage() {
                 </div>
                 <p className="text-xs text-[#9BADB7] mt-0.5">
                   {format(new Date(note.meeting_date), "d MMM yyyy")}
-                  {note.creator?.full_name && role === "staff" && ` · ${note.creator.full_name}`}
+                  {note.creator?.full_name && !canManage && ` · ${note.creator.full_name}`}
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                {role === "admin" && (
+                {canManage && (
                   note.is_shared_with_staff ? (
                     <span className="flex items-center gap-1 text-xs text-green-600">
                       <CheckCircle className="w-3.5 h-3.5" /> Shared with staff

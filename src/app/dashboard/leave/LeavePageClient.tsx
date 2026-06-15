@@ -33,6 +33,7 @@ interface LeaveApplication {
 interface TeamLeaveRequest {
   id: string;
   staff_id: string;
+  leave_type_id: string;
   leave_type_name: string;
   start_date: string;
   end_date: string;
@@ -500,7 +501,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                                     onClick={() => {
                                       setEditingReqId(req.id);
                                       setForm({
-                                        leaveTypeId: req.leave_type_name, // best we have without leaveTypeId
+                                        leaveTypeId: req.leave_type_id,
                                         startDate: req.start_date,
                                         endDate: req.end_date,
                                         hours: req.hours != null ? String(req.hours) : "",
@@ -556,7 +557,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                           <div className="flex gap-2 flex-wrap">
                             <button onClick={() => {
                               setEditingReqId(req.id);
-                              setForm({ leaveTypeId: req.leave_type_name, startDate: req.start_date, endDate: req.end_date, hours: req.hours != null ? String(req.hours) : "", description: req.description || "" });
+                              setForm({ leaveTypeId: req.leave_type_id, startDate: req.start_date, endDate: req.end_date, hours: req.hours != null ? String(req.hours) : "", description: req.description || "" });
                               setApproverId(""); setSubmitError(""); setShowModal(true);
                             }} className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline">
                               Edit

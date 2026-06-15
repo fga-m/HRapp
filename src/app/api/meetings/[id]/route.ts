@@ -61,5 +61,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     suggestions: suggestions || [],
     role: caller.role,
     staffId: caller.id,
+    // The note's creator manages it (share, view suggestions); everyone else is
+    // a shared attendee who can acknowledge/respond.
+    canManage: note.created_by === caller.id,
   });
 }

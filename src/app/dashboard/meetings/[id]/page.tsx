@@ -103,7 +103,7 @@ export default function MeetingDetailPage() {
 
   if (!data?.note) return <div className="text-[#9BADB7]">Meeting note not found.</div>;
 
-  const { note, attendees, myAck, suggestions, role } = data;
+  const { note, attendees, myAck, suggestions, canManage } = data;
   const isShared = note.is_shared_with_staff;
 
   return (
@@ -125,7 +125,7 @@ export default function MeetingDetailPage() {
           </p>
         </div>
         {/* Admin: Share button */}
-        {role === "admin" && !isShared && (
+        {canManage && !isShared && (
           <button
             onClick={handleShare}
             disabled={sharing}
@@ -135,7 +135,7 @@ export default function MeetingDetailPage() {
             {sharing ? "Sharing..." : "Share with Staff"}
           </button>
         )}
-        {role === "admin" && isShared && (
+        {canManage && isShared && (
           <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-medium">
             <CheckCircle className="w-4 h-4" />
             Shared with staff
@@ -187,7 +187,7 @@ export default function MeetingDetailPage() {
           )}
 
           {/* Staff: Acknowledge / Suggest Changes */}
-          {role === "staff" && isShared && (
+          {!canManage && isShared && (
             <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
               <p className="text-sm font-semibold text-[#223149]">Your Response</p>
 
@@ -280,7 +280,7 @@ export default function MeetingDetailPage() {
           </div>
 
           {/* Suggestions (admin view) */}
-          {role === "admin" && suggestions.length > 0 && (
+          {canManage && suggestions.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <div className="flex items-center gap-2 mb-3">
                 <MessageSquare className="w-4 h-4 text-[#9BADB7]" />
@@ -305,7 +305,7 @@ export default function MeetingDetailPage() {
             <p className="text-xs text-[#9BADB7]">
               Created {format(new Date(note.created_at), "d MMM yyyy")}
             </p>
-            {note.creator?.full_name && role === "staff" && (
+            {note.creator?.full_name && !canManage && (
               <p className="text-xs text-[#9BADB7] mt-1">by {note.creator.full_name}</p>
             )}
           </div>
