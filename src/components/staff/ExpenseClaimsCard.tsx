@@ -313,7 +313,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); selectFile(e.dataTransfer.files?.[0] ?? null); }}
-              className="md:w-1/2 md:h-full md:overflow-hidden border-b md:border-b-0 md:border-r border-[#ECE3DF] bg-[#F8F6F4] flex flex-col p-4 md:p-6 min-h-[70vh] md:min-h-0"
+              className="order-2 md:order-1 md:w-1/2 md:h-full md:overflow-hidden border-t md:border-t-0 md:border-r border-[#ECE3DF] bg-[#F8F6F4] flex flex-col p-4 md:p-6 min-h-[50vh] md:min-h-0"
             >
               <input
                 ref={fileInputRef}
@@ -358,7 +358,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
             </div>
 
             {/* RIGHT — form fields */}
-            <form id="expense-claim-form" onSubmit={handleSubmit} className="md:w-1/2 md:h-full md:overflow-y-auto p-6 space-y-5">
+            <form id="expense-claim-form" onSubmit={handleSubmit} className="order-1 md:order-2 md:w-1/2 md:h-full md:overflow-y-auto p-6 space-y-5">
               {/* Purchase amount */}
               <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">Purchase amount</label>

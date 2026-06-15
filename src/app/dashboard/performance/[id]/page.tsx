@@ -540,7 +540,7 @@ export default function PerformanceDetailPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#ECE3DF]">
-                  <th className="text-left py-3 pr-4 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
+                  <th className="sticky left-0 bg-white z-10 text-left py-3 pr-4 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
                     Criterion
                   </th>
                   <th className="text-center py-3 px-3 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
@@ -561,7 +561,7 @@ export default function PerformanceDetailPage() {
                   const diff = managerScore - selfScore;
                   return (
                     <tr key={criterion.key}>
-                      <td className="py-3 pr-4 font-medium text-[#223149]">{criterion.label}</td>
+                      <td className="sticky left-0 bg-white z-10 py-3 pr-4 font-medium text-[#223149]">{criterion.label}</td>
                       <td className="py-3 px-3 text-center">
                         {selfScore > 0 ? (
                           <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-sm font-bold ${scoreBadgeClass(selfScore)}`}>
@@ -629,7 +629,7 @@ export default function PerformanceDetailPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#ECE3DF]">
-                  <th className="text-left py-3 pr-4 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
+                  <th className="sticky left-0 bg-white z-10 text-left py-3 pr-4 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
                     Criterion
                   </th>
                   {yoyReviews.map((r) => (

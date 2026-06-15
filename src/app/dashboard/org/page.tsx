@@ -629,7 +629,7 @@ export default function OrgChartPage() {
         </div>
       ) : (
         <div className="overflow-x-auto pb-6">
-          <div className="inline-flex justify-center min-w-full pt-4">
+          <div className="inline-flex justify-start lg:justify-center min-w-full pt-4">
             {rootRoles.length === 1 ? (
               <OrgNode
                 role={rootRoles[0]}

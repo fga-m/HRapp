@@ -400,7 +400,7 @@ export default function PositionDescriptionDetailPage() {
       {/* Version Modal */}
       {showVersionModal && (
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
-          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-6 w-full md:max-w-sm space-y-4">
+          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-6 pb-8 md:pb-6 w-full md:max-w-sm space-y-4 pb-safe">
             <h2 className="text-lg font-bold text-[#223149]">Update Version</h2>
             <p className="text-sm text-[#5F7C84]">
               Current version:{" "}

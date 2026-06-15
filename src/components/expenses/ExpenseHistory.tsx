@@ -169,7 +169,7 @@ export default function ExpenseHistory() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={claim.receipt_signed_url} alt="Receipt" className="w-full max-h-[480px] object-contain bg-[#F8F6F4]" />
                     ) : (
-                      <iframe src={claim.receipt_signed_url} title="Receipt" className="w-full h-[480px] bg-[#F8F6F4]" />
+                      <iframe src={claim.receipt_signed_url} title="Receipt" className="w-full h-[60vh] md:h-[480px] bg-[#F8F6F4]" />
                     )}
                   </div>
                 )}

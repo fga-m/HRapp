@@ -156,7 +156,7 @@ export default function ExpenseApproverQueue() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={claim.receipt_signed_url} alt="Receipt" className="w-full max-h-[480px] object-contain bg-[#F8F6F4]" />
                 ) : (
-                  <iframe src={claim.receipt_signed_url} title="Receipt" className="w-full h-[480px] bg-[#F8F6F4]" />
+                  <iframe src={claim.receipt_signed_url} title="Receipt" className="w-full h-[60vh] md:h-[480px] bg-[#F8F6F4]" />
                 )}
                 <div className="px-3 py-2 text-right bg-white border-t border-[#ECE3DF]">
                   <a href={claim.receipt_signed_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#5F7C84] hover:text-[#223149] hover:underline">
@@ -192,7 +192,7 @@ export default function ExpenseApproverQueue() {
                 </div>
               </div>
             ) : (
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <button disabled={busy} onClick={() => decide(claim, "APPROVE")}
                   className="flex-1 py-2 bg-[#223149] text-white rounded-lg text-xs font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50">
                   {busy ? "Working…" : failed ? "Retry sending to Xero" : "Approve & send to Xero"}
