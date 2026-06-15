@@ -7,7 +7,10 @@ import crypto from "crypto";
 export const dynamic = "force-dynamic";
 
 const XERO_AUTH_URL = "https://login.xero.com/identity/connect/authorize";
-const SCOPES = "openid profile email offline_access payroll.employees payroll.settings.read accounting.transactions accounting.contacts accounting.attachments accounting.settings.read";
+// Note: as of Xero's 2026-03-02 scope change, the broad `accounting.transactions`
+// scope is replaced by granular scopes. Creating ACCPAY bills (the Invoices API)
+// needs `accounting.invoices`. The other accounting scopes were unaffected.
+const SCOPES = "openid profile email offline_access payroll.employees payroll.settings.read accounting.invoices accounting.contacts accounting.attachments accounting.settings.read";
 const REDIRECT_URI = `${process.env.NEXTAUTH_URL}/api/xero/callback`;
 
 export async function GET() {
