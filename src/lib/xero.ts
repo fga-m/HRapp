@@ -326,6 +326,7 @@ export async function findBillByReference(reference: string): Promise<string | n
 export async function createAccpayBill(args: {
   contactId: string;
   date: string; // yyyy-mm-dd
+  dueDate?: string; // yyyy-mm-dd; ACCPAY bills REQUIRE a due date — defaults to the bill date
   reference?: string;
   lineItems: {
     Description: string;
@@ -343,6 +344,7 @@ export async function createAccpayBill(args: {
         Status: "AUTHORISED",
         Contact: { ContactID: args.contactId },
         Date: args.date,
+        DueDate: args.dueDate ?? args.date, // required for ACCPAY (bills)
         LineAmountTypes: args.lineAmountTypes ?? "Inclusive",
         ...(args.reference ? { Reference: args.reference } : {}),
         LineItems: args.lineItems.map((li) => ({
