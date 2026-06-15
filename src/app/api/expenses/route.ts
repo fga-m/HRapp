@@ -51,15 +51,19 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const queue = searchParams.get("queue") === "1";
+  const all = searchParams.get("all") === "1";
   const staffId = searchParams.get("staffId");
+  const from = searchParams.get("from"); // YYYY-MM-DD (inclusive), filters created_at
+  const to = searchParams.get("to");     // YYYY-MM-DD (inclusive)
 
-  const approver = (queue || staffId) ? await isApprover(caller) : false;
+  const approver = (queue || all || staffId) ? await isApprover(caller) : false;
 
   let query = supabaseAdmin
     .from("expense_claims")
     .select(`
       *,
-      staff:staff_id ( id, full_name, avatar_url, position )
+      staff:staff_id ( id, full_name, avatar_url, position ),
+      reviewer:reviewed_by ( id, full_name )
     `)
     .order("created_at", { ascending: false });
 
@@ -68,6 +72,11 @@ export async function GET(req: NextRequest) {
     // The review queue surfaces claims needing attention: awaiting review, and
     // any whose Xero push failed (so an approver can retry).
     query = query.in("status", ["submitted", "push_failed"]);
+  } else if (all) {
+    // Full history of every claim (approver only), optionally date-ranged on submission date.
+    if (!approver) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (from) query = query.gte("created_at", `${from}T00:00:00`);
+    if (to) query = query.lte("created_at", `${to}T23:59:59.999`);
   } else if (staffId) {
     // Approvers may view another staff member's claims; everyone else only their own.
     if (!approver && staffId !== caller.id) {

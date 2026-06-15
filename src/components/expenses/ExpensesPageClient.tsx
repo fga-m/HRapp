@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import ExpenseClaimsCard from "@/components/staff/ExpenseClaimsCard";
 import ExpenseApproverQueue from "@/components/expenses/ExpenseApproverQueue";
+import ExpenseHistory from "@/components/expenses/ExpenseHistory";
 
 interface Props {
   callerId: string;
@@ -12,7 +13,7 @@ interface Props {
 }
 
 export default function ExpensesPageClient({ callerId, isApprover, pendingCount }: Props) {
-  const [tab, setTab] = useState<"mine" | "review">("mine");
+  const [tab, setTab] = useState<"mine" | "review" | "history">("mine");
 
   // Staff who can't approve just see their own claims (+ the submit form).
   if (!isApprover) {
@@ -54,12 +55,25 @@ export default function ExpensesPageClient({ callerId, isApprover, pendingCount 
             </span>
           )}
         </button>
+        <button
+          onClick={() => setTab("history")}
+          className={cn(
+            "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
+            tab === "history"
+              ? "bg-[#223149] text-white"
+              : "border border-[#ECE3DF] bg-white text-[#5F7C84] hover:bg-[#F8F6F4]"
+          )}
+        >
+          History
+        </button>
       </div>
 
       {tab === "mine" ? (
         <ExpenseClaimsCard staffId={callerId} isOwnProfile isManager={false} />
-      ) : (
+      ) : tab === "review" ? (
         <ExpenseApproverQueue />
+      ) : (
+        <ExpenseHistory />
       )}
     </div>
   );
