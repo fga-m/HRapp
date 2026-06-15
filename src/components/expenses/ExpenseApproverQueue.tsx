@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { Paperclip, AlertTriangle, Loader2, CheckCircle2, Pencil } from "lucide-react";
+import { Paperclip, AlertTriangle, Loader2, CheckCircle2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import ExpenseEditModal from "@/components/expenses/ExpenseEditModal";
 
 interface Claim {
@@ -19,6 +19,7 @@ interface Claim {
   status: "submitted" | "push_failed";
   xero_error?: string | null;
   receipt_signed_url?: string | null;
+  receipt_mime?: string | null;
   staff?: { id: string; full_name: string; avatar_url?: string | null; position?: string | null } | null;
 }
 
@@ -35,6 +36,7 @@ export default function ExpenseApproverQueue() {
   const [note, setNote] = useState("");
   const [actionError, setActionError] = useState("");
   const [editing, setEditing] = useState<Claim | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -135,11 +137,34 @@ export default function ExpenseApproverQueue() {
               {claim.account_name && <span><span className="text-[#9BADB7]">Account:</span> {claim.account_name}</span>}
               {claim.tax_rate_name && <span><span className="text-[#9BADB7]">Tax:</span> {claim.tax_rate_name}</span>}
               {claim.receipt_signed_url && (
-                <a href={claim.receipt_signed_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[#223149] hover:underline">
-                  <Paperclip className="w-3 h-3" /> View receipt
-                </a>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(expandedId === claim.id ? null : claim.id)}
+                  className="inline-flex items-center gap-1 text-[#223149] hover:underline"
+                >
+                  <Paperclip className="w-3 h-3" />
+                  {expandedId === claim.id ? "Hide receipt" : "View receipt"}
+                  {expandedId === claim.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </button>
               )}
             </div>
+
+            {/* Inline receipt preview */}
+            {expandedId === claim.id && claim.receipt_signed_url && (
+              <div className="rounded-lg border border-[#ECE3DF] overflow-hidden">
+                {claim.receipt_mime?.startsWith("image/") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={claim.receipt_signed_url} alt="Receipt" className="w-full max-h-[480px] object-contain bg-[#F8F6F4]" />
+                ) : (
+                  <iframe src={claim.receipt_signed_url} title="Receipt" className="w-full h-[480px] bg-[#F8F6F4]" />
+                )}
+                <div className="px-3 py-2 text-right bg-white border-t border-[#ECE3DF]">
+                  <a href={claim.receipt_signed_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#5F7C84] hover:text-[#223149] hover:underline">
+                    Open in new tab
+                  </a>
+                </div>
+              </div>
+            )}
 
             {failed && claim.xero_error && (
               <div className="flex items-start gap-2 p-2.5 bg-red-50 rounded-lg">
