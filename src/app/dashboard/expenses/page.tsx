@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import { Receipt } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
-import ExpenseApproverQueue from "@/components/expenses/ExpenseApproverQueue";
+import ExpensesPageClient from "@/components/expenses/ExpensesPageClient";
 
 export const dynamic = "force-dynamic";
 
@@ -20,17 +20,26 @@ export default async function ExpensesPage() {
   if (!caller) redirect("/dashboard");
 
   // Approver = admin OR the caller's role has approve_expenses enabled.
-  let canApprove = caller.role === "admin";
-  if (!canApprove) {
+  let isApprover = caller.role === "admin";
+  if (!isApprover) {
     const { data: perm } = await supabaseAdmin
       .from("role_permissions")
       .select("enabled")
       .eq("role", caller.role)
       .eq("feature", "approve_expenses")
       .single();
-    canApprove = perm?.enabled ?? false;
+    isApprover = perm?.enabled ?? false;
   }
-  if (!canApprove) redirect("/dashboard");
+
+  // Pending count for the review tab badge (claims needing attention).
+  let pendingCount = 0;
+  if (isApprover) {
+    const { count } = await supabaseAdmin
+      .from("expense_claims")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["submitted", "push_failed"]);
+    pendingCount = count ?? 0;
+  }
 
   return (
     <div className="space-y-2">
@@ -39,10 +48,10 @@ export default async function ExpensesPage() {
       </h1>
       <PageSubtitle
         pageKey="expenses"
-        defaultDescription="Review submitted expense claims and approve them to send to Xero as a bill."
+        defaultDescription="Submit a reimbursement claim with a receipt. Approved claims are sent to Xero as a bill."
       />
       <div className="pt-4">
-        <ExpenseApproverQueue />
+        <ExpensesPageClient callerId={caller.id} isApprover={isApprover} pendingCount={pendingCount} />
       </div>
     </div>
   );

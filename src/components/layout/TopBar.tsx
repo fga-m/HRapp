@@ -20,7 +20,7 @@ interface TopBarProps {
 
 const moreItems = [
   { label: "Leave Requests",      href: "/dashboard/leave",                 icon: Palmtree },
-  { label: "Expenses",            href: "/dashboard/expenses",              icon: Receipt,       permission: "approve_expenses" },
+  { label: "Expenses",            href: "/dashboard/expenses",              icon: Receipt },
   { label: "Performance",         href: "/dashboard/performance",           icon: TrendingUp },
   { label: "Hours & TOIL",        href: "/dashboard/schedule",              icon: CalendarDays,  permission: "view_team_schedule" },
   { label: "Checklists",          href: "/dashboard/onboarding",            icon: CheckSquare,   hideWhenNoChecklists: true },
