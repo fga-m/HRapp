@@ -290,7 +290,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
     initial?.startDateTime ?? format(new Date(), "yyyy-MM-dd'T'HH:mm")
   );
   const [endDateTime, setEndDateTime] = useState(
-    initial?.endDateTime ?? format(addDays(new Date(), 0), "yyyy-MM-dd'T'HH:mm")
+    initial?.endDateTime ?? format(new Date(Date.now() + 60 * 60 * 1000), "yyyy-MM-dd'T'HH:mm")
   );
   const [transparency, setTransparency] = useState(initial?.transparency ?? "opaque");
   const [recurrence, setRecurrence] = useState<RecurrenceFreq>(existingRule?.freq ?? "none");
@@ -1179,7 +1179,9 @@ export default function CalendarPage() {
             {staffList.filter((s) => s.email !== userEmail).map((s, i) => {
               const calId = s.email;
               const active = selectedId === calId;
-              const colors = colorForIndex(i + 1);
+              // Use the shared colour map (keyed by email, unfiltered index) so the
+              // pill colour matches the colour this person's events render in.
+              const colors = staffColorMap.get(s.email) ?? colorForIndex(i + 1);
               return (
                 <button
                   key={s.id}

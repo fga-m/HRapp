@@ -59,6 +59,20 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
     isManager = perm?.enabled ?? false;
   }
 
+  // Expense-claim viewing is gated by approve_expenses on the API, so mirror that
+  // here (admin OR a role with approve_expenses) — otherwise the card 403s and
+  // silently shows empty for a manager who only has manage_staff.
+  let isExpenseApprover = caller?.role === "admin";
+  if (!isExpenseApprover && caller?.role) {
+    const { data: ep } = await supabaseAdmin
+      .from("role_permissions")
+      .select("enabled")
+      .eq("role", caller.role)
+      .eq("feature", "approve_expenses")
+      .single();
+    isExpenseApprover = ep?.enabled ?? false;
+  }
+
   // Only admins and managers with manage_staff permission can edit the regular work schedule
   const canEditSchedule = caller?.role === "admin" || isManager;
 
@@ -429,7 +443,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       <LeaveBalancesCard staffId={member.id} isOwnProfile={caller?.id === id} />
 
       {/* Expense Claims */}
-      <ExpenseClaimsCard staffId={member.id} isOwnProfile={caller?.id === id} isManager={isManager} />
+      <ExpenseClaimsCard staffId={member.id} isOwnProfile={caller?.id === id} isManager={isExpenseApprover} />
 
       {/* Work Schedule */}
       <ScheduleCard staffId={member.id} canEdit={canEditSchedule} contractedHours={member.contracted_hours ?? undefined} />
