@@ -2,22 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, BookOpen, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const tabs = [
-  { label: "Home",    href: "/dashboard",          icon: LayoutDashboard, exact: true },
-  { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
-  { label: "Meetings", href: "/dashboard/meetings", icon: FileText },
-  { label: "Resources", href: "/dashboard/hub", icon: BookOpen },
-];
+import { BOTTOM_NAV_ITEMS } from "@/lib/nav";
 
 export default function BottomNav() {
   const pathname = usePathname();
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#ECE3DF] flex items-stretch pb-safe">
-      {tabs.map((tab) => {
+      {BOTTOM_NAV_ITEMS.map((tab) => {
         const Icon = tab.icon;
         const isActive = tab.exact
           ? pathname === tab.href
@@ -33,7 +27,7 @@ export default function BottomNav() {
           >
             <Icon className={cn("w-5 h-5", isActive && "stroke-[2.5px]")} />
             <span className={cn("text-[10px] font-medium", isActive && "font-bold")}>
-              {tab.label}
+              {tab.tabLabel ?? tab.label}
             </span>
             {isActive && (
               <span className="absolute bottom-0 w-8 h-0.5 bg-[#223149] rounded-full" />

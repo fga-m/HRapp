@@ -3,58 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  Calendar,
-  CalendarDays,
-  FileText,
-  Shield,
-  CheckSquare,
-  BookOpen,
-  Users,
-  LayoutDashboard,
-  Bell,
-  LogOut,
-  Eye,
-  Briefcase,
-  Network,
-  ShieldCheck,
-  FileSignature,
-  TrendingUp,
-  Settings,
-  Palmtree,
-  Receipt,
-  type LucideIcon,
-} from "lucide-react";
+import { Bell, LogOut, Eye } from "lucide-react";
 import { enableStaffView } from "@/app/actions/view-mode";
-import type { FeatureKey } from "@/lib/permissions";
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  adminOnly?: boolean;           // only admin can see (not configurable)
-  permission?: FeatureKey;       // visible if admin OR if user has this permission
-  hideWhenNoChecklists?: boolean; // hide for regular staff when no active checklists
-}
-
-const navItems: NavItem[] = [
-  { label: "Dashboard",         href: "/dashboard",                       icon: LayoutDashboard },
-  { label: "Work Calendar",     href: "/dashboard/calendar",              icon: Calendar },
-  { label: "Leave Requests",    href: "/dashboard/leave",                 icon: Palmtree },
-  { label: "Expenses",          href: "/dashboard/expenses",              icon: Receipt },
-  { label: "Hours & TOIL",      href: "/dashboard/schedule",              icon: CalendarDays,  permission: "view_team_schedule" },
-  { label: "Meeting Notes",     href: "/dashboard/meetings",              icon: FileText },
-  { label: "Performance",       href: "/dashboard/performance",           icon: TrendingUp },
-  { label: "Policies",          href: "/dashboard/policies",              icon: Shield },
-  { label: "Contracts",         href: "/dashboard/contracts",             icon: FileSignature },
-  { label: "Checklists",        href: "/dashboard/onboarding",            icon: CheckSquare,   hideWhenNoChecklists: true },
-  { label: "Resources",         href: "/dashboard/hub",                   icon: BookOpen },
-  { label: "Org Chart",         href: "/dashboard/org",                   icon: Network },
-  { label: "My Position",       href: "/dashboard/position-descriptions", icon: Briefcase },
-  { label: "Staff",             href: "/dashboard/staff",                 icon: Users,         permission: "manage_staff" },
-  { label: "Roles & Permissions", href: "/dashboard/access",              icon: ShieldCheck,   adminOnly: true },
-  { label: "Settings",          href: "/dashboard/settings",              icon: Settings,      adminOnly: true },
-];
+import { visibleNavItems } from "@/lib/nav";
 
 interface SidebarProps {
   isAdmin?: boolean;
@@ -81,12 +32,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
 
-  const visibleItems = navItems.filter((item) => {
-    if (item.adminOnly) return isAdmin ?? false;
-    if (item.permission) return (isAdmin) || permissions.includes(item.permission);
-    if (item.hideWhenNoChecklists && !isAdmin) return hasActiveChecklists;
-    return true;
-  });
+  const visibleItems = visibleNavItems({ isAdmin, permissions, hasActiveChecklists });
 
   const roleBadgeLabel =
     role === "admin" ? "Admin" : role === "manager" ? "Manager" : role === "finance" ? "Finance" : null;
