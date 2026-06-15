@@ -121,11 +121,11 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
     setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
   };
 
-  // Set the receipt file and (for images) an object-URL preview.
+  // Set the receipt file and an object-URL preview (images and PDFs both render).
   const selectFile = (f: File | null) => {
     setPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
-      return f && f.type.startsWith("image/") ? URL.createObjectURL(f) : null;
+      return f ? URL.createObjectURL(f) : null;
     });
     setFile(f);
   };
@@ -173,6 +173,14 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   };
 
   const visible = showAll ? claims : claims.slice(0, 3);
+
+  // GST breakdown for the form — the amount is treated as tax-inclusive, so the
+  // GST component = amount × rate / (100 + rate) (e.g. 10% → amount ÷ 11).
+  const amt = amount && !isNaN(Number(amount)) ? Number(amount) : 0;
+  const selectedTax = taxRates.find((t) => t.taxType === taxType);
+  const taxRate = selectedTax?.rate ?? 0;
+  const gst = taxRate > 0 ? amt - amt / (1 + taxRate / 100) : 0;
+  const subtotal = amt - gst;
 
   return (
     <>
@@ -314,19 +322,16 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                 className="hidden"
                 onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
               />
-              {previewUrl ? (
-                <div className="text-center space-y-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={previewUrl} alt="Receipt preview" className="max-h-[55vh] max-w-full rounded-lg shadow-sm mx-auto object-contain" />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#5F7C84] hover:text-[#223149]">Replace image</button>
-                </div>
-              ) : file ? (
-                <div className="text-center space-y-3">
-                  <div className="w-16 h-16 mx-auto rounded-xl bg-white border border-[#ECE3DF] flex items-center justify-center">
-                    <Paperclip className="w-7 h-7 text-[#5F7C84]" />
-                  </div>
-                  <p className="text-sm font-medium text-[#223149] break-all max-w-xs mx-auto">{file.name}</p>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#5F7C84] hover:text-[#223149]">Replace file</button>
+              {file && previewUrl ? (
+                <div className="w-full flex flex-col items-center gap-3">
+                  {file.type.startsWith("image/") ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={previewUrl} alt="Receipt preview" className="max-h-[60vh] max-w-full rounded-lg shadow-sm object-contain" />
+                  ) : (
+                    <iframe src={previewUrl} title="Receipt preview" className="w-full h-[60vh] rounded-lg shadow-sm bg-white" />
+                  )}
+                  <p className="text-xs text-[#9BADB7] break-all max-w-xs text-center">{file.name}</p>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#5F7C84] hover:text-[#223149]">Replace receipt</button>
                 </div>
               ) : (
                 <div className="text-center">
@@ -401,12 +406,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                 </div>
               )}
 
-              {/* Totals + tax rate */}
+              {/* Tax rate + auto-calculated GST breakdown */}
               <div className="border-t border-[#ECE3DF] pt-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#5F7C84]">Subtotal <span className="text-[#9BADB7]">(incl. tax)</span></span>
-                  <span className="text-sm text-[#223149]">AUD {amount && !isNaN(Number(amount)) ? Number(amount).toFixed(2) : "0.00"}</span>
-                </div>
                 {!metaError && (
                   <div>
                     <label className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
@@ -420,9 +421,19 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     </select>
                   </div>
                 )}
-                <div className="flex items-center justify-between pt-2 border-t border-[#ECE3DF]">
-                  <span className="font-bold text-[#223149]">Total</span>
-                  <span className="font-bold text-[#223149]">AUD {amount && !isNaN(Number(amount)) ? Number(amount).toFixed(2) : "0.00"}</span>
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center justify-between text-[#5F7C84]">
+                    <span>Subtotal (excl. GST)</span>
+                    <span>AUD {subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[#5F7C84]">
+                    <span>{selectedTax ? `${selectedTax.name} (${Math.round(taxRate * 100) / 100}%)` : "GST"}</span>
+                    <span>AUD {gst.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between font-bold text-[#223149] pt-1.5 border-t border-[#ECE3DF]">
+                    <span>Total (incl. GST)</span>
+                    <span>AUD {amt.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
 
