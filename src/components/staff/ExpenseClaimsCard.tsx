@@ -313,7 +313,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); selectFile(e.dataTransfer.files?.[0] ?? null); }}
-              className="md:w-1/2 md:h-full md:overflow-y-auto border-b md:border-b-0 md:border-r border-[#ECE3DF] bg-[#F8F6F4] flex items-center justify-center p-6 min-h-[240px]"
+              className="md:w-1/2 md:h-full md:overflow-hidden border-b md:border-b-0 md:border-r border-[#ECE3DF] bg-[#F8F6F4] flex flex-col p-4 md:p-6 min-h-[70vh] md:min-h-0"
             >
               <input
                 ref={fileInputRef}
@@ -323,30 +323,36 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                 onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
               />
               {file && previewUrl ? (
-                <div className="w-full flex flex-col items-center gap-3">
+                <div className="flex-1 min-h-0 flex flex-col gap-2">
                   {file.type.startsWith("image/") ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={previewUrl} alt="Receipt preview" className="max-h-[60vh] max-w-full rounded-lg shadow-sm object-contain" />
+                    <div className="flex-1 min-h-0 flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={previewUrl} alt="Receipt preview" className="max-h-full max-w-full rounded-lg shadow-sm object-contain" />
+                    </div>
                   ) : (
-                    <iframe src={previewUrl} title="Receipt preview" className="w-full h-[60vh] rounded-lg shadow-sm bg-white" />
+                    <iframe src={previewUrl} title="Receipt preview" className="flex-1 min-h-0 w-full rounded-lg shadow-sm bg-white" />
                   )}
-                  <p className="text-xs text-[#9BADB7] break-all max-w-xs text-center">{file.name}</p>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#5F7C84] hover:text-[#223149]">Replace receipt</button>
+                  <div className="flex-shrink-0 flex items-center justify-between gap-3">
+                    <p className="text-xs text-[#9BADB7] truncate">{file.name}</p>
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#5F7C84] hover:text-[#223149] flex-shrink-0">Replace receipt</button>
+                  </div>
                 </div>
               ) : (
-                <div className="text-center">
-                  <div className="w-14 h-14 mx-auto rounded-xl bg-white border border-[#ECE3DF] flex items-center justify-center mb-3">
-                    <Receipt className="w-7 h-7 text-[#9BADB7]" />
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-14 h-14 mx-auto rounded-xl bg-white border border-[#ECE3DF] flex items-center justify-center mb-3">
+                      <Receipt className="w-7 h-7 text-[#9BADB7]" />
+                    </div>
+                    <p className="font-semibold text-[#223149]">Upload a receipt</p>
+                    <p className="text-sm text-[#9BADB7] mt-1">Drag &amp; drop here, or select your file manually</p>
+                    <button
+                      type="button" onClick={() => fileInputRef.current?.click()}
+                      className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-[#ECE3DF] bg-white text-[#223149] rounded-lg text-sm font-semibold hover:bg-white/60 transition-colors"
+                    >
+                      <Upload className="w-4 h-4" /> Upload
+                    </button>
+                    <p className="text-xs text-[#9BADB7] mt-3">PNG, JPG or PDF · required</p>
                   </div>
-                  <p className="font-semibold text-[#223149]">Upload a receipt</p>
-                  <p className="text-sm text-[#9BADB7] mt-1">Drag &amp; drop here, or select your file manually</p>
-                  <button
-                    type="button" onClick={() => fileInputRef.current?.click()}
-                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-[#ECE3DF] bg-white text-[#223149] rounded-lg text-sm font-semibold hover:bg-white/60 transition-colors"
-                  >
-                    <Upload className="w-4 h-4" /> Upload
-                  </button>
-                  <p className="text-xs text-[#9BADB7] mt-3">PNG, JPG or PDF · required</p>
                 </div>
               )}
             </div>
