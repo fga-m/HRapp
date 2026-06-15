@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -44,7 +45,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   // Notify the admin who created the policy
   if (policy.created_by) {
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id: policy.created_by,
       title: "Policy Signed Off",
       message: `${caller.full_name} has signed off on "${policy.title}" (v${policy.version})`,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 import { shareFileWithUser } from "@/lib/google-drive";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -50,7 +51,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   // Notify attendees
   if (note.attendees?.length) {
-    await supabaseAdmin.from("notifications").insert(
+    await createNotification(
       note.attendees.map((staffId: string) => ({
         staff_id: staffId,
         title: `${caller.full_name} shared a meeting summary with you`,

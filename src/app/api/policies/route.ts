@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
   const session = await auth();
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
     const { data: staffToNotify } = await staffQuery;
 
     if (staffToNotify?.length) {
-      await supabaseAdmin.from("notifications").insert(
+      await createNotification(
         staffToNotify.map((s: any) => ({
           staff_id: s.id,
           title: `Sign-off needed: "${title}"`,

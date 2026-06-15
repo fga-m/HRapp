@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 async function getCaller(email: string) {
   const { data } = await supabaseAdmin
@@ -101,7 +102,7 @@ export async function POST(
 
     if (checklist && checklist.assigned_by) {
       const staffName = (checklist.staff as any)?.full_name ?? "A staff member";
-      await supabaseAdmin.from("notifications").insert({
+      await createNotification({
         staff_id: checklist.assigned_by,
         title: `${staffName} has completed their checklist`,
         message: `All required items in '${checklist.title}' have been checked off.`,

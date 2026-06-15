@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 async function getCallerAndPermission(email: string) {
   const { data: caller } = await supabaseAdmin
@@ -153,7 +154,7 @@ export async function POST(
   const staffName = staffMember?.full_name ?? "Staff member";
 
   // Always notify the staff member that a document was added
-  await supabaseAdmin.from("notifications").insert({
+  await createNotification({
     staff_id: id,
     title: "New document added to your profile",
     message: `A new document was added to your profile: ${title}`,
@@ -178,7 +179,7 @@ export async function POST(
       });
 
       // Notify the staff member about expiry
-      await supabaseAdmin.from("notifications").insert({
+      await createNotification({
         staff_id: id,
         title: `${title} expiring soon`,
         message: `Your ${title} expires on ${formattedDate} — please renew it soon.`,
@@ -196,7 +197,7 @@ export async function POST(
         .neq("id", caller.id);
 
       if (admins && admins.length > 0) {
-        await supabaseAdmin.from("notifications").insert(
+        await createNotification(
           admins.map((a: any) => ({
             staff_id: a.id,
             title: `${staffName}'s ${title} expiring soon`,

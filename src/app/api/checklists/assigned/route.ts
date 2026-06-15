@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 async function getCaller(email: string) {
   const { data } = await supabaseAdmin
@@ -146,7 +147,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Notify the assigned staff member
-  await supabaseAdmin.from("notifications").insert({
+  await createNotification({
     staff_id,
     title: "You've been assigned an onboarding checklist",
     message: `${title} — your checklist is ready to view.`,

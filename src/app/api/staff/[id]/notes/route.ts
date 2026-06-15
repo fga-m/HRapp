@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 async function canManageNotes(role: string): Promise<boolean> {
   if (role === "admin") return true;
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   // Notify staff if visible
   if (is_visible_to_staff) {
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id: id,
       title: "New performance note",
       message: "A manager has left a note on your profile.",

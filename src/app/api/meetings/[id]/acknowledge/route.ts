@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -35,7 +36,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   // Notify the note creator
   if (note?.created_by) {
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id: note.created_by,
       title: `${caller.full_name} acknowledged your meeting summary`,
       message: `"${note?.title}" has been read and acknowledged.`,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -51,7 +52,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   // Notify the admin who created the PD
   if (pd.created_by) {
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id: pd.created_by,
       title: "Position Description Acknowledged",
       message: `${caller.full_name} has acknowledged their position description (v${pd.version})`,

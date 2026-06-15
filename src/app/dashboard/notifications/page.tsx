@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Shield, FileText, CheckSquare, Bell, Check, FileSignature, Palmtree, MessageSquare, TrendingUp } from "lucide-react";
 import { formatDistanceToNow, isToday, isYesterday, format } from "date-fns";
 import PageSubtitle from "@/components/PageSubtitle";
+import PushSetup from "@/components/notifications/PushSetup";
 
 type Notification = {
   id: string;
@@ -154,6 +155,9 @@ export default function NotificationsPage() {
           </button>
         )}
       </div>
+
+      {/* Per-device push opt-in */}
+      <PushSetup />
 
       {/* Loading */}
       {loading && !error && (

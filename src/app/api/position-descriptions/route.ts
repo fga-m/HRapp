@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(_req: NextRequest) {
   const session = await auth();
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
 
   // Notify the assigned staff (only if a specific staff member was assigned)
   if (staff_id) {
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id,
       title: "Position Description Assigned",
       message: "Your position description has been shared. Please review and acknowledge it.",

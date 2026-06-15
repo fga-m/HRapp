@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 import { isExpenseApprover } from "@/lib/expenses";
 
 export const dynamic = "force-dynamic";
@@ -174,7 +175,7 @@ export async function POST(req: NextRequest) {
     .neq("id", caller.id);
 
   if (approvers && approvers.length > 0) {
-    await supabaseAdmin.from("notifications").insert(
+    await createNotification(
       approvers.map((a: any) => ({
         staff_id: a.id,
         title: "New expense claim to review",

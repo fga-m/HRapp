@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .neq("id", caller.id); // don't notify the signer if they're also an admin
 
   if (admins && admins.length > 0 && contract) {
-    await supabaseAdmin.from("notifications").insert(
+    await createNotification(
       admins.map((a: any) => ({
         staff_id: a.id,
         title: `Contract signed by ${signer?.full_name ?? "a staff member"}`,

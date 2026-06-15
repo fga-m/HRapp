@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .single();
 
     if (contract) {
-      await supabaseAdmin.from("notifications").insert(
+      await createNotification(
         newlyAssigned.map((staff_id) => ({
           staff_id,
           title: `Contract to sign: "${contract.title}"`,

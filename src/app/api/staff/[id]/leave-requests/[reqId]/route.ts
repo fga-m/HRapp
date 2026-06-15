@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -93,7 +94,7 @@ export async function PATCH(
     .neq("id", caller.id); // don't notify the editor if they're also an approver
 
   if (approvers && approvers.length > 0) {
-    await supabaseAdmin.from("notifications").insert(
+    await createNotification(
       approvers.map((a: any) => ({
         staff_id: a.id,
         title: `Leave request updated by ${requester?.full_name ?? "a staff member"}`,

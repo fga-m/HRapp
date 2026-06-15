@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string; noteId: string }> }) {
   const session = await auth();
@@ -55,7 +56,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .single();
 
   if (fullNote?.created_by && fullNote.created_by !== caller.id) {
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id: fullNote.created_by,
       title: `${staffMember?.full_name ?? "A staff member"} acknowledged a note`,
       message: `They have read and acknowledged the performance note you shared with them.`,

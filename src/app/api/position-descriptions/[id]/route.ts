@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -119,7 +120,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   // If version bumped, notify the assigned staff to re-acknowledge
   if (bump_version && current.staff_id) {
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id: current.staff_id,
       title: `Position Description Updated to v${newVersion}`,
       message: `Your position description has been updated. Please review the changes and acknowledge the new version.`,

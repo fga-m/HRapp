@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 type Params = { params: Promise<{ id: string; noteId: string }> };
 
@@ -40,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (!body.is_visible_to_staff) update.acknowledged_at = null;
     // Notify staff when newly made visible
     if (body.is_visible_to_staff && !note.is_visible_to_staff) {
-      await supabaseAdmin.from("notifications").insert({
+      await createNotification({
         staff_id: id,
         title: "New performance note",
         message: "A manager has shared a note on your profile.",

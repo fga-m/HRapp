@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         .upsert(newRows, { onConflict: "contract_id,staff_id" });
 
       // Send notifications
-      await supabaseAdmin.from("notifications").insert(
+      await createNotification(
         prevAssignments.map((a: any) => ({
           staff_id: a.staff_id,
           title: `Updated contract to sign: "${newContract.title}"`,

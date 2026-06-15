@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 import { getPeriodLabel } from "@/lib/performance";
 
 export async function GET() {
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Notify the staff member
-  await supabaseAdmin.from("notifications").insert({
+  await createNotification({
     staff_id,
     title: `Performance review created: ${period_label}`,
     message: `Your ${period_label} performance review has been created. Please complete your self-evaluation.`,

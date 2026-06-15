@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(
   _req: NextRequest,
@@ -156,7 +157,7 @@ export async function PATCH(
 
     // Notify staff when visibility is turned on
     if (body.is_visible_to_staff && !review.is_visible_to_staff) {
-      await supabaseAdmin.from("notifications").insert({
+      await createNotification({
         staff_id: review.staff_id,
         title: `Manager evaluation shared: ${review.period_label}`,
         message: `Your manager's evaluation for ${review.period_label} has been shared with you.`,

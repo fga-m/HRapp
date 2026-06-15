@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 import { xeroRequest } from "@/lib/xero";
 
 export const dynamic = "force-dynamic";
@@ -194,7 +195,7 @@ export async function POST(
       .eq("id", id)
       .single();
 
-    await supabaseAdmin.from("notifications").insert(
+    await createNotification(
       approvers.map((a: any) => ({
         staff_id: a.id,
         title: `Leave request from ${requester?.full_name ?? "a staff member"}`,

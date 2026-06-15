@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 import { xeroRequest } from "@/lib/xero";
 import { getGoogleTokensByStaffId, saveGoogleTokensByStaffId } from "@/lib/google-tokens";
 
@@ -67,7 +68,7 @@ export async function PATCH(
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id: leaveReq.staff_id,
       title: "Leave request declined",
       message: `Your ${leaveReq.leave_type_name} request from ${leaveReq.start_date} to ${leaveReq.end_date} was not approved${note?.trim() ? `: "${note.trim()}"` : "."}`,
@@ -137,7 +138,7 @@ export async function PATCH(
 
     if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
 
-    await supabaseAdmin.from("notifications").insert({
+    await createNotification({
       staff_id: leaveReq.staff_id,
       title: "Leave request approved",
       message: `Your ${leaveReq.leave_type_name} request from ${leaveReq.start_date} to ${leaveReq.end_date} has been approved.`,

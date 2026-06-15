@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 import {
   findBillByReference,
   findOrCreateContact,
@@ -12,7 +13,7 @@ import { isExpenseApprover } from "@/lib/expenses";
 export const dynamic = "force-dynamic";
 
 function notifyOwner(staffId: string, title: string, message: string) {
-  return supabaseAdmin.from("notifications").insert({
+  return createNotification({
     staff_id: staffId,
     title,
     message,
