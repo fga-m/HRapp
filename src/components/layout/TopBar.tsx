@@ -94,6 +94,8 @@ export default function TopBar({
     "/dashboard/access": "Roles & Permissions",
     "/dashboard/contracts": "Contracts",
     "/dashboard/performance": "Performance",
+    "/dashboard/expenses": "Expense Claims",
+    "/dashboard/notifications": "Notifications",
     "/dashboard/settings": "Settings",
   };
 

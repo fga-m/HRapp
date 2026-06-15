@@ -18,20 +18,21 @@ import { CRITERIA, SCORE_LABELS, type EvaluationData } from "@/lib/performance";
 
 // ─── Score colour helpers ──────────────────────────────────────────────────
 
+// 3 = "Meeting Expectations" is the target, so it (and above) reads positive.
 function scoreBadgeClass(score: number) {
-  if (score <= 2) return "bg-red-100 text-red-700";
-  if (score === 3) return "bg-amber-100 text-amber-700";
-  return "bg-green-100 text-green-700";
+  if (score <= 1) return "bg-red-100 text-red-700";
+  if (score === 2) return "bg-amber-100 text-amber-700";
+  return "bg-green-100 text-green-700"; // 3+ meets or exceeds expectations
 }
 
 function scoreButtonClass(score: number, selected: boolean) {
   if (!selected) return "bg-[#ECE3DF] text-[#9BADB7]";
   const map: Record<number, string> = {
     1: "bg-red-600/10 text-red-600 ring-1 ring-red-600",
-    2: "bg-orange-500/10 text-orange-600 ring-1 ring-orange-500",
-    3: "bg-amber-500/10 text-amber-600 ring-1 ring-amber-500",
-    4: "bg-[#5F7C84]/10 text-[#5F7C84] ring-1 ring-[#5F7C84]",
-    5: "bg-green-600/10 text-green-600 ring-1 ring-green-600",
+    2: "bg-amber-500/10 text-amber-600 ring-1 ring-amber-500",
+    3: "bg-green-600/10 text-green-600 ring-1 ring-green-600",
+    4: "bg-green-600/10 text-green-700 ring-1 ring-green-600",
+    5: "bg-emerald-600/10 text-emerald-700 ring-1 ring-emerald-600",
   };
   return map[score] ?? "bg-[#223149] text-white";
 }
@@ -79,7 +80,7 @@ function EvalForm({
   return (
     <div className="space-y-6">
       <p className="text-xs text-[#5F7C84] bg-[#F8F6F4] border border-[#ECE3DF] rounded-xl px-3 py-2">
-        Rate each area from 1 ({SCORE_LABELS[1]}) to 5 ({SCORE_LABELS[5]}).
+        Rate each area from 1 ({SCORE_LABELS[1]}) to 5 ({SCORE_LABELS[5]}). 3 ({SCORE_LABELS[3]}) is the expected standard.
       </p>
       {CRITERIA.map((criterion) => {
         const selected = data.scores[criterion.key] ?? 0;

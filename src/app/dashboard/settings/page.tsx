@@ -39,7 +39,7 @@ export default function SettingsPage() {
   }, []);
 
   const handleDisconnect = async () => {
-    if (!confirm("Disconnect Xero? Leave requests will no longer sync.")) return;
+    if (!confirm("Disconnect Xero? Leave requests and expense claims will no longer sync.")) return;
     setDisconnecting(true);
     setDisconnectError("");
     try {
@@ -97,7 +97,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="font-semibold text-[#223149]">Xero Payroll</h2>
-              <p className="text-sm text-[#9BADB7]">Sync leave requests directly to Xero AU Payroll</p>
+              <p className="text-sm text-[#9BADB7]">Sync leave requests and expense claims to Xero</p>
               <p className="text-xs text-[#9BADB7] mt-0.5">Xero is our accounting &amp; payroll system.</p>
               <p className="text-xs text-amber-600 mt-1">Expense claims need extended Xero permissions — if approvals fail to send, click Disconnect then Connect to re-grant access.</p>
             </div>
@@ -166,8 +166,9 @@ export default function SettingsPage() {
                 <span className="text-sm text-[#9BADB7]">Not connected</span>
               </div>
               <p className="text-sm text-[#5F7C84]">
-                Connect your Xero Payroll account to let staff submit leave requests directly from
-                the HR Portal. Approvals still happen in Xero.
+                Connect your Xero account so staff can submit leave requests and expense claims
+                from the HR Portal. Approved leave and expense bills sync to Xero; payment still
+                happens in Xero.
               </p>
               <a
                 href="/api/xero/connect"

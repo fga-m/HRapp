@@ -163,10 +163,7 @@ export default function PositionDescriptionsPage() {
   if (!isAdmin && (!pds || pds.length === 0)) {
     return (
       <div>
-        <div className="flex items-center gap-3 mb-6">
-          <Briefcase className="w-6 h-6 text-[#223149]" />
-          <h1 className="text-2xl font-bold text-[#223149]">My Position</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-[#223149]">My Position</h1>
         <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
         <div className="bg-white rounded-2xl shadow-sm p-10 flex flex-col items-center text-center gap-4">
           <div className="w-16 h-16 rounded-full bg-[#ECE3DF] flex items-center justify-center">
@@ -186,10 +183,7 @@ export default function PositionDescriptionsPage() {
     const pd = pds[0];
     return (
       <div>
-        <div className="flex items-center gap-3 mb-6">
-          <Briefcase className="w-6 h-6 text-[#223149]" />
-          <h1 className="text-2xl font-bold text-[#223149]">My Position</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-[#223149]">My Position</h1>
         <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
         <Link href={`/dashboard/position-descriptions/${pd.id}`}>
           <div className="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer">
@@ -226,10 +220,7 @@ export default function PositionDescriptionsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Briefcase className="w-6 h-6 text-[#223149]" />
-          <h1 className="text-2xl font-bold text-[#223149]">Position Descriptions</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-[#223149]">Position Descriptions</h1>
         <button
           onClick={openModal}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"

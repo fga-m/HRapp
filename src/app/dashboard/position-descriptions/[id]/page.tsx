@@ -243,8 +243,8 @@ export default function PositionDescriptionDetailPage() {
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
-        {/* LEFT — Content */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {/* LEFT — Content (below the action panel on mobile) */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-[#ECE3DF]">
             <Briefcase className="w-4 h-4 text-[#9BADB7]" />
             <span className="text-sm font-semibold text-[#223149]">Position Description</span>
@@ -266,8 +266,8 @@ export default function PositionDescriptionDetailPage() {
           </div>
         </div>
 
-        {/* RIGHT — Action panel */}
-        <div className="space-y-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
+        {/* RIGHT — Action panel (above the document on mobile) */}
+        <div className="space-y-4 order-first lg:order-none lg:sticky lg:top-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
           {/* Assigned staff card */}
           {assignedStaff && (
             <div className="bg-white rounded-2xl shadow-sm p-5">

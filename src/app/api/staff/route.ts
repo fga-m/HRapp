@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { full_name, email, role, position, department, google_calendar_id } = body;
+  const { full_name, email, role, position, department, google_calendar_id, contracted_hours, birthdate } = body;
 
   if (!full_name || !email) {
     return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -50,6 +50,8 @@ export async function POST(req: NextRequest) {
     position: position || null,
     department: department || null,
     google_calendar_id: google_calendar_id || email,
+    ...(contracted_hours !== undefined && contracted_hours !== "" && { contracted_hours: Number(contracted_hours) }),
+    ...(birthdate ? { birthdate } : {}),
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
