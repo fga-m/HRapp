@@ -159,6 +159,7 @@ export async function POST(
     title: "New document added to your profile",
     message: `A new document was added to your profile: ${title}`,
     type: "general",
+    category: "document",
     link: `/dashboard/staff/${id}`,
     is_read: false,
   });
@@ -184,6 +185,7 @@ export async function POST(
         title: `${title} expiring soon`,
         message: `Your ${title} expires on ${formattedDate} — please renew it soon.`,
         type: "general",
+        category: "document",
         link: `/dashboard/staff/${id}`,
         is_read: false,
       });
@@ -203,6 +205,7 @@ export async function POST(
             title: `${staffName}'s ${title} expiring soon`,
             message: `${staffName}'s ${title} expires on ${formattedDate}.`,
             type: "general",
+            category: "document",
             link: `/dashboard/staff/${id}`,
             is_read: false,
           }))

@@ -161,6 +161,7 @@ export async function PATCH(
         staff_id: review.staff_id,
         title: `Manager evaluation shared: ${review.period_label}`,
         message: `Your manager's evaluation for ${review.period_label} has been shared with you.`,
+        category: "performance",
         link: `/dashboard/performance/${id}`,
         is_read: false,
       });

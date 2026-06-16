@@ -45,6 +45,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         staff_id: id,
         title: "New performance note",
         message: "A manager has shared a note on your profile.",
+        category: "performance",
         link: `/dashboard/staff/${id}`,
         is_read: false,
       });

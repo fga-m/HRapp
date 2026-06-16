@@ -125,6 +125,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       title: `Position Description Updated to v${newVersion}`,
       message: `Your position description has been updated. Please review the changes and acknowledge the new version.`,
       type: "general",
+      category: "position_description",
       reference_id: id,
     });
   }

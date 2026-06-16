@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
     staff_id,
     title: `Performance review created: ${period_label}`,
     message: `Your ${period_label} performance review has been created. Please complete your self-evaluation.`,
+    category: "performance",
     link: `/dashboard/performance/${data.id}`,
     is_read: false,
   });

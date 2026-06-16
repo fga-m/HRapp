@@ -18,6 +18,7 @@ function notifyOwner(staffId: string, title: string, message: string) {
     title,
     message,
     type: "general",
+    category: "expense",
     link: "/dashboard/expenses",
     is_read: false,
   });

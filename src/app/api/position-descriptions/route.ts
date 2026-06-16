@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
       title: "Position Description Assigned",
       message: "Your position description has been shared. Please review and acknowledge it.",
       type: "general",
+      category: "position_description",
       reference_id: pd.id,
     });
   }

@@ -97,6 +97,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       staff_id: id,
       title: "New performance note",
       message: "A manager has left a note on your profile.",
+      category: "performance",
       link: `/dashboard/staff/${id}`,
       is_read: false,
     });

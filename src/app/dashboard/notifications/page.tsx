@@ -6,6 +6,7 @@ import { Shield, FileText, CheckSquare, Bell, Check, FileSignature, Palmtree, Me
 import { formatDistanceToNow, isToday, isYesterday, format } from "date-fns";
 import PageSubtitle from "@/components/PageSubtitle";
 import PushSetup from "@/components/notifications/PushSetup";
+import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 
 type Notification = {
   id: string;
@@ -158,6 +159,9 @@ export default function NotificationsPage() {
 
       {/* Per-device push opt-in */}
       <PushSetup />
+
+      {/* Per-user topic preferences */}
+      <NotificationPreferences />
 
       {/* Loading */}
       {loading && !error && (

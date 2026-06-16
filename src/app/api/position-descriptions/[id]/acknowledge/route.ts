@@ -57,6 +57,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       title: "Position Description Acknowledged",
       message: `${caller.full_name} has acknowledged their position description (v${pd.version})`,
       type: "general",
+      category: "position_description",
       reference_id: id,
     });
   }

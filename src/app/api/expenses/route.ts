@@ -181,6 +181,7 @@ export async function POST(req: NextRequest) {
         title: "New expense claim to review",
         message: `${caller.full_name ?? "A staff member"} submitted an expense claim of $${amount.toFixed(2)} for review.`,
         type: "general",
+        category: "expense",
         link: "/dashboard/expenses",
         is_read: false,
       }))
