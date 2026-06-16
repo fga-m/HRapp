@@ -6,6 +6,7 @@ import { format, parseISO } from "date-fns";
 import ExpenseEditModal from "@/components/expenses/ExpenseEditModal";
 import AccountSelect from "@/components/expenses/AccountSelect";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
+import { evaluateAmount, looksLikeExpression } from "@/lib/calc";
 
 interface Claim {
   id: string;
@@ -138,13 +139,18 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
     e.preventDefault();
     if (!file) { setSubmitError("Please attach a receipt."); return; }
     if (!accountCode) { setSubmitError("Please select an account."); return; }
+    const computed = evaluateAmount(amount);
+    if (computed === null || computed <= 0) {
+      setSubmitError("Enter a valid amount — you can type a sum like 12.50 + 8.30.");
+      return;
+    }
     setSubmitting(true);
     setSubmitError("");
     try {
       const account = accounts.find((a) => a.code === accountCode);
       const tax = taxRates.find((t) => t.taxType === taxType);
       const fd = new FormData();
-      fd.append("amount", amount);
+      fd.append("amount", computed.toFixed(2));
       fd.append("spent_on", spentOn);
       fd.append("description", description);
       fd.append("spent_at", spentAt);
@@ -178,7 +184,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
 
   // GST breakdown for the form — the amount is treated as tax-inclusive, so the
   // GST component = amount × rate / (100 + rate) (e.g. 10% → amount ÷ 11).
-  const amt = amount && !isNaN(Number(amount)) ? Number(amount) : 0;
+  const computedAmount = evaluateAmount(amount);
+  const amt = computedAmount ?? 0;
   const selectedTax = taxRates.find((t) => t.taxType === taxType);
   const taxRate = selectedTax?.rate ?? 0;
   const gst = taxRate > 0 ? amt - amt / (1 + taxRate / 100) : 0;
@@ -367,11 +374,20 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                 <div className="flex items-stretch">
                   <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-sm text-[#5F7C84] font-medium">AUD</span>
                   <input
-                    type="number" required min="0.01" step="0.01" value={amount}
-                    onChange={(e) => setAmount(e.target.value)} placeholder="0.00"
+                    type="text" inputMode="text" required value={amount}
+                    onChange={(e) => setAmount(e.target.value)} placeholder="0.00  or  12.50 + 8.30"
                     className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
+                {looksLikeExpression(amount) ? (
+                  computedAmount !== null ? (
+                    <p className="text-xs text-[#5F7C84] mt-1.5 text-right font-medium">= AUD {computedAmount.toFixed(2)}</p>
+                  ) : (
+                    <p className="text-xs text-amber-600 mt-1.5 text-right">Can&apos;t calculate that — use numbers with + - * / and ( )</p>
+                  )
+                ) : (
+                  <p className="text-xs text-[#9BADB7] mt-1.5">Tip: type a sum like 12.50 + 8.30 — it adds up for you.</p>
+                )}
               </div>
 
               {/* Description */}

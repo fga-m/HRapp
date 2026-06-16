@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import AccountSelect from "@/components/expenses/AccountSelect";
+import { evaluateAmount, looksLikeExpression } from "@/lib/calc";
 
 export interface EditableClaim {
   id: string;
@@ -70,6 +71,11 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.account_code) { setError("Please select an account."); return; }
+    const computed = evaluateAmount(form.amount);
+    if (computed === null || computed <= 0) {
+      setError("Enter a valid amount — you can type a sum like 12.50 + 8.30.");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -81,7 +87,7 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
         body: JSON.stringify({
           action: "UPDATE",
           fields: {
-            amount: form.amount,
+            amount: computed.toFixed(2),
             description: form.description,
             spent_at: form.spent_at,
             spent_on: form.spent_on,
@@ -126,10 +132,18 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
               <label className="block text-sm font-semibold text-[#223149] mb-1.5">Amount (AUD)</label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9BADB7] text-sm">$</span>
-                <input type="number" required min="0.01" step="0.01" value={form.amount}
+                <input type="text" inputMode="text" required value={form.amount}
                   onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+                  placeholder="0.00  or  12.50 + 8.30"
+                  className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
               </div>
+              {looksLikeExpression(form.amount) && (
+                evaluateAmount(form.amount) !== null ? (
+                  <p className="text-xs text-[#5F7C84] mt-1 font-medium">= ${evaluateAmount(form.amount)!.toFixed(2)}</p>
+                ) : (
+                  <p className="text-xs text-amber-600 mt-1">Can&apos;t calculate that</p>
+                )
+              )}
             </div>
           </div>
 
