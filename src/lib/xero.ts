@@ -337,6 +337,9 @@ export async function createAccpayBill(args: {
     AccountCode: string;
     TaxType?: string;
     Quantity?: number;
+    // Manual GST override for this line. When set, Xero uses it instead of
+    // computing tax from the rate (subject to Xero's own tolerance).
+    TaxAmount?: number;
   }[];
   lineAmountTypes?: "Inclusive" | "Exclusive" | "NoTax";
 }): Promise<{ invoiceId: string; invoiceNumber?: string; total: number; totalTax: number }> {
@@ -356,6 +359,7 @@ export async function createAccpayBill(args: {
           AccountCode: li.AccountCode,
           Quantity: li.Quantity ?? 1,
           ...(li.TaxType ? { TaxType: li.TaxType } : {}),
+          ...(li.TaxAmount != null ? { TaxAmount: li.TaxAmount } : {}),
         })),
       },
     ],

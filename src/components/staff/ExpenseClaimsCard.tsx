@@ -7,6 +7,8 @@ import ExpenseEditModal from "@/components/expenses/ExpenseEditModal";
 import AccountSelect from "@/components/expenses/AccountSelect";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { evaluateAmount, looksLikeExpression } from "@/lib/calc";
+import LineItemsEditor from "@/components/expenses/LineItemsEditor";
+import { autoGstInclusive, round2, validateExpenseLines, type ExpenseLine, type ExpenseTotals } from "@/lib/expense-lines";
 
 interface Claim {
   id: string;
@@ -16,6 +18,9 @@ interface Claim {
   account_name?: string | null;
   account_code?: string | null;
   tax_type?: string | null;
+  tax_rate_name?: string | null;
+  tax_amount?: number | null;
+  line_items?: ExpenseLine[] | null;
   spent_at?: string | null;
   status: "submitted" | "approved" | "rejected" | "pushed" | "push_failed";
   reviewer_notes?: string | null;
@@ -66,6 +71,10 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const [spentAt, setSpentAt] = useState("");
   const [accountCode, setAccountCode] = useState("");
   const [taxType, setTaxType] = useState("");
+  const [gstOverride, setGstOverride] = useState(""); // normal-mode GST override (blank = auto)
+  const [itemise, setItemise] = useState(false);
+  const [lines, setLines] = useState<ExpenseLine[]>([]);
+  const [lineTotalsState, setLineTotalsState] = useState<ExpenseTotals>({ subtotal: 0, gst: 0, total: 0 });
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,7 +129,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
 
   const resetForm = () => {
     setAmount(""); setSpentOn(""); setDescription(""); setSpentAt("");
-    setAccountCode(""); setTaxType(""); setFile(null); setSubmitError("");
+    setAccountCode(""); setTaxType(""); setGstOverride(""); setFile(null); setSubmitError("");
+    setItemise(false); setLines([]); setLineTotalsState({ subtotal: 0, gst: 0, total: 0 });
     setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
   };
 
@@ -138,29 +148,39 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) { setSubmitError("Please attach a receipt."); return; }
-    if (!accountCode) { setSubmitError("Please select an account."); return; }
-    const computed = evaluateAmount(amount);
-    if (computed === null || computed <= 0) {
-      setSubmitError("Enter a valid amount — you can type a sum like 12.50 + 8.30.");
-      return;
-    }
-    setSubmitting(true);
-    setSubmitError("");
-    try {
+    if (!spentOn) { setSubmitError("Please choose the date."); return; }
+
+    const fd = new FormData();
+    fd.append("spent_on", spentOn);
+    fd.append("spent_at", spentAt);
+    fd.append("line_amount_type", "Inclusive");
+    fd.append("file", file);
+
+    if (itemise) {
+      const err = validateExpenseLines(lines);
+      if (err) { setSubmitError(err); return; }
+      fd.append("line_items", JSON.stringify(lines));
+    } else {
+      const computed = evaluateAmount(amount);
+      if (computed === null || computed <= 0) {
+        setSubmitError("Enter a valid amount — you can type a sum like 12.50 + 8.30.");
+        return;
+      }
+      if (!accountCode) { setSubmitError("Please select an account."); return; }
       const account = accounts.find((a) => a.code === accountCode);
       const tax = taxRates.find((t) => t.taxType === taxType);
-      const fd = new FormData();
       fd.append("amount", computed.toFixed(2));
-      fd.append("spent_on", spentOn);
       fd.append("description", description);
-      fd.append("spent_at", spentAt);
       fd.append("account_code", accountCode);
       fd.append("account_name", account?.name ?? "");
       fd.append("tax_type", taxType);
       fd.append("tax_rate_name", tax?.name ?? "");
-      fd.append("line_amount_type", "Inclusive");
-      fd.append("file", file);
+      if (gstOverride.trim() !== "") fd.append("tax_amount", String(round2(Number(gstOverride) || 0)));
+    }
 
+    setSubmitting(true);
+    setSubmitError("");
+    try {
       const res = await fetch("/api/expenses", { method: "POST", body: fd });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "Failed to submit");
@@ -182,14 +202,26 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
 
   const visible = showAll ? claims : claims.slice(0, 3);
 
-  // GST breakdown for the form — the amount is treated as tax-inclusive, so the
-  // GST component = amount × rate / (100 + rate) (e.g. 10% → amount ÷ 11).
+  // GST breakdown for the NORMAL (single-line) form — the amount is treated as
+  // tax-inclusive, so auto GST = amount × rate / (100 + rate) (e.g. 10% → ÷ 11).
+  // A blank override means "use auto"; any value overrides it.
   const computedAmount = evaluateAmount(amount);
   const amt = computedAmount ?? 0;
   const selectedTax = taxRates.find((t) => t.taxType === taxType);
   const taxRate = selectedTax?.rate ?? 0;
-  const gst = taxRate > 0 ? amt - amt / (1 + taxRate / 100) : 0;
-  const subtotal = amt - gst;
+  const autoGst = autoGstInclusive(amt, taxRate);
+  const gstOverridden = gstOverride.trim() !== "";
+  const gst = gstOverridden ? round2(Number(gstOverride) || 0) : autoGst;
+  const subtotal = round2(amt - gst);
+  const defaultTaxType = taxRates.find((t) => /gst on expenses/i.test(t.name))?.taxType ?? "";
+
+  // The receipt is compulsory (web + mobile); Submit stays disabled until one is
+  // attached and the rest of the claim is valid.
+  const canSubmit =
+    !submitting && !metaLoading && !metaError && !!file && !!spentOn &&
+    (itemise
+      ? lineTotalsState.total > 0
+      : computedAmount !== null && computedAmount > 0 && !!accountCode && !!taxType && !!description.trim());
 
   return (
     <>
@@ -309,8 +341,9 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
             </div>
             <button
               type="submit" form="expense-claim-form"
-              disabled={submitting || metaLoading || !!metaError}
-              className="px-5 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50"
+              disabled={!canSubmit}
+              title={!file ? "Attach a receipt to submit" : undefined}
+              className="px-5 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? "Submitting…" : "Submit"}
             </button>
@@ -368,48 +401,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
 
             {/* RIGHT — form fields */}
             <form id="expense-claim-form" onSubmit={handleSubmit} className="order-1 md:order-2 md:w-1/2 md:h-full md:overflow-y-auto p-6 space-y-5">
-              {/* Purchase amount */}
-              <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Purchase amount</label>
-                <div className="flex items-stretch">
-                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-sm text-[#5F7C84] font-medium">AUD</span>
-                  <input
-                    type="text" inputMode="text" required value={amount}
-                    onChange={(e) => setAmount(e.target.value)} placeholder="0.00  or  12.50 + 8.30"
-                    className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
-                  />
-                </div>
-                {looksLikeExpression(amount) ? (
-                  computedAmount !== null ? (
-                    <p className="text-xs text-[#5F7C84] mt-1.5 text-right font-medium">= AUD {computedAmount.toFixed(2)}</p>
-                  ) : (
-                    <p className="text-xs text-amber-600 mt-1.5 text-right">Can&apos;t calculate that — use numbers with + - * / and ( )</p>
-                  )
-                ) : (
-                  <p className="text-xs text-[#9BADB7] mt-1.5">Tip: type a sum like 12.50 + 8.30 — it adds up for you.</p>
-                )}
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
-                <textarea
-                  required rows={2} value={description}
-                  onChange={(e) => setDescription(e.target.value)} placeholder="What was it for?"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
-                />
-              </div>
-
-              {/* Spent at + Spent on */}
+              {/* Spent on + Spent at — apply to the whole receipt */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#9BADB7] font-normal">(optional)</span></label>
-                  <input
-                    type="text" value={spentAt}
-                    onChange={(e) => setSpentAt(e.target.value)} placeholder="Where?"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
-                  />
-                </div>
                 <div>
                   <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent on</label>
                   <input
@@ -418,48 +411,127 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#9BADB7] font-normal">(optional)</span></label>
+                  <input
+                    type="text" value={spentAt}
+                    onChange={(e) => setSpentAt(e.target.value)} placeholder="Where?"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                  />
+                </div>
               </div>
 
-              {/* Account */}
+              {/* Itemise toggle */}
+              <div className="flex items-center justify-between border-t border-[#ECE3DF] pt-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[#223149]">Itemise this claim</p>
+                  <p className="text-xs text-[#9BADB7] mt-0.5">Split the receipt into lines, each with its own account.</p>
+                </div>
+                <button
+                  type="button" role="switch" aria-checked={itemise}
+                  onClick={() => setItemise((v) => !v)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${itemise ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${itemise ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+                </button>
+              </div>
+
               {metaError ? (
                 <p className="text-sm text-red-500">{metaError}</p>
+              ) : itemise ? (
+                /* Itemised: one line per claimed item */
+                <LineItemsEditor
+                  accounts={accounts}
+                  taxRates={taxRates}
+                  loading={metaLoading}
+                  defaultTaxType={defaultTaxType}
+                  onChange={(ls, t) => { setLines(ls); setLineTotalsState(t); }}
+                />
               ) : (
-                <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Account</label>
-                  <AccountSelect accounts={accounts} value={accountCode} onChange={setAccountCode} loading={metaLoading} />
-                </div>
-              )}
-
-              {/* Tax rate + auto-calculated GST breakdown */}
-              <div className="border-t border-[#ECE3DF] pt-4 space-y-3">
-                {!metaError && (
+                /* Normal: single amount / description / account / tax */
+                <>
+                  {/* Purchase amount */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
-                    <select
-                      required value={taxType} disabled={metaLoading}
-                      onChange={(e) => setTaxType(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
-                    >
-                      <option value="">{metaLoading ? "Loading…" : "Select tax rate…"}</option>
-                      {taxRates.map((t) => <option key={t.taxType} value={t.taxType}>{t.name}</option>)}
-                    </select>
+                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Purchase amount</label>
+                    <div className="flex items-stretch">
+                      <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-sm text-[#5F7C84] font-medium">AUD</span>
+                      <input
+                        type="text" inputMode="text" required value={amount}
+                        onChange={(e) => setAmount(e.target.value)} placeholder="0.00  or  12.50 + 8.30"
+                        className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                      />
+                    </div>
+                    {looksLikeExpression(amount) ? (
+                      computedAmount !== null ? (
+                        <p className="text-xs text-[#5F7C84] mt-1.5 text-right font-medium">= AUD {computedAmount.toFixed(2)}</p>
+                      ) : (
+                        <p className="text-xs text-amber-600 mt-1.5 text-right">Can&apos;t calculate that — use numbers with + - * / and ( )</p>
+                      )
+                    ) : (
+                      <p className="text-xs text-[#9BADB7] mt-1.5">Tip: type a sum like 12.50 + 8.30 — it adds up for you.</p>
+                    )}
                   </div>
-                )}
-                <div className="space-y-1 text-sm">
-                  <div className="flex items-center justify-between text-[#5F7C84]">
-                    <span>Subtotal (excl. GST)</span>
-                    <span>AUD {subtotal.toFixed(2)}</span>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
+                    <textarea
+                      required rows={2} value={description}
+                      onChange={(e) => setDescription(e.target.value)} placeholder="What was it for?"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                    />
                   </div>
-                  <div className="flex items-center justify-between text-[#5F7C84]">
-                    <span>{selectedTax ? `${selectedTax.name} (${Math.round(taxRate * 100) / 100}%)` : "GST"}</span>
-                    <span>AUD {gst.toFixed(2)}</span>
+
+                  {/* Account */}
+                  <div>
+                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Account</label>
+                    <AccountSelect accounts={accounts} value={accountCode} onChange={setAccountCode} loading={metaLoading} />
                   </div>
-                  <div className="flex items-center justify-between font-bold text-[#223149] pt-1.5 border-t border-[#ECE3DF]">
-                    <span>Total (incl. GST)</span>
-                    <span>AUD {amt.toFixed(2)}</span>
+
+                  {/* Tax rate + GST (auto, editable override) */}
+                  <div className="border-t border-[#ECE3DF] pt-4 space-y-3">
+                    <div>
+                      <label className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
+                      <select
+                        required value={taxType} disabled={metaLoading}
+                        onChange={(e) => setTaxType(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
+                      >
+                        <option value="">{metaLoading ? "Loading…" : "Select tax rate…"}</option>
+                        {taxRates.map((t) => <option key={t.taxType} value={t.taxType}>{t.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex items-center justify-between text-[#5F7C84]">
+                        <span>Subtotal (excl. GST)</span>
+                        <span>AUD {subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 text-[#5F7C84]">
+                        <span>{selectedTax ? `${selectedTax.name} (${Math.round(taxRate * 100) / 100}%)` : "GST"}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-stretch">
+                            <span className="inline-flex items-center px-2 rounded-l-lg border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-xs">$</span>
+                            <input
+                              type="text" inputMode="decimal" value={gstOverride}
+                              onChange={(e) => setGstOverride(e.target.value)} placeholder={autoGst.toFixed(2)}
+                              className="w-24 px-2 py-1.5 rounded-r-lg border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                            />
+                          </div>
+                          {gstOverridden ? (
+                            <button type="button" onClick={() => setGstOverride("")} className="text-[11px] text-[#5F7C84] hover:text-[#223149] underline">auto</button>
+                          ) : (
+                            <span className="text-[11px] text-[#9BADB7] w-8">auto</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between font-bold text-[#223149] pt-1.5 border-t border-[#ECE3DF]">
+                        <span>Total (incl. GST)</span>
+                        <span>AUD {amt.toFixed(2)}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
 
               {submitError && <p className="text-sm text-red-500">{submitError}</p>}
             </form>

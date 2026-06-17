@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { Paperclip, AlertTriangle, Loader2, CheckCircle2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import ExpenseEditModal from "@/components/expenses/ExpenseEditModal";
+import type { ExpenseLine } from "@/lib/expense-lines";
 
 interface Claim {
   id: string;
@@ -15,6 +16,8 @@ interface Claim {
   account_code?: string | null;
   tax_rate_name?: string | null;
   tax_type?: string | null;
+  tax_amount?: number | null;
+  line_items?: ExpenseLine[] | null;
   spent_at?: string | null;
   status: "submitted" | "push_failed";
   xero_error?: string | null;
@@ -133,10 +136,33 @@ export default function ExpenseApproverQueue() {
 
             <p className="text-sm text-[#223149]">{claim.description}</p>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#5F7C84]">
-              {claim.account_name && <span><span className="text-[#9BADB7]">Account:</span> {claim.account_name}</span>}
-              {claim.tax_rate_name && <span><span className="text-[#9BADB7]">Tax:</span> {claim.tax_rate_name}</span>}
-              {claim.receipt_signed_url && (
+            {Array.isArray(claim.line_items) && claim.line_items.length > 0 ? (
+              <div className="rounded-lg border border-[#ECE3DF] divide-y divide-[#ECE3DF]">
+                {claim.line_items.map((l, i) => (
+                  <div key={i} className="flex items-start justify-between gap-3 px-3 py-2 text-xs">
+                    <div className="min-w-0">
+                      <p className="text-[#223149] truncate">{l.description}</p>
+                      <p className="text-[#9BADB7]">
+                        {l.account_name || l.account_code}
+                        {l.tax_rate_name ? ` · ${l.tax_rate_name}` : ""}
+                        {l.tax_amount != null ? ` · GST $${Number(l.tax_amount).toFixed(2)}` : ""}
+                      </p>
+                    </div>
+                    <span className="text-[#223149] font-medium flex-shrink-0">${Number(l.amount).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              (claim.account_name || claim.tax_rate_name) && (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#5F7C84]">
+                  {claim.account_name && <span><span className="text-[#9BADB7]">Account:</span> {claim.account_name}</span>}
+                  {claim.tax_rate_name && <span><span className="text-[#9BADB7]">Tax:</span> {claim.tax_rate_name}</span>}
+                </div>
+              )
+            )}
+
+            {claim.receipt_signed_url && (
+              <div className="text-xs">
                 <button
                   type="button"
                   onClick={() => setExpandedId(expandedId === claim.id ? null : claim.id)}
@@ -146,8 +172,8 @@ export default function ExpenseApproverQueue() {
                   {expandedId === claim.id ? "Hide receipt" : "View receipt"}
                   {expandedId === claim.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Inline receipt preview */}
             {expandedId === claim.id && claim.receipt_signed_url && (

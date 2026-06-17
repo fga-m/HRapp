@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { isExpenseApprover } from "@/lib/expenses";
+import { validateExpenseLines, normaliseLine, round2, type ExpenseLine } from "@/lib/expense-lines";
 
 export const dynamic = "force-dynamic";
 
@@ -102,21 +103,60 @@ export async function POST(req: NextRequest) {
   const accountName = (formData.get("account_name") as string) ?? "";
   const taxType = (formData.get("tax_type") as string) ?? "";
   const taxRateName = (formData.get("tax_rate_name") as string) ?? "";
+  const taxAmountRaw = (formData.get("tax_amount") as string) ?? "";
   const lineAmountType = ((formData.get("line_amount_type") as string) || "Inclusive").trim();
+  const lineItemsRaw = (formData.get("line_items") as string) ?? "";
   const file = formData.get("file") as File | null;
 
-  const amount = parseFloat(amountRaw);
-  if (isNaN(amount) || amount <= 0) {
-    return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 });
-  }
-  if (!spentOn || !description || !accountCode || !taxType) {
-    return NextResponse.json(
-      { error: "Date, description, account and tax type are required" },
-      { status: 400 }
-    );
-  }
+  // A receipt is always required (web and mobile).
   if (!file) {
     return NextResponse.json({ error: "A receipt is required" }, { status: 400 });
+  }
+  if (!spentOn) {
+    return NextResponse.json({ error: "The date is required" }, { status: 400 });
+  }
+
+  // Itemised claims send a `line_items` JSON array; normal claims send the
+  // single amount/account/tax fields (with an optional GST override).
+  let lineItems: ExpenseLine[] | null = null;
+  if (lineItemsRaw.trim()) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(lineItemsRaw);
+    } catch {
+      return NextResponse.json({ error: "Line items were malformed" }, { status: 400 });
+    }
+    const err = validateExpenseLines(parsed);
+    if (err) return NextResponse.json({ error: err }, { status: 400 });
+    lineItems = (parsed as ExpenseLine[]).map(normaliseLine);
+  }
+
+  // The stored amount is the claim total: the sum of line amounts (itemised)
+  // or the single entered amount (normal).
+  let amount: number;
+  if (lineItems) {
+    amount = round2(lineItems.reduce((s, l) => s + l.amount, 0));
+  } else {
+    amount = parseFloat(amountRaw);
+    if (isNaN(amount) || amount <= 0) {
+      return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 });
+    }
+    if (!description || !accountCode || !taxType) {
+      return NextResponse.json(
+        { error: "Description, account and tax type are required" },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Optional normal-mode GST override.
+  let taxAmount: number | null = null;
+  if (!lineItems && taxAmountRaw.trim()) {
+    const t = Number(taxAmountRaw);
+    if (isNaN(t) || t < 0 || t > amount) {
+      return NextResponse.json({ error: "GST override must be between 0 and the amount" }, { status: 400 });
+    }
+    taxAmount = round2(t);
   }
 
   // Upload the receipt to the private 'receipts' bucket.
@@ -136,19 +176,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 
+  // For itemised claims the per-line detail lives in `line_items`; the
+  // claim-level account/tax columns are left null and the description is
+  // derived from the lines for list/notification display.
+  const derivedDescription = lineItems
+    ? lineItems.map((l) => l.description).filter(Boolean).join("; ")
+    : description;
+
   const { data: claim, error } = await supabaseAdmin
     .from("expense_claims")
     .insert({
       staff_id: caller.id,
       date: spentOn,
       amount,
-      description,
+      description: derivedDescription,
       currency: "AUD",
       spent_at: spentAt || null,
-      account_code: accountCode,
-      account_name: accountName || null,
-      tax_type: taxType,
-      tax_rate_name: taxRateName || null,
+      account_code: lineItems ? null : accountCode,
+      account_name: lineItems ? `Itemised (${lineItems.length} items)` : accountName || null,
+      tax_type: lineItems ? null : taxType,
+      tax_rate_name: lineItems ? null : taxRateName || null,
+      tax_amount: taxAmount,
+      line_items: lineItems,
       line_amount_type: lineAmountType,
       receipt_path: uploadData.path,
       receipt_mime: file.type || null,

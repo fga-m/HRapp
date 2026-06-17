@@ -9,6 +9,12 @@ import {
   attachReceipt,
 } from "@/lib/xero";
 import { isExpenseApprover } from "@/lib/expenses";
+import {
+  validateExpenseLines,
+  normaliseLine,
+  round2,
+  type ExpenseLine,
+} from "@/lib/expense-lines";
 
 export const dynamic = "force-dynamic";
 
@@ -74,20 +80,51 @@ export async function PATCH(
     }
     const f = fields ?? {};
     const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
-    if (f.amount !== undefined) {
-      const n = Number(f.amount);
-      if (isNaN(n) || n <= 0) {
-        return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 });
-      }
-      update.amount = n;
-    }
-    if (f.description !== undefined) update.description = String(f.description);
+
+    // Whole-receipt fields apply in both modes.
     if (f.spent_on !== undefined) update.date = String(f.spent_on);
     if (f.spent_at !== undefined) update.spent_at = f.spent_at ? String(f.spent_at) : null;
-    if (f.account_code !== undefined) update.account_code = f.account_code ? String(f.account_code) : null;
-    if (f.account_name !== undefined) update.account_name = f.account_name ? String(f.account_name) : null;
-    if (f.tax_type !== undefined) update.tax_type = f.tax_type ? String(f.tax_type) : null;
-    if (f.tax_rate_name !== undefined) update.tax_rate_name = f.tax_rate_name ? String(f.tax_rate_name) : null;
+
+    if (f.line_items !== undefined && Array.isArray(f.line_items) && f.line_items.length > 0) {
+      // Switching to / editing an itemised claim.
+      const err = validateExpenseLines(f.line_items);
+      if (err) return NextResponse.json({ error: err }, { status: 400 });
+      const lines: ExpenseLine[] = (f.line_items as ExpenseLine[]).map(normaliseLine);
+      update.line_items = lines;
+      update.amount = round2(lines.reduce((s, l) => s + l.amount, 0));
+      update.description = lines.map((l) => l.description).filter(Boolean).join("; ");
+      update.account_code = null;
+      update.account_name = `Itemised (${lines.length} items)`;
+      update.tax_type = null;
+      update.tax_rate_name = null;
+      update.tax_amount = null;
+    } else {
+      // Normal (single-line) claim. If line_items was explicitly cleared, drop it.
+      if (f.line_items !== undefined) update.line_items = null;
+      if (f.amount !== undefined) {
+        const n = Number(f.amount);
+        if (isNaN(n) || n <= 0) {
+          return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 });
+        }
+        update.amount = n;
+      }
+      if (f.description !== undefined) update.description = String(f.description);
+      if (f.account_code !== undefined) update.account_code = f.account_code ? String(f.account_code) : null;
+      if (f.account_name !== undefined) update.account_name = f.account_name ? String(f.account_name) : null;
+      if (f.tax_type !== undefined) update.tax_type = f.tax_type ? String(f.tax_type) : null;
+      if (f.tax_rate_name !== undefined) update.tax_rate_name = f.tax_rate_name ? String(f.tax_rate_name) : null;
+      if (f.tax_amount !== undefined) {
+        if (f.tax_amount === null || f.tax_amount === "") {
+          update.tax_amount = null;
+        } else {
+          const t = Number(f.tax_amount);
+          if (isNaN(t) || t < 0) {
+            return NextResponse.json({ error: "GST override must be zero or more" }, { status: 400 });
+          }
+          update.tax_amount = round2(t);
+        }
+      }
+    }
 
     const { data, error } = await supabaseAdmin
       .from("expense_claims")
@@ -154,11 +191,22 @@ export async function PATCH(
     );
   }
 
-  // Validate the financial fields required for the Xero bill.
+  // Validate the financial fields required for the Xero bill. Itemised claims
+  // carry their account/tax per line; normal claims carry them on the row.
   const amount = Number(claim.amount);
-  if (!claim.account_code || !claim.tax_type || isNaN(amount) || amount <= 0) {
+  const claimLines: ExpenseLine[] | null =
+    Array.isArray(claim.line_items) && claim.line_items.length > 0
+      ? (claim.line_items as ExpenseLine[])
+      : null;
+  if (isNaN(amount) || amount <= 0) {
+    return NextResponse.json({ error: "Claim is missing a valid amount" }, { status: 400 });
+  }
+  if (claimLines) {
+    const lineErr = validateExpenseLines(claimLines);
+    if (lineErr) return NextResponse.json({ error: lineErr }, { status: 400 });
+  } else if (!claim.account_code || !claim.tax_type) {
     return NextResponse.json(
-      { error: "Claim is missing a valid amount, account code or tax type" },
+      { error: "Claim is missing an account code or tax type" },
       { status: 400 }
     );
   }
@@ -261,20 +309,33 @@ export async function PATCH(
       });
     }
 
-    // (4) Create the ACCPAY bill.
+    // (4) Create the ACCPAY bill. Itemised claims send one Xero line per item
+    //     (each with its own account/tax/GST); normal claims send a single line.
+    const billLineItems = claimLines
+      ? claimLines.map((l) => ({
+          Description: l.description,
+          UnitAmount: l.amount,
+          AccountCode: l.account_code,
+          TaxType: l.tax_type,
+          Quantity: 1,
+          ...(l.tax_amount != null ? { TaxAmount: l.tax_amount } : {}),
+        }))
+      : [
+          {
+            Description: claim.description,
+            UnitAmount: amount,
+            AccountCode: claim.account_code,
+            TaxType: claim.tax_type,
+            Quantity: 1,
+            ...(claim.tax_amount != null ? { TaxAmount: Number(claim.tax_amount) } : {}),
+          },
+        ];
+
     const bill = await createAccpayBill({
       contactId,
       date: claim.date, // spent_on, yyyy-mm-dd
       reference: claim.id,
-      lineItems: [
-        {
-          Description: claim.description,
-          UnitAmount: amount,
-          AccountCode: claim.account_code,
-          TaxType: claim.tax_type,
-          Quantity: 1,
-        },
-      ],
+      lineItems: billLineItems,
       lineAmountTypes: (claim.line_amount_type as "Inclusive" | "Exclusive" | "NoTax") || "Inclusive",
     });
 
