@@ -13,6 +13,8 @@ import {
   ChevronUp,
   Search,
   Users,
+  FileText,
+  Wand2,
 } from "lucide-react";
 import { format } from "date-fns";
 import DropZone from "@/components/ui/DropZone";
@@ -162,13 +164,29 @@ export default function ContractsPage() {
           </p>
         </div>
         {role === "admin" && (
-          <button
-            onClick={() => openUploadModal()}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Upload Contract
-          </button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Link
+              href="/dashboard/contracts/templates"
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Templates
+            </Link>
+            <Link
+              href="/dashboard/contracts/generate"
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            >
+              <Wand2 className="w-4 h-4" />
+              Generate
+            </Link>
+            <button
+              onClick={() => openUploadModal()}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Upload Contract
+            </button>
+          </div>
         )}
       </div>
 
