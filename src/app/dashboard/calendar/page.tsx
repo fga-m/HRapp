@@ -342,6 +342,22 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
 
   const removeAttendee = (email: string) => setAttendees(prev => prev.filter(a => a !== email));
 
+  // When the start changes, slide the end by the same amount so the duration is
+  // preserved — the end date follows the start date automatically, so a
+  // same-day event never needs the end date picked again. The end stays
+  // independently editable afterwards.
+  const handleStartChange = (value: string) => {
+    const prevStart = new Date(startDateTime).getTime();
+    const prevEnd = new Date(endDateTime).getTime();
+    const nextStart = new Date(value).getTime();
+    setStartDateTime(value);
+    if (Number.isFinite(prevStart) && Number.isFinite(prevEnd) && Number.isFinite(nextStart)) {
+      const duration = prevEnd - prevStart;
+      const nextEnd = nextStart + (duration > 0 ? duration : 60 * 60 * 1000);
+      setEndDateTime(format(new Date(nextEnd), "yyyy-MM-dd'T'HH:mm"));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!summary.trim()) { setError("Title is required."); return; }
@@ -417,7 +433,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
               <input
                 type="datetime-local"
                 value={startDateTime}
-                onChange={(e) => setStartDateTime(e.target.value)}
+                onChange={(e) => handleStartChange(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
             </div>
