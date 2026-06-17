@@ -410,11 +410,19 @@ export default function GenerateContractsPage() {
                     <thead>
                       <tr className="bg-[#F8F6F4] text-left">
                         <th className="px-3 py-2 font-semibold text-[#223149] whitespace-nowrap">Employee</th>
-                        {fields.map((f) => (
-                          <th key={f} className="px-3 py-2 font-semibold text-[#5F7C84] text-xs whitespace-nowrap">
-                            {fieldLabel(template?.field_config, f)}
-                          </th>
-                        ))}
+                        {fields.map((f) => {
+                          const s = fieldSetting(template?.field_config, f);
+                          return (
+                            <th key={f} className="px-3 py-2 align-bottom text-[#5F7C84]">
+                              <div className="font-semibold text-xs">{fieldLabel(template?.field_config, f)}</div>
+                              {s.description && (
+                                <div className="text-[11px] font-normal text-[#9BADB7] whitespace-normal max-w-[11rem] mt-0.5">
+                                  {s.description}
+                                </div>
+                              )}
+                            </th>
+                          );
+                        })}
                         <th className="px-2 py-2" />
                       </tr>
                     </thead>
@@ -442,7 +450,7 @@ export default function GenerateContractsPage() {
                                 ) : setting.type === "date" ? (
                                   <input type="date" value={r.values[f] ?? ""} onChange={(e) => setValue(r.key, f, e.target.value)} className={cls} />
                                 ) : (
-                                  <input value={r.values[f] ?? ""} onChange={(e) => setValue(r.key, f, e.target.value)} className={cls} />
+                                  <input value={r.values[f] ?? ""} onChange={(e) => setValue(r.key, f, e.target.value)} placeholder={setting.example ?? ""} className={`${cls} placeholder:text-[#9BADB7]`} />
                                 )}
                               </td>
                             );

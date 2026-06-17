@@ -264,7 +264,7 @@ export default function ContractTemplatesPage() {
   );
 }
 
-type DraftField = { label: string; type: ContractFieldType; optionsText: string };
+type DraftField = { label: string; type: ContractFieldType; optionsText: string; description: string; example: string };
 
 function TemplateRow({
   template,
@@ -288,6 +288,8 @@ function TemplateRow({
         label: c?.label ?? "",
         type: c?.type ?? "text",
         optionsText: (c?.options ?? []).join(", "),
+        description: c?.description ?? "",
+        example: c?.example ?? "",
       };
     }
     setDraft(d);
@@ -299,9 +301,11 @@ function TemplateRow({
     try {
       const field_config: ContractFieldConfig = {};
       for (const f of template.fields) {
-        const d = draft[f] ?? { label: "", type: "text", optionsText: "" };
+        const d = draft[f] ?? { label: "", type: "text", optionsText: "", description: "", example: "" };
         const setting: ContractFieldConfig[string] = { type: d.type };
         if (d.label.trim()) setting.label = d.label.trim();
+        if (d.description.trim()) setting.description = d.description.trim();
+        if (d.example.trim()) setting.example = d.example.trim();
         if (d.type === "select") {
           const options = d.optionsText.split(",").map((o) => o.trim()).filter(Boolean);
           if (options.length) setting.options = options;
@@ -440,6 +444,20 @@ function TemplateRow({
                     className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
                   />
                 )}
+                <input
+                  type="text"
+                  value={d.description}
+                  onChange={(e) => setDraft((p) => ({ ...p, [f]: { ...d, description: e.target.value } }))}
+                  placeholder="Help text shown under this field (optional)"
+                  className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
+                />
+                <input
+                  type="text"
+                  value={d.example}
+                  onChange={(e) => setDraft((p) => ({ ...p, [f]: { ...d, example: e.target.value } }))}
+                  placeholder="Example shown inside the box (optional) — e.g. 80000"
+                  className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
+                />
               </div>
             );
           })}

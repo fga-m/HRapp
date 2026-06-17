@@ -8,6 +8,8 @@ export type ContractFieldSetting = {
   label?: string;
   type: ContractFieldType;
   options?: string[];
+  description?: string; // shown under the column to explain what to enter
+  example?: string;     // shown as the input's placeholder
 };
 
 // Keyed by the {{field}} name detected in the template.
@@ -65,6 +67,8 @@ export function normaliseFieldConfig(raw: unknown): ContractFieldConfig {
       v?.type === "date" || v?.type === "select" ? v.type : "text";
     const setting: ContractFieldSetting = { type };
     if (typeof v?.label === "string" && v.label.trim()) setting.label = v.label.trim();
+    if (typeof v?.description === "string" && v.description.trim()) setting.description = v.description.trim();
+    if (typeof v?.example === "string" && v.example.trim()) setting.example = v.example.trim();
     if (type === "select" && Array.isArray(v?.options)) {
       const options = v.options.map((o) => String(o).trim()).filter(Boolean);
       if (options.length) setting.options = options;
