@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { saveGoogleTokensByEmail } from "./google-tokens";
+import { saveGoogleTokensByEmail, getGoogleTokensByEmail } from "./google-tokens";
 
 /** Persist Google tokens for a staff member so they can be used server-side
  *  (e.g. creating calendar events on behalf of a staff member when offline).
@@ -55,7 +55,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           scope:
             "openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/admin.directory.user.readonly",
           access_type: "offline",
-          prompt: "consent",
         },
       },
     }),
@@ -71,13 +70,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // First sign-in: store tokens in JWT and persist to DB
       if (account) {
         const expires = account.expires_at ? account.expires_at * 1000 : Date.now() + 3600 * 1000;
+        // Google only returns a refresh token on the very first consent. On
+        // later sign-ins it's absent, so fall back to the one we stored
+        // previously — otherwise silent refresh would break after re-login.
+        let refreshToken = account.refresh_token ?? undefined;
+        if (!refreshToken && token.email) {
+          const stored = await getGoogleTokensByEmail(token.email as string);
+          refreshToken = stored?.refresh_token ?? undefined;
+        }
         if (token.email && account.access_token) {
-          await saveTokensToStaff(token.email as string, account.access_token, account.refresh_token, expires);
+          await saveTokensToStaff(token.email as string, account.access_token, refreshToken, expires);
         }
         return {
           ...token,
           accessToken: account.access_token,
-          refreshToken: account.refresh_token,
+          refreshToken,
           accessTokenExpires: expires,
         };
       }

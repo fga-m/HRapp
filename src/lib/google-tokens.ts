@@ -58,3 +58,17 @@ export async function getGoogleTokensByStaffId(
     .maybeSingle();
   return data ?? null;
 }
+
+/** Read stored tokens for a staff member by email, or null if none are
+ *  stored (or no staff row matches). Mirrors saveGoogleTokensByEmail. */
+export async function getGoogleTokensByEmail(
+  email: string
+): Promise<GoogleTokens | null> {
+  const { data: staff } = await supabaseAdmin
+    .from("staff")
+    .select("id")
+    .eq("email", email)
+    .single();
+  if (!staff?.id) return null;
+  return getGoogleTokensByStaffId(staff.id);
+}
