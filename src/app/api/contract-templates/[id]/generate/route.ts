@@ -10,6 +10,7 @@ type Row = {
   staff_id?: string | null;
   recipient_name?: string;
   values?: Record<string, string>;
+  draft_row_id?: string | null; // roster row this came from, if any
 };
 
 // POST — generate a batch: one filled Google Doc per employee, kept in Drive.
@@ -94,6 +95,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         }
         return {
           ok: true as const,
+          draftRowId: row.draft_row_id || null,
           insert: {
             template_id: template.id,
             batch_id: batchId,
@@ -116,19 +118,47 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     })
   );
 
-  const toInsert = outcomes.filter((o) => o.ok).map((o) => o.insert);
+  const okOutcomes = outcomes.filter((o) => o.ok);
+  const toInsert = okOutcomes.map((o) => o.insert);
   const failed = outcomes
     .filter((o) => !o.ok)
     .map((o) => ({ recipient_name: o.recipient_name, error: o.error }));
 
-  let generated: unknown[] = [];
+  type GenRow = {
+    id: string;
+    recipient_name: string;
+    staff_id: string | null;
+    google_doc_url: string | null;
+    contract_id: string | null;
+  };
+  let generated: (GenRow & { draft_row_id: string | null })[] = [];
   if (toInsert.length > 0) {
     const { data, error } = await supabaseAdmin
       .from("generated_contracts")
       .insert(toInsert)
       .select("id, recipient_name, staff_id, google_doc_url, contract_id");
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    generated = data ?? [];
+    const inserted = (data ?? []) as GenRow[];
+
+    // The insert returns rows in request order, so we zip by index (guarded on
+    // length) to recover which roster row each copy belongs to.
+    const aligned = inserted.length === okOutcomes.length;
+    generated = inserted.map((g, i) => ({ ...g, draft_row_id: aligned ? okOutcomes[i].draftRowId : null }));
+
+    // Link each roster row to its fresh copy and stamp generated_at, so the
+    // grid can show "Generated"/"Sent" and detect later edits.
+    if (aligned) {
+      const stamp = new Date().toISOString();
+      await Promise.all(
+        generated.map((g) => {
+          if (!g.draft_row_id) return null;
+          return supabaseAdmin
+            .from("contract_draft_rows")
+            .update({ generated_contract_id: g.id, generated_at: stamp })
+            .eq("id", g.draft_row_id);
+        })
+      );
+    }
   }
 
   return NextResponse.json(
