@@ -99,10 +99,23 @@ export default function GenerateContractsPage() {
   const saveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const inFlight = useRef<Map<string, Promise<unknown>>>(new Map());
   const rowsRef = useRef<Row[]>([]);
+  const staffPickerRef = useRef<HTMLDivElement>(null);
   const [savingCount, setSavingCount] = useState(0);
   const [everSaved, setEverSaved] = useState(false);
 
   useEffect(() => { rowsRef.current = rows; }, [rows]);
+
+  // Close the staff picker when clicking anywhere outside it.
+  useEffect(() => {
+    if (!showStaffPicker) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (staffPickerRef.current && !staffPickerRef.current.contains(e.target as Node)) {
+        setShowStaffPicker(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [showStaffPicker]);
 
   const template = useMemo(() => templates.find((t) => t.id === templateId) ?? null, [templates, templateId]);
   const fields = template?.fields ?? [];
@@ -498,7 +511,7 @@ export default function GenerateContractsPage() {
             <>
               {/* Add employees */}
               <div className="flex items-center gap-2">
-                <div className="relative">
+                <div className="relative" ref={staffPickerRef}>
                   <button
                     type="button"
                     onClick={() => setShowStaffPicker((v) => !v)}
