@@ -73,6 +73,17 @@ function prefillFor(staff: Staff, fields: string[]): Record<string, string> {
   return v;
 }
 
+// Persist one roster row's editable fields. `keepalive` lets the request
+// survive a page unload (tab/browser close) so a last-moment edit isn't lost.
+function patchDraftRow(id: string, row: Row, opts?: { keepalive?: boolean }) {
+  return fetch(`/api/contract-draft-rows/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    keepalive: opts?.keepalive,
+    body: JSON.stringify({ recipient_name: row.recipient_name, staff_id: row.staff_id, values: row.values }),
+  });
+}
+
 export default function GenerateContractsPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -167,10 +178,28 @@ export default function GenerateContractsPage() {
     setRowsLoading(!!id);
   };
 
-  // Clear any pending timers on unmount.
+  // Flush pending edits when leaving — in-app navigation (unmount), tab/browser
+  // close (pagehide), or backgrounding (visibilitychange) — so an edit made in
+  // the debounce window isn't lost. Uses only refs, so empty deps are correct.
   useEffect(() => {
-    const timers = saveTimers.current;
-    return () => { timers.forEach((t) => clearTimeout(t)); timers.clear(); };
+    const flushPending = () => {
+      const timers = saveTimers.current;
+      Array.from(timers.keys()).forEach((id) => {
+        const t = timers.get(id);
+        if (t) clearTimeout(t);
+        timers.delete(id);
+        const row = rowsRef.current.find((r) => r.id === id);
+        if (row) patchDraftRow(id, row, { keepalive: true }).catch(() => {});
+      });
+    };
+    const onVisibility = () => { if (document.visibilityState === "hidden") flushPending(); };
+    window.addEventListener("pagehide", flushPending);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flushPending);
+      document.removeEventListener("visibilitychange", onVisibility);
+      flushPending();
+    };
   }, []);
 
   const loadBatches = () => {
@@ -185,11 +214,7 @@ export default function GenerateContractsPage() {
     const row = rowsRef.current.find((r) => r.id === id);
     if (!row) return Promise.resolve();
     setSavingCount((c) => c + 1);
-    const p = fetch(`/api/contract-draft-rows/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipient_name: row.recipient_name, staff_id: row.staff_id, values: row.values }),
-    })
+    const p = patchDraftRow(id, row)
       .then(() => setEverSaved(true))
       .catch(() => {})
       .finally(() => {
