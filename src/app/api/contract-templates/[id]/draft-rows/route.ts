@@ -93,6 +93,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .select(SELECT)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    // Unique violation on (template_id, staff_id) — this person is already on
+    // the list. Surfaced as a friendly 409 rather than a 500.
+    if (error.code === "23505") {
+      return NextResponse.json({ error: "That staff member is already on this template's list." }, { status: 409 });
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ row: toRow(data as unknown as DraftRowRecord) }, { status: 201 });
 }

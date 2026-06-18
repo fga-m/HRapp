@@ -258,7 +258,8 @@ export default function GenerateContractsPage() {
   };
 
   const addStaffRow = async (s: Staff) => {
-    if (rows.some((r) => r.staff_id === s.id)) return;
+    if (rows.some((r) => r.staff_id === s.id)) return; // already on the list locally
+    setRowError(null);
     const res = await fetch(`/api/contract-templates/${templateId}/draft-rows`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -266,6 +267,7 @@ export default function GenerateContractsPage() {
     });
     const d = await res.json();
     if (res.ok && d.row) setRows((prev) => [...prev, d.row]);
+    else setRowError(d.error ?? "Couldn't add that person to the list.");
   };
 
   const addBlankRow = async () => {
