@@ -53,6 +53,37 @@ button, a {
   touch-action: manipulation;
 }
 
+/* ── Buttons: consistent affordance ───────────────────────────────────────
+   Tailwind v4 no longer sets cursor:pointer on buttons, so add it back here
+   (plus a subtle press state) for every button in the app at once. */
+button:not(:disabled),
+summary,
+[role="button"]:not(:disabled),
+label[for] {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* ── Form controls: consistent custom dropdown arrow ──────────────────────
+   Native <select> arrows differ across macOS/Windows/mobile. Replace with a
+   single brand-coloured chevron everywhere. */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2350676E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+}
+select.w-full {
+  padding-right: 2.25rem;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-league-spartan), system-ui, sans-serif;
   font-weight: 700;
