@@ -309,7 +309,9 @@ export default async function DashboardPage() {
             <Link
               key={stat.label}
               href={stat.href}
-              className="bg-white rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 shadow-sm hover:shadow-md transition-shadow group"
+              className={`bg-white rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group ${
+                stat.warn ? "border-amber-200 hover:border-amber-300" : "border-[#ECE3DF] hover:border-[#9BADB7]"
+              }`}
             >
               <div className={`w-9 h-9 md:w-11 md:h-11 rounded-xl flex items-center justify-center group-hover:bg-[#223149] transition-colors flex-shrink-0 ${
                 stat.warn ? "bg-amber-100" : "bg-[#ECE3DF]"
@@ -339,17 +341,18 @@ export default async function DashboardPage() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow group"
+                className="bg-white rounded-2xl p-5 flex items-center gap-4 border border-[#ECE3DF] shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-[#9BADB7] transition-all duration-200 group"
               >
-                <div className="w-10 h-10 rounded-xl bg-[#223149] flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#223149] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                   <Icon className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <p className="font-semibold text-[#223149] group-hover:text-[#50676E] transition-colors">
+                <div className="min-w-0">
+                  <p className="font-semibold text-[#223149]">
                     {link.label}
                   </p>
-                  <p className="text-xs text-[#50676E]">{link.description}</p>
+                  <p className="text-xs text-[#50676E] truncate">{link.description}</p>
                 </div>
+                <ChevronRight className="w-5 h-5 text-[#9BADB7] ml-auto flex-shrink-0 group-hover:text-[#223149] group-hover:translate-x-0.5 transition-all" />
               </Link>
             );
           })}
