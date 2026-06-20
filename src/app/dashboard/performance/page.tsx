@@ -307,10 +307,10 @@ export default function PerformancePage() {
               <form onSubmit={handleCreate} className="space-y-4">
                 {/* Staff select */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  <label htmlFor="staff-member" className="block text-sm font-semibold text-[#223149] mb-1.5">
                     Staff Member
                   </label>
-                  <select
+                  <select id="staff-member"
                     value={formStaffId}
                     onChange={(e) => setFormStaffId(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
@@ -326,10 +326,10 @@ export default function PerformancePage() {
 
                 {/* Year */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  <label htmlFor="year" className="block text-sm font-semibold text-[#223149] mb-1.5">
                     Year
                   </label>
-                  <select
+                  <select id="year"
                     value={formYear}
                     onChange={(e) => setFormYear(Number(e.target.value))}
                     className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"

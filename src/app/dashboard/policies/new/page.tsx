@@ -60,10 +60,10 @@ export default function NewPolicyPage() {
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="policy-title" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Policy Title <span className="text-red-400">*</span>
             </label>
-            <input
+            <input id="policy-title"
               type="text"
               required
               value={form.title}
@@ -74,8 +74,8 @@ export default function NewPolicyPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
-            <textarea
+            <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
+            <textarea id="description"
               rows={3}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -85,9 +85,9 @@ export default function NewPolicyPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Google Drive Link</label>
+            <label htmlFor="google-drive-link" className="block text-sm font-semibold text-[#223149] mb-1.5">Google Drive Link</label>
             <div className="relative">
-              <input
+              <input id="google-drive-link"
                 type="url"
                 value={form.content_drive_url}
                 onChange={(e) => setForm({ ...form, content_drive_url: e.target.value })}
@@ -105,8 +105,8 @@ export default function NewPolicyPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Version Number</label>
-            <input
+            <label htmlFor="version-number" className="block text-sm font-semibold text-[#223149] mb-1.5">Version Number</label>
+            <input id="version-number"
               type="number"
               min={0.1}
               step={0.1}

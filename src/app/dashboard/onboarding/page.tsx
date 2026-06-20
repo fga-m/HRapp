@@ -192,10 +192,10 @@ function AssignModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Staff */}
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="staff-member" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Staff Member <span className="text-rose-500">*</span>
             </label>
-            <select
+            <select id="staff-member"
               value={staffId}
               onChange={(e) => setStaffId(e.target.value)}
               required
@@ -212,11 +212,11 @@ function AssignModal({
 
           {/* Template */}
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="template" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Template{" "}
               <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
-            <select
+            <select id="template"
               value={templateId}
               onChange={(e) => setTemplateId(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] bg-white focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
@@ -232,10 +232,10 @@ function AssignModal({
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="title" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Title <span className="text-rose-500">*</span>
             </label>
-            <input
+            <input id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -258,11 +258,11 @@ function AssignModal({
 
           {/* Due date */}
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="due-date" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Due Date{" "}
               <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
-            <input
+            <input id="due-date"
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
@@ -359,10 +359,10 @@ function NewTemplateModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="title-2" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Title <span className="text-rose-500">*</span>
             </label>
-            <input
+            <input id="title-2"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -374,11 +374,11 @@ function NewTemplateModal({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Description{" "}
               <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
-            <textarea
+            <textarea id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
@@ -419,10 +419,10 @@ function NewTemplateModal({
 
           {category === "ministry" && (
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="ministry-name" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Ministry Name
               </label>
-              <input
+              <input id="ministry-name"
                 type="text"
                 value={ministry}
                 onChange={(e) => setMinistry(e.target.value)}

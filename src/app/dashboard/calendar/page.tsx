@@ -414,10 +414,10 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="title" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Title <span className="text-rose-500">*</span>
             </label>
-            <input
+            <input id="title"
               type="text"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
@@ -429,8 +429,8 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">Start</label>
-              <input
+              <label htmlFor="start" className="block text-sm font-semibold text-[#223149] mb-1.5">Start</label>
+              <input id="start"
                 type="datetime-local"
                 value={startDateTime}
                 onChange={(e) => handleStartChange(e.target.value)}
@@ -438,8 +438,8 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">End</label>
-              <input
+              <label htmlFor="end" className="block text-sm font-semibold text-[#223149] mb-1.5">End</label>
+              <input id="end"
                 type="datetime-local"
                 value={endDateTime}
                 onChange={(e) => setEndDateTime(e.target.value)}
@@ -482,8 +482,8 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
           {(!isRecurringInstance || editScope === "all") && (
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Repeat</label>
-                <select
+                <label htmlFor="repeat" className="block text-sm font-semibold text-[#223149] mb-1.5">Repeat</label>
+                <select id="repeat"
                   value={recurrence}
                   onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq)}
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
@@ -495,8 +495,8 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
               </div>
               {recurrence !== "none" && (
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Ends on</label>
-                  <input
+                  <label htmlFor="ends-on" className="block text-sm font-semibold text-[#223149] mb-1.5">Ends on</label>
+                  <input id="ends-on"
                     type="date"
                     value={recurrenceEnd}
                     min={startDateTime.split("T")[0]}
@@ -537,7 +537,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
           {/* Attendees */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-semibold text-[#223149]">
+              <label htmlFor="invite-people" className="block text-sm font-semibold text-[#223149]">
                 Invite people <span className="text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
               {attendees.length > 0 && (
@@ -550,7 +550,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
               {/* Search */}
               <div className="flex items-center gap-2 px-3 py-2 border-b border-[#ECE3DF]">
                 <svg className="w-3.5 h-3.5 text-[#50676E] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
-                <input
+                <input id="invite-people"
                   type="text"
                   value={staffSearch}
                   onChange={e => setStaffSearch(e.target.value)}

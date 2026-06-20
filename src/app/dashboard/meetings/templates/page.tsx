@@ -308,8 +308,8 @@ export default function MeetingTemplatesPage() {
             <div className="px-6 pt-4 pb-2 flex-shrink-0 space-y-3">
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="block text-xs font-semibold text-[#223149] mb-1">Template Name</label>
-                  <input
+                  <label htmlFor="template-name" className="block text-xs font-semibold text-[#223149] mb-1">Template Name</label>
+                  <input id="template-name"
                     type="text"
                     value={editor.title}
                     onChange={(e) => setEditor({ ...editor, title: e.target.value })}
@@ -318,8 +318,8 @@ export default function MeetingTemplatesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#223149] mb-1">Meeting Type</label>
-                  <select
+                  <label htmlFor="meeting-type" className="block text-xs font-semibold text-[#223149] mb-1">Meeting Type</label>
+                  <select id="meeting-type"
                     value={editor.meeting_type}
                     onChange={(e) => setEditor({ ...editor, meeting_type: e.target.value })}
                     className="px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"

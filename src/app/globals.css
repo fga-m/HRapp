@@ -69,6 +69,20 @@ button:not(:disabled):active {
   transform: scale(0.98);
 }
 
+/* ── Keyboard focus: visible ring for keyboard users only (not on click) ──── */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--fga-navy);
+  outline-offset: 2px;
+}
+/* On the dark navy sidebar, use a light ring so it stays visible */
+aside a:focus-visible,
+aside button:focus-visible {
+  outline-color: #ffffff;
+}
+
 /* ── Form controls: consistent custom dropdown arrow ──────────────────────
    Native <select> arrows differ across macOS/Windows/mobile. Replace with a
    single brand-coloured chevron everywhere. */

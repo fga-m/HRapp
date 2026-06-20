@@ -672,10 +672,10 @@ export default function OrgChartPage() {
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#223149] mb-1">
+              <label htmlFor="role-title" className="block text-sm font-medium text-[#223149] mb-1">
                 Role title <span className="text-red-400">*</span>
               </label>
-              <input
+              <input id="role-title"
                 type="text"
                 value={addTitle}
                 onChange={(e) => setAddTitle(e.target.value)}
@@ -685,11 +685,11 @@ export default function OrgChartPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#223149] mb-1">
+              <label htmlFor="description" className="block text-sm font-medium text-[#223149] mb-1">
                 Description{" "}
                 <span className="text-[#50676E] font-normal">(optional)</span>
               </label>
-              <textarea
+              <textarea id="description"
                 value={addDescription}
                 onChange={(e) => setAddDescription(e.target.value)}
                 placeholder="Brief description of this role..."
@@ -765,10 +765,10 @@ export default function OrgChartPage() {
             {/* Title / description fields */}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#223149] mb-1">
+                <label htmlFor="role-title-2" className="block text-sm font-medium text-[#223149] mb-1">
                   Role title <span className="text-red-400">*</span>
                 </label>
-                <input
+                <input id="role-title-2"
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
@@ -776,11 +776,11 @@ export default function OrgChartPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#223149] mb-1">
+                <label htmlFor="description-2" className="block text-sm font-medium text-[#223149] mb-1">
                   Description{" "}
                   <span className="text-[#50676E] font-normal">(optional)</span>
                 </label>
-                <textarea
+                <textarea id="description-2"
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   rows={3}

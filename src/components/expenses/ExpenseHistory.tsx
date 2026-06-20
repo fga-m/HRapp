@@ -83,13 +83,13 @@ export default function ExpenseHistory() {
       {/* Date range filter */}
       <div className="flex flex-wrap items-end gap-3 bg-white rounded-2xl shadow-sm p-4">
         <div>
-          <label className="block text-xs font-semibold text-[#50676E] mb-1">From</label>
-          <input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)}
+          <label htmlFor="from" className="block text-xs font-semibold text-[#50676E] mb-1">From</label>
+          <input id="from" type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)}
             className="px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20" />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-[#50676E] mb-1">To</label>
-          <input type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)}
+          <label htmlFor="to" className="block text-xs font-semibold text-[#50676E] mb-1">To</label>
+          <input id="to" type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)}
             className="px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20" />
         </div>
         <div className="flex gap-1.5">

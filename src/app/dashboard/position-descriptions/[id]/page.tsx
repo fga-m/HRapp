@@ -171,8 +171,8 @@ export default function PositionDescriptionDetailPage() {
 
         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Title</label>
-            <input
+            <label htmlFor="title" className="block text-sm font-semibold text-[#223149] mb-1.5">Title</label>
+            <input id="title"
               type="text"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
@@ -180,8 +180,8 @@ export default function PositionDescriptionDetailPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Content</label>
-            <textarea
+            <label htmlFor="content" className="block text-sm font-semibold text-[#223149] mb-1.5">Content</label>
+            <textarea id="content"
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               rows={24}
@@ -410,10 +410,10 @@ export default function PositionDescriptionDetailPage() {
               member will be notified to re-acknowledge.
             </p>
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="new-version-number" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 New Version Number
               </label>
-              <input
+              <input id="new-version-number"
                 type="number"
                 min={Number(data?.pd?.version || 1) + 0.1}
                 step={0.1}

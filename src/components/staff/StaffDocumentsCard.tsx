@@ -474,10 +474,10 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
             <form onSubmit={handleUpload} className="space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-xs font-medium text-[#50676E] mb-1">
+                <label htmlFor="title" className="block text-xs font-medium text-[#50676E] mb-1">
                   Title <span className="text-red-500">*</span>
                 </label>
-                <input
+                <input id="title"
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -489,10 +489,10 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
               {/* Category */}
               <div>
-                <label className="block text-xs font-medium text-[#50676E] mb-1">
+                <label htmlFor="category" className="block text-xs font-medium text-[#50676E] mb-1">
                   Category <span className="text-red-500">*</span>
                 </label>
-                <select
+                <select id="category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   required
@@ -508,10 +508,10 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
               {/* Expiry date */}
               <div>
-                <label className="block text-xs font-medium text-[#50676E] mb-1">
+                <label htmlFor="expiry-date" className="block text-xs font-medium text-[#50676E] mb-1">
                   Expiry date <span className="text-[#50676E] font-normal">(optional)</span>
                 </label>
-                <input
+                <input id="expiry-date"
                   type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
@@ -521,10 +521,10 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-medium text-[#50676E] mb-1">
+                <label htmlFor="notes" className="block text-xs font-medium text-[#50676E] mb-1">
                   Notes <span className="text-[#50676E] font-normal">(optional)</span>
                 </label>
-                <textarea
+                <textarea id="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}

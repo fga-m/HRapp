@@ -128,10 +128,10 @@ function LinkModal({
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="label" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Label <span className="text-rose-500">*</span>
             </label>
-            <input
+            <input id="label"
               type="text"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
@@ -141,10 +141,10 @@ function LinkModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="url" className="block text-sm font-semibold text-[#223149] mb-1.5">
               URL <span className="text-rose-500">*</span>
             </label>
-            <input
+            <input id="url"
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -153,10 +153,10 @@ function LinkModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Description <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
-            <textarea
+            <textarea id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of what this link is for"
@@ -219,10 +219,10 @@ function LinkModal({
 
           {groups.length > 0 && (
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="group" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Group <span className="text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
-              <select
+              <select id="group"
                 value={groupId ?? ""}
                 onChange={(e) => setGroupId(e.target.value || null)}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] bg-white focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"

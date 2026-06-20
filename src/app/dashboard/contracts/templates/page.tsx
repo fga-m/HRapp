@@ -202,10 +202,10 @@ export default function ContractTemplatesPage() {
         <p className="font-semibold text-[#223149]">Add a template</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="name" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Name <span className="text-red-400">*</span>
             </label>
-            <input
+            <input id="name"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -215,10 +215,10 @@ export default function ContractTemplatesPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="google-doc-link" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Google Doc link <span className="text-red-400">*</span>
             </label>
-            <input
+            <input id="google-doc-link"
               type="text"
               value={docUrl}
               onChange={(e) => setDocUrl(e.target.value)}

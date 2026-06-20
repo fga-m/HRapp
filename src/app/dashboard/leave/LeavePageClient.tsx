@@ -921,8 +921,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Type of Request */}
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Type of Request</label>
-                <select
+                <label htmlFor="type-of-request" className="block text-sm font-semibold text-[#223149] mb-1.5">Type of Request</label>
+                <select id="type-of-request"
                   required
                   value={form.leaveTypeId}
                   onChange={e => setForm({ ...form, leaveTypeId: e.target.value })}
@@ -937,10 +937,10 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">
                   Description <span className="font-normal text-[#50676E]">(optional)</span>
                 </label>
-                <textarea
+                <textarea id="description"
                   rows={2}
                   value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
@@ -951,8 +951,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
 
               {/* Approver */}
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Approver</label>
-                <select
+                <label htmlFor="approver" className="block text-sm font-semibold text-[#223149] mb-1.5">Approver</label>
+                <select id="approver"
                   value={approverId}
                   onChange={e => setApproverId(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
@@ -968,8 +968,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               {/* Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Start Date</label>
-                  <input
+                  <label htmlFor="start-date" className="block text-sm font-semibold text-[#223149] mb-1.5">Start Date</label>
+                  <input id="start-date"
                     type="date"
                     required
                     value={form.startDate}
@@ -983,8 +983,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">End Date</label>
-                  <input
+                  <label htmlFor="end-date" className="block text-sm font-semibold text-[#223149] mb-1.5">End Date</label>
+                  <input id="end-date"
                     type="date"
                     required
                     value={form.endDate}
@@ -998,12 +998,12 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               {/* Hours */}
               {form.startDate && form.endDate && (
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  <label htmlFor="hours-auto-calculated" className="block text-sm font-semibold text-[#223149] mb-1.5">
                     Hours
                     <span className="ml-1.5 text-xs font-normal text-[#50676E]">(optional — auto-calculated)</span>
                   </label>
                   <div className="flex items-center gap-3">
-                    <input
+                    <input id="hours-auto-calculated"
                       type="number"
                       min={0.25}
                       step={0.25}

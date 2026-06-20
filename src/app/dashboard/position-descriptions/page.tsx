@@ -295,10 +295,10 @@ export default function PositionDescriptionsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="assign-to-staff-member" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Assign to Staff Member
               </label>
-              <select
+              <select id="assign-to-staff-member"
                 value={staffPickerId}
                 onChange={(e) => setStaffPickerId(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
@@ -313,10 +313,10 @@ export default function PositionDescriptionsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="position-title" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Position Title
               </label>
-              <input
+              <input id="position-title"
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
@@ -326,10 +326,10 @@ export default function PositionDescriptionsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="content" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Content
               </label>
-              <textarea
+              <textarea id="content"
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 rows={16}

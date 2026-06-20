@@ -84,10 +84,10 @@ export default function NewStaffPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="full-name" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Full Name <span className="text-red-400">*</span>
             </label>
-            <input
+            <input id="full-name"
               type="text"
               required
               value={form.full_name}
@@ -98,10 +98,10 @@ export default function NewStaffPage() {
           </div>
 
           <div className="sm:col-span-2">
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="email" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Email <span className="text-red-400">*</span>
             </label>
-            <input
+            <input id="email"
               type="email"
               required
               value={form.email}
@@ -113,10 +113,10 @@ export default function NewStaffPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="position-title" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Position / Title
             </label>
-            <input
+            <input id="position-title"
               type="text"
               value={form.position}
               onChange={(e) => setForm({ ...form, position: e.target.value })}
@@ -126,10 +126,10 @@ export default function NewStaffPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="department-ministry" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Department / Ministry
             </label>
-            <select
+            <select id="department-ministry"
               value={form.department}
               onChange={(e) => setForm({ ...form, department: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
@@ -142,10 +142,10 @@ export default function NewStaffPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="role" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Role
             </label>
-            <select
+            <select id="role"
               value={form.role}
               onChange={(e) => setForm({ ...form, role: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
@@ -160,10 +160,10 @@ export default function NewStaffPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="contracted-hours-week" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Contracted hours / week
               </label>
-              <input
+              <input id="contracted-hours-week"
                 type="number" min="0" step="0.5"
                 value={form.contracted_hours}
                 onChange={(e) => setForm({ ...form, contracted_hours: e.target.value })}
@@ -172,10 +172,10 @@ export default function NewStaffPage() {
               <p className="text-xs text-[#50676E] mt-1">1 FTE = 37.5 hrs</p>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="birthdate" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Birthdate <span className="text-[#50676E] font-normal">(optional)</span>
               </label>
-              <input
+              <input id="birthdate"
                 type="date"
                 value={form.birthdate}
                 onChange={(e) => setForm({ ...form, birthdate: e.target.value })}
@@ -185,10 +185,10 @@ export default function NewStaffPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="google-calendar-id" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Google Calendar ID
             </label>
-            <input
+            <input id="google-calendar-id"
               type="text"
               value={form.google_calendar_id}
               onChange={(e) => setForm({ ...form, google_calendar_id: e.target.value })}
