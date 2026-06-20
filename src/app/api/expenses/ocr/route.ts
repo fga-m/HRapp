@@ -7,11 +7,18 @@ export const dynamic = "force-dynamic";
 const OCR_MODEL = process.env.ANTHROPIC_OCR_MODEL || "claude-haiku-4-5-20251001";
 const ALLOWED = ["image/png", "image/jpeg", "application/pdf"];
 
+interface OcrLineItem {
+  description: string;
+  amount: number;        // GST-inclusive line total
+  gst: number | null;
+}
+
 interface OcrResult {
   amount: number | null;
   date: string | null;   // YYYY-MM-DD
   vendor: string | null;
   gst: number | null;
+  items: OcrLineItem[];
 }
 
 const PROMPT = `You are extracting fields from a single purchase receipt to pre-fill an expense form.
@@ -19,7 +26,8 @@ Return ONLY a JSON object (no markdown, no commentary) with exactly these keys:
 - "amount": number — the grand total actually paid (the largest "total" incl. tax). null if unclear.
 - "date": string "YYYY-MM-DD" — the purchase/transaction date. null if not shown.
 - "vendor": string — the merchant / store name. null if not shown.
-- "gst": number — the GST/tax amount shown on the receipt. null if not shown.
+- "gst": number — the total GST/tax amount shown on the receipt. null if not shown.
+- "items": array of the individual line items on the receipt, each {"description": string, "amount": number (the line total incl. tax), "gst": number or null}. Use [] if the receipt is not itemised.
 Use null for anything you cannot read confidently. Do not guess values that aren't on the receipt.`;
 
 function coerce(raw: unknown): OcrResult {
@@ -35,12 +43,20 @@ function coerce(raw: unknown): OcrResult {
     return t.length ? t : null;
   };
   const date = str(o.date);
+  const rawItems = Array.isArray(o.items) ? o.items : [];
+  const items: OcrLineItem[] = rawItems
+    .map((it) => {
+      const r = (it ?? {}) as Record<string, unknown>;
+      return { description: str(r.description) ?? "", amount: num(r.amount), gst: num(r.gst) };
+    })
+    .filter((it): it is OcrLineItem => it.description !== "" && it.amount != null && it.amount > 0);
   return {
     amount: num(o.amount),
     // Only accept a plausible ISO date; otherwise drop it so the form isn't polluted.
     date: date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null,
     vendor: str(o.vendor),
     gst: num(o.gst),
+    items,
   };
 }
 

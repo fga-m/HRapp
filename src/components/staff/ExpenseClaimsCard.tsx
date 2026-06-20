@@ -79,6 +79,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const [ocrItems, setOcrItems] = useState<{ description: string; amount: number; gst: number | null }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Xero dropdown data
@@ -134,7 +135,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
     setAccountCode(""); setTaxType(""); setGstOverride(""); setFile(null); setSubmitError("");
     setItemise(false); setLines([]); setLineTotalsState({ subtotal: 0, gst: 0, total: 0 });
     setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
-    setScanning(false); setScanned(false);
+    setScanning(false); setScanned(false); setOcrItems([]);
   };
 
   // Read the receipt with OCR and pre-fill ONLY blank fields so we never clobber
@@ -153,7 +154,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
       if (d.date) setSpentOn((prev) => (prev ? prev : d.date));
       if (d.vendor) setSpentAt((prev) => (prev.trim() ? prev : d.vendor));
       if (d.gst != null) setGstOverride((prev) => (prev.trim() ? prev : String(d.gst)));
-      if (d.amount != null || d.date || d.vendor || d.gst != null) setScanned(true);
+      if (Array.isArray(d.items) && d.items.length > 0) setOcrItems(d.items);
+      if (d.amount != null || d.date || d.vendor || d.gst != null || (Array.isArray(d.items) && d.items.length > 0)) setScanned(true);
     } catch {
       /* OCR is best-effort — manual entry still works */
     } finally {
@@ -169,7 +171,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
     });
     setFile(f);
     if (f) scanReceipt(f);
-    else { setScanning(false); setScanned(false); }
+    else { setScanning(false); setScanned(false); setOcrItems([]); }
   };
 
   const closeModal = () => { resetForm(); setShowModal(false); };
@@ -243,6 +245,18 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const gst = gstOverridden ? round2(Number(gstOverride) || 0) : autoGst;
   const subtotal = round2(amt - gst);
   const defaultTaxType = taxRates.find((t) => /gst on expenses/i.test(t.name))?.taxType ?? "";
+
+  // Lines extracted from the receipt by OCR, mapped to the editor's shape.
+  // Account is left blank (Xero-specific, user picks); tax defaults to GST.
+  const ocrInitialLines: ExpenseLine[] = ocrItems.map((it) => ({
+    description: it.description,
+    amount: round2(Number(it.amount) || 0),
+    account_code: "",
+    account_name: "",
+    tax_type: defaultTaxType,
+    tax_rate_name: taxRates.find((t) => t.taxType === defaultTaxType)?.name ?? "",
+    tax_amount: it.gst != null ? round2(Number(it.gst)) : null,
+  }));
 
   // The receipt is compulsory (web + mobile); Submit stays disabled until one is
   // attached and the rest of the claim is valid.
@@ -440,7 +454,10 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
               {scanned && !scanning && (
                 <div className="flex items-start gap-2 text-sm text-[#223149] bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
                   <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-                  <span>Prefilled from your receipt — please check the values before submitting.</span>
+                  <span>
+                    Prefilled from your receipt — please check the values before submitting.
+                    {ocrItems.length > 0 && ` Turn on “Itemise this claim” to load the ${ocrItems.length} line item${ocrItems.length === 1 ? "" : "s"} found.`}
+                  </span>
                 </div>
               )}
               {/* Spent on + Spent at — apply to the whole receipt */}
@@ -483,10 +500,12 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
               ) : itemise ? (
                 /* Itemised: one line per claimed item */
                 <LineItemsEditor
+                  key={`oi-${ocrInitialLines.length}`}
                   accounts={accounts}
                   taxRates={taxRates}
                   loading={metaLoading}
                   defaultTaxType={defaultTaxType}
+                  initialLines={ocrInitialLines.length ? ocrInitialLines : undefined}
                   onChange={(ls, t) => { setLines(ls); setLineTotalsState(t); }}
                 />
               ) : (
