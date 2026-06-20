@@ -118,10 +118,10 @@ function EvalForm({
 
       {/* Overall */}
       <div>
-        <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+        <label htmlFor="overall-comments" className="block text-sm font-semibold text-[#223149] mb-1.5">
           Overall comments
         </label>
-        <textarea
+        <textarea id="overall-comments"
           rows={3}
           value={data.overall}
           onChange={(e) => setData((d) => ({ ...d, overall: e.target.value }))}
@@ -132,10 +132,10 @@ function EvalForm({
 
       {/* Goals */}
       <div>
-        <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+        <label htmlFor="goals-for-next-period" className="block text-sm font-semibold text-[#223149] mb-1.5">
           Goals for next period
         </label>
-        <textarea
+        <textarea id="goals-for-next-period"
           rows={3}
           value={data.goals}
           onChange={(e) => setData((d) => ({ ...d, goals: e.target.value }))}

@@ -127,10 +127,10 @@ export default function LineItemsEditor({
             <div className="grid grid-cols-2 gap-2">
               {/* Amount (calculator) */}
               <div>
-                <label className="block text-xs font-medium text-[#50676E] mb-1">Amount (incl. GST)</label>
+                <label htmlFor="amount-incl-gst" className="block text-xs font-medium text-[#50676E] mb-1">Amount (incl. GST)</label>
                 <div className="flex items-stretch">
                   <span className="inline-flex items-center px-2 rounded-l-lg border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-xs text-[#50676E]">$</span>
-                  <input
+                  <input id="amount-incl-gst"
                     type="text"
                     inputMode="text"
                     value={r.amountText}
@@ -148,8 +148,8 @@ export default function LineItemsEditor({
 
               {/* Tax rate */}
               <div>
-                <label className="block text-xs font-medium text-[#50676E] mb-1">GST</label>
-                <select
+                <label htmlFor="gst" className="block text-xs font-medium text-[#50676E] mb-1">GST</label>
+                <select id="gst"
                   value={r.tax_type}
                   disabled={loading}
                   onChange={(e) => update(r.key, { tax_type: e.target.value })}
@@ -176,11 +176,11 @@ export default function LineItemsEditor({
 
             {/* GST amount: auto, with override */}
             <div className="flex items-center justify-between gap-2">
-              <label className="text-xs font-medium text-[#50676E]">GST amount</label>
+              <label htmlFor="gst-amount" className="text-xs font-medium text-[#50676E]">GST amount</label>
               <div className="flex items-center gap-2">
                 <div className="flex items-stretch">
                   <span className="inline-flex items-center px-2 rounded-l-lg border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-xs text-[#50676E]">$</span>
-                  <input
+                  <input id="gst-amount"
                     type="text"
                     inputMode="decimal"
                     value={r.gstText}

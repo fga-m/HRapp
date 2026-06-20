@@ -173,8 +173,8 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Full Name</label>
-            <input
+            <label htmlFor="full-name" className="block text-sm font-semibold text-[#223149] mb-1.5">Full Name</label>
+            <input id="full-name"
               type="text"
               required
               value={form.full_name}
@@ -184,8 +184,8 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Position / Title</label>
-            <input
+            <label htmlFor="position-title" className="block text-sm font-semibold text-[#223149] mb-1.5">Position / Title</label>
+            <input id="position-title"
               type="text"
               value={form.position}
               onChange={(e) => setForm({ ...form, position: e.target.value })}
@@ -195,8 +195,8 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Department</label>
-            <select
+            <label htmlFor="department" className="block text-sm font-semibold text-[#223149] mb-1.5">Department</label>
+            <select id="department"
               value={form.department}
               onChange={(e) => setForm({ ...form, department: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
@@ -207,8 +207,8 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Date of Birth</label>
-            <input
+            <label htmlFor="date-of-birth" className="block text-sm font-semibold text-[#223149] mb-1.5">Date of Birth</label>
+            <input id="date-of-birth"
               type="date"
               value={form.birthdate}
               onChange={(e) => setForm({ ...form, birthdate: e.target.value })}
@@ -217,8 +217,8 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Google Calendar ID</label>
-            <input
+            <label htmlFor="google-calendar-id" className="block text-sm font-semibold text-[#223149] mb-1.5">Google Calendar ID</label>
+            <input id="google-calendar-id"
               type="text"
               value={form.google_calendar_id}
               onChange={(e) => setForm({ ...form, google_calendar_id: e.target.value })}
@@ -227,12 +227,12 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="contracted-hours-per-week" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Contracted Hours
               <span className="ml-1.5 text-xs font-normal text-[#50676E]">per week</span>
             </label>
             <div className="relative">
-              <input
+              <input id="contracted-hours-per-week"
                 type="number"
                 min={0}
                 max={168}

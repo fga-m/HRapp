@@ -182,10 +182,10 @@ function AddItemModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="title" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Title <span className="text-rose-500">*</span>
             </label>
-            <input
+            <input id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -197,11 +197,11 @@ function AddItemModal({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Description{" "}
               <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
-            <textarea
+            <textarea id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
@@ -211,11 +211,11 @@ function AddItemModal({
           </div>
 
           <div className="relative">
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="section" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Section{" "}
               <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
-            <input
+            <input id="section"
               type="text"
               value={section}
               onChange={(e) => setSection(e.target.value)}
@@ -243,11 +243,11 @@ function AddItemModal({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+            <label htmlFor="link-url" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Link URL{" "}
               <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
-            <input
+            <input id="link-url"
               type="url"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}

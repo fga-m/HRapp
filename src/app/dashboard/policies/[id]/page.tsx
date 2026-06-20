@@ -413,8 +413,8 @@ export default function PolicyDetailPage() {
               Current version: <span className="font-semibold">v{data?.policy?.version}</span>. All staff will be notified to re-sign.
             </p>
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">New Version Number</label>
-              <input
+              <label htmlFor="new-version-number" className="block text-sm font-semibold text-[#223149] mb-1.5">New Version Number</label>
+              <input id="new-version-number"
                 type="number"
                 min={Number(data?.policy?.version || 1) + 0.1}
                 step={0.1}
@@ -427,11 +427,11 @@ export default function PolicyDetailPage() {
               {versionError && <p className="text-xs text-red-500 mt-1.5">{versionError}</p>}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="updated-drive-link" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Updated Drive Link
                 <span className="ml-1 text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
-              <input
+              <input id="updated-drive-link"
                 type="url"
                 value={newDriveUrl}
                 onChange={(e) => setNewDriveUrl(e.target.value)}

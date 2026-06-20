@@ -347,10 +347,10 @@ export default function ContractDetailPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                      <label htmlFor="type-your-full-name" className="block text-sm font-semibold text-[#223149] mb-1.5">
                         Type your full name to sign
                       </label>
-                      <input
+                      <input id="type-your-full-name"
                         type="text"
                         value={nameInput}
                         onChange={(e) => setNameInput(e.target.value)}
@@ -630,11 +630,11 @@ export default function ContractDetailPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">
                   Description
                   <span className="ml-1 text-xs font-normal text-[#50676E]">(optional)</span>
                 </label>
-                <textarea
+                <textarea id="description"
                   value={newVersionDesc}
                   onChange={(e) => setNewVersionDesc(e.target.value)}
                   rows={3}

@@ -404,16 +404,16 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
               {/* Spent on + Spent at — apply to the whole receipt */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent on</label>
-                  <input
+                  <label htmlFor="spent-on" className="block text-sm font-semibold text-[#223149] mb-1.5">Spent on</label>
+                  <input id="spent-on"
                     type="date" required value={spentOn}
                     onChange={(e) => setSpentOn(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#50676E] font-normal">(optional)</span></label>
-                  <input
+                  <label htmlFor="spent-at" className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#50676E] font-normal">(optional)</span></label>
+                  <input id="spent-at"
                     type="text" value={spentAt}
                     onChange={(e) => setSpentAt(e.target.value)} placeholder="Where?"
                     className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
@@ -452,10 +452,10 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                 <>
                   {/* Purchase amount */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Purchase amount</label>
+                    <label htmlFor="purchase-amount" className="block text-sm font-semibold text-[#223149] mb-1.5">Purchase amount</label>
                     <div className="flex items-stretch">
                       <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-sm text-[#50676E] font-medium">AUD</span>
-                      <input
+                      <input id="purchase-amount"
                         type="text" inputMode="text" required value={amount}
                         onChange={(e) => setAmount(e.target.value)} placeholder="0.00  or  12.50 + 8.30"
                         className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
@@ -474,8 +474,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
-                    <textarea
+                    <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
+                    <textarea id="description"
                       required rows={2} value={description}
                       onChange={(e) => setDescription(e.target.value)} placeholder="What was it for?"
                       className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
@@ -491,8 +491,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                   {/* Tax rate + GST (auto, editable override) */}
                   <div className="border-t border-[#ECE3DF] pt-4 space-y-3">
                     <div>
-                      <label className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
-                      <select
+                      <label htmlFor="tax-rate" className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
+                      <select id="tax-rate"
                         required value={taxType} disabled={metaLoading}
                         onChange={(e) => setTaxType(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"

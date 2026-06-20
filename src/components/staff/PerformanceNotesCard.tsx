@@ -252,8 +252,8 @@ export default function PerformanceNotesCard({ staffId, callerId, isManager, isO
             </div>
             <form onSubmit={addNote} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Note</label>
-                <textarea
+                <label htmlFor="note" className="block text-sm font-semibold text-[#223149] mb-1.5">Note</label>
+                <textarea id="note"
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
                   required

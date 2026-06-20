@@ -165,8 +165,8 @@ export default function NewMeetingPage() {
 
           {/* Date */}
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Date</label>
-            <input
+            <label htmlFor="date" className="block text-sm font-semibold text-[#223149] mb-1.5">Date</label>
+            <input id="date"
               type="date"
               required
               value={form.meeting_date}
@@ -177,8 +177,8 @@ export default function NewMeetingPage() {
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Title</label>
-            <input
+            <label htmlFor="title" className="block text-sm font-semibold text-[#223149] mb-1.5">Title</label>
+            <input id="title"
               type="text"
               required
               value={form.title}
@@ -227,8 +227,8 @@ export default function NewMeetingPage() {
 
           {/* Content */}
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Notes</label>
-            <textarea
+            <label htmlFor="notes" className="block text-sm font-semibold text-[#223149] mb-1.5">Notes</label>
+            <textarea id="notes"
               rows={8}
               value={form.content}
               onChange={(e) => setForm({ ...form, content: e.target.value })}

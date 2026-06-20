@@ -501,8 +501,8 @@ export default function GenerateContractsPage() {
           {/* Template + batch label */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">Template</label>
-              <select
+              <label htmlFor="template" className="block text-sm font-semibold text-[#223149] mb-1.5">Template</label>
+              <select id="template"
                 value={templateId}
                 onChange={(e) => onTemplateChange(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] bg-white focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
@@ -514,10 +514,10 @@ export default function GenerateContractsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+              <label htmlFor="batch-name" className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Batch name <span className="ml-1 text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
-              <input
+              <input id="batch-name"
                 type="text"
                 value={batchLabel}
                 onChange={(e) => setBatchLabel(e.target.value)}

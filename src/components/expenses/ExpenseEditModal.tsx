@@ -159,14 +159,14 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
           {/* Whole-receipt fields */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent on</label>
-              <input type="date" required value={form.spent_on}
+              <label htmlFor="spent-on" className="block text-sm font-semibold text-[#223149] mb-1.5">Spent on</label>
+              <input id="spent-on" type="date" required value={form.spent_on}
                 onChange={(e) => setForm({ ...form, spent_on: e.target.value })}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#50676E] font-normal">(optional)</span></label>
-              <input type="text" value={form.spent_at}
+              <label htmlFor="spent-at" className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#50676E] font-normal">(optional)</span></label>
+              <input id="spent-at" type="text" value={form.spent_at}
                 onChange={(e) => setForm({ ...form, spent_at: e.target.value })}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
             </div>
@@ -201,10 +201,10 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
           ) : (
             <>
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Amount (AUD)</label>
+                <label htmlFor="amount-aud" className="block text-sm font-semibold text-[#223149] mb-1.5">Amount (AUD)</label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#50676E] text-sm">$</span>
-                  <input type="text" inputMode="text" required value={form.amount}
+                  <input id="amount-aud" type="text" inputMode="text" required value={form.amount}
                     onChange={(e) => setForm({ ...form, amount: e.target.value })}
                     placeholder="0.00  or  12.50 + 8.30"
                     className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
@@ -219,8 +219,8 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
-                <textarea required rows={2} value={form.description}
+                <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">Description</label>
+                <textarea id="description" required rows={2} value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none" />
               </div>
@@ -231,8 +231,8 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
-                <select required value={form.tax_type} disabled={metaLoading}
+                <label htmlFor="tax-rate" className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
+                <select id="tax-rate" required value={form.tax_type} disabled={metaLoading}
                   onChange={(e) => setForm({ ...form, tax_type: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50">
                   <option value="">{metaLoading ? "Loading…" : "Select tax rate…"}</option>

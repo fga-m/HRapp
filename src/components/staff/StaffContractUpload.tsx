@@ -145,10 +145,10 @@ export default function StaffContractUpload({ staffId, staffName }: Props) {
               {mode === "new" ? (
                 <>
                   <div>
-                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                    <label htmlFor="title" className="block text-sm font-semibold text-[#223149] mb-1.5">
                       Title <span className="text-red-400">*</span>
                     </label>
-                    <input
+                    <input id="title"
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -159,11 +159,11 @@ export default function StaffContractUpload({ staffId, staffName }: Props) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                    <label htmlFor="description" className="block text-sm font-semibold text-[#223149] mb-1.5">
                       Description
                       <span className="ml-1 text-xs font-normal text-[#50676E]">(optional)</span>
                     </label>
-                    <textarea
+                    <textarea id="description"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={2}
@@ -174,10 +174,10 @@ export default function StaffContractUpload({ staffId, staffName }: Props) {
                 </>
               ) : (
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  <label htmlFor="contract-group" className="block text-sm font-semibold text-[#223149] mb-1.5">
                     Contract Group <span className="text-red-400">*</span>
                   </label>
-                  <select
+                  <select id="contract-group"
                     value={selectedGroupId}
                     onChange={(e) => setSelectedGroupId(e.target.value)}
                     required
