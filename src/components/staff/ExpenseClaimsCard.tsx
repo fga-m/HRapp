@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTriangle, ChevronDown, ChevronUp, Paperclip, Upload, Pencil } from "lucide-react";
+import { Receipt, Plus, X, Trash2, Clock, CheckCircle, XCircle, Send, AlertTriangle, ChevronDown, ChevronUp, Paperclip, Upload, Pencil, RefreshCw } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import ExpenseEditModal from "@/components/expenses/ExpenseEditModal";
 import AccountSelect from "@/components/expenses/AccountSelect";
@@ -79,6 +79,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
   const [ocrItems, setOcrItems] = useState<{ description: string; amount: number; gst: number | null }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -135,7 +136,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
     setAccountCode(""); setTaxType(""); setGstOverride(""); setFile(null); setSubmitError("");
     setItemise(false); setLines([]); setLineTotalsState({ subtotal: 0, gst: 0, total: 0 });
     setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
-    setScanning(false); setScanned(false); setOcrItems([]);
+    setScanning(false); setScanned(false); setScanError(null); setOcrItems([]);
   };
 
   // Read the receipt with OCR and pre-fill ONLY blank fields so we never clobber
@@ -144,20 +145,31 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
     if (!(f.type.startsWith("image/") || f.type === "application/pdf")) return;
     setScanning(true);
     setScanned(false);
+    setScanError(null);
     try {
       const fd = new FormData();
       fd.append("file", f);
       const res = await fetch("/api/expenses/ocr", { method: "POST", body: fd });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setScanError("Couldn't read this receipt. Try rescanning, or just enter the details manually.");
+        return;
+      }
       const d = await res.json();
+      const hasAny =
+        d.amount != null || d.date || d.vendor || d.gst != null ||
+        (Array.isArray(d.items) && d.items.length > 0);
+      if (!hasAny) {
+        setScanError("Couldn't find any details on this receipt. Try rescanning, or enter the details manually.");
+        return;
+      }
       if (d.amount != null) setAmount((prev) => (prev.trim() ? prev : String(d.amount)));
       if (d.date) setSpentOn((prev) => (prev ? prev : d.date));
       if (d.vendor) setSpentAt((prev) => (prev.trim() ? prev : d.vendor));
       if (d.gst != null) setGstOverride((prev) => (prev.trim() ? prev : String(d.gst)));
       if (Array.isArray(d.items) && d.items.length > 0) setOcrItems(d.items);
-      if (d.amount != null || d.date || d.vendor || d.gst != null || (Array.isArray(d.items) && d.items.length > 0)) setScanned(true);
+      setScanned(true);
     } catch {
-      /* OCR is best-effort — manual entry still works */
+      setScanError("Something went wrong reading the receipt. Try rescanning, or enter the details manually.");
     } finally {
       setScanning(false);
     }
@@ -171,7 +183,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
     });
     setFile(f);
     if (f) scanReceipt(f);
-    else { setScanning(false); setScanned(false); setOcrItems([]); }
+    else { setScanning(false); setScanned(false); setScanError(null); setOcrItems([]); }
   };
 
   const closeModal = () => { resetForm(); setShowModal(false); };
@@ -419,7 +431,18 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                   )}
                   <div className="flex-shrink-0 flex items-center justify-between gap-3">
                     <p className="text-xs text-[#50676E] truncate">{file.name}</p>
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#50676E] hover:text-[#223149] flex-shrink-0">Replace receipt</button>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => file && scanReceipt(file)}
+                        disabled={scanning}
+                        className="inline-flex items-center gap-1 text-sm font-medium text-[#50676E] hover:text-[#223149] disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${scanning ? "animate-spin" : ""}`} />
+                        {scanning ? "Scanning…" : "Rescan"}
+                      </button>
+                      <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#50676E] hover:text-[#223149]">Replace receipt</button>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -458,6 +481,23 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     Prefilled from your receipt — please check the values before submitting.
                     {ocrItems.length > 0 && ` Turn on “Itemise this claim” to load the ${ocrItems.length} line item${ocrItems.length === 1 ? "" : "s"} found.`}
                   </span>
+                </div>
+              )}
+              {scanError && !scanning && (
+                <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p>{scanError}</p>
+                    {file && (
+                      <button
+                        type="button"
+                        onClick={() => scanReceipt(file)}
+                        className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-amber-800 hover:underline"
+                      >
+                        <RefreshCw className="w-3 h-3" /> Rescan receipt
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
               {/* Spent on + Spent at — apply to the whole receipt */}
