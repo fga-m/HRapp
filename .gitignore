@@ -44,3 +44,6 @@ next-env.d.ts
 # python (skill scripts)
 __pycache__/
 *.pyc
+
+# FUSE/network-mount artifacts (deleted-but-open files)
+.fuse_hidden*
