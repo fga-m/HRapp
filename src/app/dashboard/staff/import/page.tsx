@@ -134,7 +134,7 @@ export default function ImportStaffPage() {
       )}
 
       {/* User List */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
         {/* Toolbar */}
         <div className="px-6 py-4 border-b border-[#ECE3DF] space-y-3">
           {/* Search */}

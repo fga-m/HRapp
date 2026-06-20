@@ -112,7 +112,7 @@ export default function ExpenseApproverQueue() {
         const failed = claim.status === "push_failed";
         const busy = busyId === claim.id;
         return (
-          <div key={claim.id} className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
+          <div key={claim.id} className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 {claim.staff?.avatar_url ? (

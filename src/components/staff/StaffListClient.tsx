@@ -75,14 +75,14 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
 
       {/* No results */}
       {q && !hasResults && (
-        <div className="bg-white rounded-2xl shadow-sm px-6 py-10 text-center text-[#50676E] text-sm">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm px-6 py-10 text-center text-[#50676E] text-sm">
           No staff found matching "{query}"
         </div>
       )}
 
       {/* Active Staff */}
       {filteredActive.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-[#ECE3DF] flex items-center justify-between">
             <h2 className="font-semibold text-[#223149]">Active Staff</h2>
             {q && <span className="text-xs text-[#50676E]">{filteredActive.length} result{filteredActive.length !== 1 ? "s" : ""}</span>}
@@ -136,7 +136,7 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
 
       {/* Inactive Staff */}
       {filteredInactive.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden opacity-60">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden opacity-60">
           <div className="px-6 py-4 border-b border-[#ECE3DF] flex items-center justify-between">
             <h2 className="font-semibold text-[#223149]">
               Former staff ({filteredInactive.length})

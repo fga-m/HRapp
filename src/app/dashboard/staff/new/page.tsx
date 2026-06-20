@@ -75,7 +75,7 @@ export default function NewStaffPage() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 space-y-5">
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
             {error}

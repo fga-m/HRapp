@@ -225,7 +225,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Receipt className="w-4 h-4 text-[#50676E]" />

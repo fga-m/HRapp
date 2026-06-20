@@ -521,7 +521,7 @@ export default function OnboardingPage() {
   // ── Error ────────────────────────────────────────────────────────────────────
   if (loadError) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-12 text-center space-y-3">
         <ClipboardList className="w-12 h-12 text-[#ECE3DF] mx-auto" />
         <p className="font-semibold text-[#223149]">Something went wrong</p>
         <p className="text-sm text-[#50676E]">{loadError}</p>
@@ -545,7 +545,7 @@ export default function OnboardingPage() {
         </div>
 
         {checklists.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
+          <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-12 text-center space-y-3">
             <ClipboardList className="w-12 h-12 text-[#ECE3DF] mx-auto" />
             <p className="font-semibold text-[#223149]">No checklist assigned yet</p>
             <p className="text-sm text-[#50676E]">
@@ -558,7 +558,7 @@ export default function OnboardingPage() {
               <Link
                 key={cl.id}
                 href={`/dashboard/onboarding/${cl.id}`}
-                className="block bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow"
+                className="block bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
@@ -646,7 +646,7 @@ export default function OnboardingPage() {
       {tab === "active" ? (
         <div>
           {checklists.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-12 text-center space-y-3">
               <Users className="w-12 h-12 text-[#ECE3DF] mx-auto" />
               <p className="font-semibold text-[#223149]">No active checklists</p>
               <p className="text-sm text-[#50676E]">
@@ -670,7 +670,7 @@ export default function OnboardingPage() {
                 return (
                   <div
                     key={cl.id}
-                    className="bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-4"
+                    className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 flex flex-col gap-4"
                   >
                     {/* Top row */}
                     <div className="flex items-start gap-3">
@@ -719,7 +719,7 @@ export default function OnboardingPage() {
       ) : (
         <div>
           {templates.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-12 text-center space-y-3">
               <LayoutTemplate className="w-12 h-12 text-[#ECE3DF] mx-auto" />
               <p className="font-semibold text-[#223149]">No templates yet</p>
               <p className="text-sm text-[#50676E]">
@@ -738,7 +738,7 @@ export default function OnboardingPage() {
               {templates.map((tpl) => (
                 <div
                   key={tpl.id}
-                  className="bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-3"
+                  className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 flex flex-col gap-3"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">

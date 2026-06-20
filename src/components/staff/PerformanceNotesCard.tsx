@@ -123,7 +123,7 @@ export default function PerformanceNotesCard({ staffId, callerId, isManager, isO
   if (!isManager && notes.length === 0 && !loading) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">

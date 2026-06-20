@@ -169,7 +169,7 @@ export default function PositionDescriptionDetailPage() {
           <h1 className="text-2xl font-bold text-[#223149]">Edit Position Description</h1>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 space-y-5">
           <div>
             <label htmlFor="title" className="block text-sm font-semibold text-[#223149] mb-1.5">Title</label>
             <input id="title"
@@ -246,7 +246,7 @@ export default function PositionDescriptionDetailPage() {
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
         {/* LEFT — Content (below the action panel on mobile) */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-[#ECE3DF]">
             <Briefcase className="w-4 h-4 text-[#50676E]" />
             <span className="text-sm font-semibold text-[#223149]">Position Description</span>
@@ -272,7 +272,7 @@ export default function PositionDescriptionDetailPage() {
         <div className="space-y-4 order-first lg:order-none lg:sticky lg:top-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
           {/* Assigned staff card */}
           {assignedStaff && (
-            <div className="bg-white rounded-2xl shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
               <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-3">
                 Assigned To
               </p>
@@ -295,7 +295,7 @@ export default function PositionDescriptionDetailPage() {
           )}
 
           {/* Acknowledgement card */}
-          <div className="bg-white rounded-2xl shadow-sm p-5 flex flex-col items-center text-center gap-3">
+          <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 flex flex-col items-center text-center gap-3">
             {isAcknowledged ? (
               <>
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -354,7 +354,7 @@ export default function PositionDescriptionDetailPage() {
 
           {/* Acknowledgement history (admin only) */}
           {isAdmin && ackHistory && ackHistory.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
               <button
                 onClick={() => setShowHistory((v) => !v)}
                 className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-[#F8F6F4] transition-colors"

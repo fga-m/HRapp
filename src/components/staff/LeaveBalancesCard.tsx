@@ -52,7 +52,7 @@ export default function LeaveBalancesCard({ staffId, isOwnProfile }: Props) {
   if (status === "unlinked") return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Palmtree className="w-4 h-4 text-[#50676E]" />

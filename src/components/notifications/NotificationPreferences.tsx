@@ -84,7 +84,7 @@ export default function NotificationPreferences() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5">
+    <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-[#223149]/5 flex items-center justify-center flex-shrink-0">
           <SlidersHorizontal className="w-5 h-5 text-[#223149]" />

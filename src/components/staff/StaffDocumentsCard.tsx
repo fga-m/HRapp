@@ -240,7 +240,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">

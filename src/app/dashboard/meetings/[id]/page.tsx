@@ -188,7 +188,7 @@ export default function MeetingDetailPage() {
         <div className="md:col-span-2 space-y-4">
           {/* Drive link */}
           {note.drive_file_url && (
-            <div className="bg-white rounded-2xl shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
               <p className="text-sm font-semibold text-[#223149] mb-3">Document</p>
               <a
                 href={note.drive_file_url}
@@ -209,7 +209,7 @@ export default function MeetingDetailPage() {
 
           {/* Notes content */}
           {note.content && (
-            <div className="bg-white rounded-2xl shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
               <p className="text-sm font-semibold text-[#223149] mb-4">Notes</p>
               <MarkdownContent content={note.content} />
             </div>
@@ -217,7 +217,7 @@ export default function MeetingDetailPage() {
 
           {/* Staff: Acknowledge / Suggest Changes */}
           {!canManage && isShared && (
-            <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-4">
               <p className="text-sm font-semibold text-[#223149]">Your Response</p>
 
               {myAck ? (
@@ -284,7 +284,7 @@ export default function MeetingDetailPage() {
         {/* Sidebar */}
         <div className="space-y-4">
           {/* Attendees */}
-          <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
             <div className="flex items-center gap-2 mb-3">
               <Users className="w-4 h-4 text-[#50676E]" />
               <p className="text-sm font-semibold text-[#223149]">Attendees</p>
@@ -310,7 +310,7 @@ export default function MeetingDetailPage() {
 
           {/* Suggestions (admin view) */}
           {canManage && suggestions.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
               <div className="flex items-center gap-2 mb-3">
                 <MessageSquare className="w-4 h-4 text-[#50676E]" />
                 <p className="text-sm font-semibold text-[#223149]">Suggested Changes</p>
@@ -330,7 +330,7 @@ export default function MeetingDetailPage() {
           )}
 
           {/* Meta */}
-          <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
             <p className="text-xs text-[#50676E]">
               Created {format(new Date(note.created_at), "d MMM yyyy")}
             </p>

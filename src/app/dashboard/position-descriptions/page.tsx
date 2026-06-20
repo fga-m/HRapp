@@ -165,7 +165,7 @@ export default function PositionDescriptionsPage() {
       <div>
         <h1 className="text-3xl font-bold text-[#223149]">My Position</h1>
         <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
-        <div className="bg-white rounded-2xl shadow-sm p-10 flex flex-col items-center text-center gap-4">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-10 flex flex-col items-center text-center gap-4">
           <div className="w-16 h-16 rounded-full bg-[#ECE3DF] flex items-center justify-center">
             <Briefcase className="w-8 h-8 text-[#50676E]" />
           </div>
@@ -186,7 +186,7 @@ export default function PositionDescriptionsPage() {
         <h1 className="text-3xl font-bold text-[#223149]">My Position</h1>
         <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
         <Link href={`/dashboard/position-descriptions/${pd.id}`}>
-          <div className="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer">
+          <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-full bg-[#223149] flex items-center justify-center text-white font-semibold flex-shrink-0">
                 <Briefcase className="w-5 h-5" />
@@ -233,7 +233,7 @@ export default function PositionDescriptionsPage() {
 
       {/* PD List */}
       {pds.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm p-10 flex flex-col items-center text-center gap-4">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-10 flex flex-col items-center text-center gap-4">
           <div className="w-16 h-16 rounded-full bg-[#ECE3DF] flex items-center justify-center">
             <Briefcase className="w-8 h-8 text-[#50676E]" />
           </div>
@@ -244,7 +244,7 @@ export default function PositionDescriptionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {pds.map((pd: any) => (
             <Link key={pd.id} href={`/dashboard/position-descriptions/${pd.id}`}>
-              <div className="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer h-full">
+              <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer h-full">
                 <div className="flex items-start gap-4">
                   <AvatarInitial
                     name={pd.assigned_staff?.full_name || "?"}

@@ -171,7 +171,7 @@ export default function PolicyDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
 
         {/* LEFT — Document */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#ECE3DF]">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-[#50676E]" />
@@ -239,7 +239,7 @@ export default function PolicyDetailPage() {
 
           {/* Sign-off action card */}
           {policy.requires_signoff && (
-            <div className="bg-white rounded-2xl shadow-sm p-5 flex flex-col items-center text-center gap-3">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 flex flex-col items-center text-center gap-3">
               {isSigned ? (
                 <>
                   <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -291,7 +291,7 @@ export default function PolicyDetailPage() {
 
           {/* Sign-off tracker (admin only) */}
           {role === "admin" && policy.requires_signoff && (
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
               <div className="px-5 py-3.5 border-b border-[#ECE3DF] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#50676E]" />
@@ -367,7 +367,7 @@ export default function PolicyDetailPage() {
 
           {/* Sign-off History (admin only) */}
           {role === "admin" && signoffHistory && signoffHistory.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
               <button
                 onClick={() => setShowHistory((v) => !v)}
                 className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-[#F8F6F4] transition-colors"

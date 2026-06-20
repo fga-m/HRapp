@@ -38,7 +38,7 @@ export default function PoliciesPage() {
 
   if (error) {
     return (
-      <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+      <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
         <AlertCircle className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
         <p className="text-[#50676E] font-medium">{error}</p>
       </div>
@@ -71,7 +71,7 @@ export default function PoliciesPage() {
       </div>
 
       {policies.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+        <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
           <Shield className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
           <p className="text-[#50676E] font-medium">No policies yet</p>
           {role === "admin" && (
@@ -88,7 +88,7 @@ export default function PoliciesPage() {
               <h2 className="text-sm font-semibold text-[#50676E] uppercase tracking-wide">
                 Requires Sign-off
               </h2>
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
+              <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
                 {needsSignoff.map((policy) => (
                   <PolicyRow key={policy.id} policy={policy} role={role} staffId={staffId} />
                 ))}
@@ -102,7 +102,7 @@ export default function PoliciesPage() {
               <h2 className="text-sm font-semibold text-[#50676E] uppercase tracking-wide">
                 Reference Documents
               </h2>
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
+              <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
                 {noSignoff.map((policy) => (
                   <PolicyRow key={policy.id} policy={policy} role={role} staffId={staffId} />
                 ))}

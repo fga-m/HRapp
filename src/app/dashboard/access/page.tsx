@@ -105,7 +105,7 @@ export default function AccessLevelsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {/* Admin card — locked */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#223149] text-white">
@@ -187,7 +187,7 @@ interface RoleCardProps {
 
 function RoleCard({ role, label, badgeColor, permMap, saving, onToggle }: RoleCardProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
       <div className="mb-5">
         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badgeColor} text-white`}>
           {label}

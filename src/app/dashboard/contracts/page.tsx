@@ -194,7 +194,7 @@ export default function ContractsPage() {
       {role === "admin" && (
         <>
           {groups.length === 0 && standalone.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+            <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
               <FileSignature className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
               <p className="text-[#50676E] font-medium">No contracts yet</p>
               <button
@@ -237,7 +237,7 @@ export default function ContractsPage() {
       {role !== "admin" && (
         <>
           {staffContracts.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+            <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
               <FileSignature className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
               <p className="text-[#50676E] font-medium">No contracts assigned to you</p>
             </div>
@@ -477,7 +477,7 @@ function AdminGroupCard({ group }: { group: any }) {
   const current = group.current_version;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+    <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden flex flex-col">
       <Link
         href={current ? `/dashboard/contracts/${current.id}` : "#"}
         className="p-6 flex flex-col gap-3 group hover:bg-[#F8F6F4] transition-colors flex-1"
@@ -569,7 +569,7 @@ function AdminContractCard({ contract }: { contract: any }) {
   return (
     <Link
       href={`/dashboard/contracts/${contract.id}`}
-      className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col gap-3 group"
+      className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col gap-3 group"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="w-10 h-10 rounded-xl bg-[#ECE3DF] flex items-center justify-center flex-shrink-0">
@@ -608,7 +608,7 @@ function StaffContractCard({ contract }: { contract: any }) {
   return (
     <Link
       href={`/dashboard/contracts/${contract.id}`}
-      className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col gap-3 group"
+      className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col gap-3 group"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="w-10 h-10 rounded-xl bg-[#ECE3DF] flex items-center justify-center flex-shrink-0">

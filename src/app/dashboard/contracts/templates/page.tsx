@@ -105,7 +105,7 @@ export default function ContractTemplatesPage() {
 
   if (forbidden) {
     return (
-      <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+      <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
         <p className="text-[#50676E] font-medium">Contract templates are available to admins only.</p>
       </div>
     );
@@ -159,7 +159,7 @@ export default function ContractTemplatesPage() {
       )}
 
       {/* Google connection */}
-      <div className="bg-white rounded-2xl shadow-sm p-5 flex items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${conn?.connected ? "bg-emerald-50" : "bg-[#223149]/5"}`}>
             {conn?.connected ? <CheckCircle className="w-5 h-5 text-emerald-600" /> : <Cloud className="w-5 h-5 text-[#223149]" />}
@@ -198,7 +198,7 @@ export default function ContractTemplatesPage() {
       </div>
 
       {/* Add template */}
-      <form onSubmit={addTemplate} className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+      <form onSubmit={addTemplate} className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-4">
         <p className="font-semibold text-[#223149]">Add a template</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -244,7 +244,7 @@ export default function ContractTemplatesPage() {
 
       {/* Template list */}
       {templates.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+        <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
           <FileText className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
           <p className="text-[#50676E] font-medium">No templates yet</p>
         </div>
@@ -349,7 +349,7 @@ function TemplateRow({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5">
+    <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-semibold text-[#223149]">{template.title}</p>

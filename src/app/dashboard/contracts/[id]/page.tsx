@@ -251,7 +251,7 @@ export default function ContractDetailPage() {
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
         {/* LEFT — PDF Viewer */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#ECE3DF]">
             <div className="flex items-center gap-2">
               <FileSignature className="w-4 h-4 text-[#50676E]" />
@@ -289,7 +289,7 @@ export default function ContractDetailPage() {
         <div className="space-y-4 order-first lg:order-none lg:sticky lg:top-6 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
 
           {/* Status / sign card */}
-          <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+          <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-4">
             <div>
               <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-1">
                 {isAssignedToSign ? "Your status" : "Signatures"}
@@ -397,7 +397,7 @@ export default function ContractDetailPage() {
 
           {/* Admin: assignment tracker */}
           {role === "admin" && (
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
               <div className="px-5 py-3.5 border-b border-[#ECE3DF] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#50676E]" />
@@ -467,7 +467,7 @@ export default function ContractDetailPage() {
 
           {/* Admin: version history */}
           {role === "admin" && contract.group_id && groupVersions.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
               <div className="px-5 py-3.5 border-b border-[#ECE3DF] flex items-center gap-2">
                 <GitBranch className="w-4 h-4 text-[#50676E]" />
                 <span className="font-semibold text-[#223149] text-sm">Version History</span>
@@ -506,7 +506,7 @@ export default function ContractDetailPage() {
 
           {/* Admin: admin actions */}
           {role === "admin" && (
-            <div className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-3">
               <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide">Admin Actions</p>
 
               {/* Publish New Version button */}

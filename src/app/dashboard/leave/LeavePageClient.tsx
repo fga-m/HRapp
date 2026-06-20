@@ -335,7 +335,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       <div className="space-y-6">
         <h1 className="text-3xl font-bold text-[#223149]">Leave Requests</h1>
         <PageSubtitle pageKey="leave" defaultDescription="Submit leave requests, track approvals, and view your available leave balance." />
-        <div className="bg-white rounded-2xl shadow-sm p-8 text-center space-y-3">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-8 text-center space-y-3">
           <Palmtree className="w-8 h-8 text-[#50676E] mx-auto" />
           <p className="font-semibold text-[#223149]">Not linked to Xero</p>
           <p className="text-sm text-[#50676E]">An admin needs to link your profile to Xero Payroll before you can view or request leave.</p>
@@ -436,7 +436,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
               {teamLoading ? (
                 <div className="flex justify-center py-12">
                   <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
@@ -635,7 +635,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               ) : (
                 <>
                 {/* Desktop month grid */}
-                <div className="hidden sm:block bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="hidden sm:block bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
                   {/* Day headers */}
                   <div className="grid grid-cols-7 border-b border-[#ECE3DF]">
                     {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => (
@@ -682,12 +682,12 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 {/* Mobile agenda list */}
                 <div className="sm:hidden space-y-2">
                   {visible.length === 0 ? (
-                    <p className="text-sm text-[#50676E] text-center py-8 bg-white rounded-2xl shadow-sm">No leave in {format(calMonth, "MMMM")}.</p>
+                    <p className="text-sm text-[#50676E] text-center py-8 bg-white rounded-2xl border border-[#ECE3DF] shadow-sm">No leave in {format(calMonth, "MMMM")}.</p>
                   ) : (
                     [...visible]
                       .sort((a, b) => a.start_date.localeCompare(b.start_date))
                       .map((req) => (
-                        <div key={req.id} className="bg-white rounded-2xl shadow-sm p-4 flex items-start justify-between gap-3">
+                        <div key={req.id} className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-4 flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-[#223149] truncate">{req.staff?.full_name ?? "Unknown"}</p>
                             <p className="text-xs text-[#50676E] mt-0.5">
@@ -730,7 +730,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
           const myPending = applications.filter(a => a.status === "PENDING" && a.source === "local");
           if (myPending.length === 0) return null;
           return (
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-[#ECE3DF] flex items-center gap-3">
                 <h2 className="font-semibold text-[#223149]">Your Pending Requests</h2>
                 <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full border border-amber-100">
@@ -770,7 +770,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
         {/* ── Balances + Requests two-column layout at lg ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ── Leave Balances ── */}
-          <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm p-6">
+          <div className="lg:col-span-1 bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
             <div className="flex items-center gap-2 mb-5">
               <span className="font-semibold text-[#223149]">Available Leave Balances</span>
               <span className="flex items-center px-1.5 py-0.5 rounded-md bg-[#13B5EA]/10 text-[#13B5EA] text-[10px] font-semibold">Xero</span>
@@ -811,7 +811,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
           </div>
 
           {/* ── Leave Requests table ── */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-[#ECE3DF]">
               <h2 className="font-semibold text-[#223149]">Leave Requests</h2>
             </div>

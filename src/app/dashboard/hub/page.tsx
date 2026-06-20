@@ -693,7 +693,7 @@ export default function StaffHubPage() {
 
   if (loadError) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-12 text-center space-y-3">
         <p className="font-semibold text-[#223149]">Couldn&apos;t load resources</p>
         <p className="text-sm text-[#50676E]">Something went wrong. Please check your connection and try again.</p>
         <button
@@ -736,7 +736,7 @@ export default function StaffHubPage() {
 
       {/* Empty state */}
       {!hasAnything && (
-        <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-12 text-center space-y-3">
           <BookOpen className="w-12 h-12 text-[#ECE3DF] mx-auto" />
           <p className="font-semibold text-[#223149]">No links yet</p>
           <p className="text-sm text-[#50676E]">
