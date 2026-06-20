@@ -26,7 +26,7 @@ export default async function StaffPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Staff</h1>
-          <p className="text-[#5F7C84] mt-1 text-sm">
+          <p className="text-[#50676E] mt-1 text-sm">
             {activeStaff.length} active staff member{activeStaff.length !== 1 ? "s" : ""}
           </p>
           <PageSubtitle pageKey="staff" defaultDescription="View and manage profiles, documents, and details for all staff members." />

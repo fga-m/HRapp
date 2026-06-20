@@ -93,7 +93,7 @@ export default function AccessLevelsPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Roles & Permissions</h1>
           <PageSubtitle pageKey="access" defaultDescription="Control what each role can access and do within the portal." />
-          <p className="text-xs text-[#9BADB7] mt-1">Turning a feature off hides it from that role entirely.</p>
+          <p className="text-xs text-[#50676E] mt-1">Turning a feature off hides it from that role entirely.</p>
         </div>
       </div>
 
@@ -112,9 +112,9 @@ export default function AccessLevelsPage() {
                 Admin
               </span>
             </div>
-            <Lock className="w-4 h-4 text-[#9BADB7]" />
+            <Lock className="w-4 h-4 text-[#50676E]" />
           </div>
-          <p className="text-xs text-[#9BADB7] mb-5 italic">
+          <p className="text-xs text-[#50676E] mb-5 italic">
             Admins always have full access and cannot be restricted.
           </p>
           <div className="space-y-0">
@@ -132,7 +132,7 @@ export default function AccessLevelsPage() {
                     <p className="text-sm font-semibold text-[#223149] truncate">
                       {feature.label}
                     </p>
-                    <p className="text-xs text-[#9BADB7] leading-tight mt-0.5">
+                    <p className="text-xs text-[#50676E] leading-tight mt-0.5">
                       {feature.description}
                     </p>
                   </div>
@@ -222,7 +222,7 @@ function RoleCard({ role, label, badgeColor, permMap, saving, onToggle }: RoleCa
                 </button>
                 <span
                   className={`text-[10px] font-semibold uppercase tracking-wide w-7 flex-shrink-0 ${
-                    enabled ? "text-[#223149]" : "text-[#9BADB7]"
+                    enabled ? "text-[#223149]" : "text-[#50676E]"
                   }`}
                 >
                   {enabled ? "On" : "Off"}
@@ -231,7 +231,7 @@ function RoleCard({ role, label, badgeColor, permMap, saving, onToggle }: RoleCa
                   <p className="text-sm font-semibold text-[#223149] truncate">
                     {feature.label}
                   </p>
-                  <p className="text-xs text-[#9BADB7] leading-tight mt-0.5">
+                  <p className="text-xs text-[#50676E] leading-tight mt-0.5">
                     {feature.description}
                   </p>
                 </div>

@@ -99,14 +99,14 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="font-semibold text-[#223149]">Xero Payroll</h2>
-              <p className="text-sm text-[#9BADB7]">Sync leave requests and expense claims to Xero</p>
-              <p className="text-xs text-[#9BADB7] mt-0.5">Xero is our accounting &amp; payroll system.</p>
+              <p className="text-sm text-[#50676E]">Sync leave requests and expense claims to Xero</p>
+              <p className="text-xs text-[#50676E] mt-0.5">Xero is our accounting &amp; payroll system.</p>
               <p className="text-xs text-amber-600 mt-1">Expense claims need extended Xero permissions — if approvals fail to send, click Disconnect then Connect to re-grant access.</p>
             </div>
           </div>
           <button
             onClick={fetchStatus}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors text-[#9BADB7] hover:text-[#223149] flex-shrink-0 text-sm font-medium"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors text-[#50676E] hover:text-[#223149] flex-shrink-0 text-sm font-medium"
             title="Refresh Xero connection status"
             aria-label="Refresh Xero connection status"
           >
@@ -117,7 +117,7 @@ export default function SettingsPage() {
 
         <div className="mt-5">
           {loadingStatus ? (
-            <div className="flex items-center gap-2 text-sm text-[#9BADB7]">
+            <div className="flex items-center gap-2 text-sm text-[#50676E]">
               <Loader2 className="w-4 h-4 animate-spin" />
               Checking connection…
             </div>
@@ -129,11 +129,11 @@ export default function SettingsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-3 bg-[#F8F6F4] rounded-xl">
-                  <p className="text-xs text-[#9BADB7] font-medium">Organisation</p>
+                  <p className="text-xs text-[#50676E] font-medium">Organisation</p>
                   <p className="text-sm text-[#223149] font-semibold mt-0.5">{xero.tenantName}</p>
                 </div>
                 <div className="p-3 bg-[#F8F6F4] rounded-xl">
-                  <p className="text-xs text-[#9BADB7] font-medium">Connected</p>
+                  <p className="text-xs text-[#50676E] font-medium">Connected</p>
                   <p className="text-sm text-[#223149] font-semibold mt-0.5">
                     {xero.connectedAt
                       ? new Date(xero.connectedAt).toLocaleDateString("en-AU", {
@@ -165,9 +165,9 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#9BADB7] flex-shrink-0" />
-                <span className="text-sm text-[#9BADB7]">Not connected</span>
+                <span className="text-sm text-[#50676E]">Not connected</span>
               </div>
-              <p className="text-sm text-[#5F7C84]">
+              <p className="text-sm text-[#50676E]">
                 Connect your Xero account so staff can submit leave requests and expense claims
                 from the HR Portal. Approved leave and expense bills sync to Xero; payment still
                 happens in Xero.

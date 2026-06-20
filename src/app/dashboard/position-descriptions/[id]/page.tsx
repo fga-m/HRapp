@@ -50,6 +50,7 @@ export default function PositionDescriptionDetailPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [newVersionNumber, setNewVersionNumber] = useState("");
+  const [versionError, setVersionError] = useState("");
   const [bumpingVersion, setBumpingVersion] = useState(false);
 
   // Edit mode state
@@ -121,9 +122,10 @@ export default function PositionDescriptionDetailPage() {
   const handleBumpVersion = async () => {
     const versionNum = parseFloat(newVersionNumber);
     if (!newVersionNumber || isNaN(versionNum) || versionNum <= (data?.pd?.version || 0)) {
-      alert(`Version must be a number greater than the current version (${data?.pd?.version})`);
+      setVersionError(`Version must be a number greater than the current version (${data?.pd?.version}).`);
       return;
     }
+    setVersionError("");
     setBumpingVersion(true);
     setShowVersionModal(false);
     await fetch(`/api/position-descriptions/${id}`, {
@@ -147,7 +149,7 @@ export default function PositionDescriptionDetailPage() {
     );
   }
 
-  if (!data?.pd) return <div className="text-[#9BADB7]">Position description not found.</div>;
+  if (!data?.pd) return <div className="text-[#50676E]">Position description not found.</div>;
 
   const { pd, ackHistory, myAck, role, currentYear, assignedStaff } = data;
   const isAdmin = role === "admin";
@@ -197,7 +199,7 @@ export default function PositionDescriptionDetailPage() {
             </button>
             <Link
               href={`/dashboard/position-descriptions/${id}`}
-              className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="px-6 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               Cancel
             </Link>
@@ -220,7 +222,7 @@ export default function PositionDescriptionDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold text-[#223149]">{pd.title}</h1>
-            <span className="text-sm text-[#9BADB7] font-medium bg-[#F8F6F4] px-2 py-0.5 rounded-full">
+            <span className="text-sm text-[#50676E] font-medium bg-[#F8F6F4] px-2 py-0.5 rounded-full">
               v{pd.version}
             </span>
             {!pd.is_active && (
@@ -233,7 +235,7 @@ export default function PositionDescriptionDetailPage() {
         {isAdmin && (
           <Link
             href={`/dashboard/position-descriptions/${id}?edit=true`}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors flex-shrink-0"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#50676E] hover:bg-[#F8F6F4] transition-colors flex-shrink-0"
           >
             <Edit className="w-4 h-4" />
             <span className="hidden sm:inline">Edit</span>
@@ -246,7 +248,7 @@ export default function PositionDescriptionDetailPage() {
         {/* LEFT — Content (below the action panel on mobile) */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-[#ECE3DF]">
-            <Briefcase className="w-4 h-4 text-[#9BADB7]" />
+            <Briefcase className="w-4 h-4 text-[#50676E]" />
             <span className="text-sm font-semibold text-[#223149]">Position Description</span>
           </div>
 
@@ -254,11 +256,11 @@ export default function PositionDescriptionDetailPage() {
             {pd.content ? (
               <MarkdownContent content={pd.content} />
             ) : (
-              <p className="text-sm text-[#9BADB7] text-center py-8">No content yet.</p>
+              <p className="text-sm text-[#50676E] text-center py-8">No content yet.</p>
             )}
           </div>
 
-          <div className="px-5 py-3 border-t border-[#ECE3DF] text-xs text-[#9BADB7]">
+          <div className="px-5 py-3 border-t border-[#ECE3DF] text-xs text-[#50676E]">
             Created {format(new Date(pd.created_at), "d MMM yyyy")}
             {pd.updated_at && pd.updated_at !== pd.created_at && (
               <> · Updated {format(new Date(pd.updated_at), "d MMM yyyy")}</>
@@ -271,7 +273,7 @@ export default function PositionDescriptionDetailPage() {
           {/* Assigned staff card */}
           {assignedStaff && (
             <div className="bg-white rounded-2xl shadow-sm p-5">
-              <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-3">
+              <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-3">
                 Assigned To
               </p>
               <div className="flex items-center gap-3">
@@ -283,9 +285,9 @@ export default function PositionDescriptionDetailPage() {
                   <p className="font-semibold text-[#223149] text-sm truncate">
                     {assignedStaff.full_name}
                   </p>
-                  <p className="text-xs text-[#9BADB7] truncate">{assignedStaff.email}</p>
+                  <p className="text-xs text-[#50676E] truncate">{assignedStaff.email}</p>
                   {assignedStaff.position && (
-                    <p className="text-xs text-[#5F7C84] truncate mt-0.5">{assignedStaff.position}</p>
+                    <p className="text-xs text-[#50676E] truncate mt-0.5">{assignedStaff.position}</p>
                   )}
                 </div>
               </div>
@@ -302,7 +304,7 @@ export default function PositionDescriptionDetailPage() {
                 <p className="font-semibold text-[#223149] text-sm">
                   Acknowledged for {currentYear}
                 </p>
-                <p className="text-xs text-[#9BADB7]">
+                <p className="text-xs text-[#50676E]">
                   {format(new Date(myAck.acknowledged_at), "d MMM yyyy, h:mm a")}
                 </p>
               </>
@@ -312,7 +314,7 @@ export default function PositionDescriptionDetailPage() {
                   <Clock className="w-6 h-6 text-amber-500" />
                 </div>
                 <p className="font-semibold text-[#223149] text-sm">Acknowledgement required</p>
-                <p className="text-xs text-[#9BADB7]">
+                <p className="text-xs text-[#50676E]">
                   Please read your position description then acknowledge below
                 </p>
                 {ackError && <p className="text-xs text-red-500">{ackError}</p>}
@@ -341,7 +343,7 @@ export default function PositionDescriptionDetailPage() {
                     setShowVersionModal(true);
                   }}
                   disabled={bumpingVersion}
-                  className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors py-1"
+                  className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors py-1"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   {bumpingVersion ? "Updating..." : "Update Version"}
@@ -358,16 +360,16 @@ export default function PositionDescriptionDetailPage() {
                 className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-[#F8F6F4] transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <History className="w-4 h-4 text-[#9BADB7]" />
+                  <History className="w-4 h-4 text-[#50676E]" />
                   <span className="font-semibold text-[#223149] text-sm">
                     Acknowledgement History
                   </span>
-                  <span className="text-xs text-[#9BADB7]">({ackHistory.length})</span>
+                  <span className="text-xs text-[#50676E]">({ackHistory.length})</span>
                 </div>
                 {showHistory ? (
-                  <ChevronUp className="w-4 h-4 text-[#9BADB7]" />
+                  <ChevronUp className="w-4 h-4 text-[#50676E]" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-[#9BADB7]" />
+                  <ChevronDown className="w-4 h-4 text-[#50676E]" />
                 )}
               </button>
               {showHistory && (
@@ -375,17 +377,17 @@ export default function PositionDescriptionDetailPage() {
                   {ackHistory.map((a: any) => (
                     <div key={a.id} className="flex items-center gap-2.5">
                       <div className="w-6 h-6 rounded-full bg-[#F8F6F4] flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="w-3 h-3 text-[#5F7C84]" />
+                        <CheckCircle className="w-3 h-3 text-[#50676E]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-[#223149] truncate">
                           {a.staff?.full_name}
                         </p>
-                        <p className="text-xs text-[#9BADB7]">
+                        <p className="text-xs text-[#50676E]">
                           v{a.pd_version} · {a.ack_year}
                         </p>
                       </div>
-                      <p className="text-xs text-[#9BADB7] flex-shrink-0">
+                      <p className="text-xs text-[#50676E] flex-shrink-0">
                         {format(new Date(a.acknowledged_at), "d MMM yy")}
                       </p>
                     </div>
@@ -402,7 +404,7 @@ export default function PositionDescriptionDetailPage() {
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
           <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-6 pb-8 md:pb-6 w-full md:max-w-sm space-y-4 pb-safe">
             <h2 className="text-lg font-bold text-[#223149]">Update Version</h2>
-            <p className="text-sm text-[#5F7C84]">
+            <p className="text-sm text-[#50676E]">
               Current version:{" "}
               <span className="font-semibold">v{data?.pd?.version}</span>. The assigned staff
               member will be notified to re-acknowledge.
@@ -416,11 +418,12 @@ export default function PositionDescriptionDetailPage() {
                 min={Number(data?.pd?.version || 1) + 0.1}
                 step={0.1}
                 value={newVersionNumber}
-                onChange={(e) => setNewVersionNumber(e.target.value)}
+                onChange={(e) => { setNewVersionNumber(e.target.value); if (versionError) setVersionError(""); }}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                 placeholder={String(Math.floor(data?.pd?.version || 1) + 1)}
                 autoFocus
               />
+              {versionError && <p className="text-xs text-red-500 mt-1.5">{versionError}</p>}
             </div>
             <div className="flex gap-3">
               <button
@@ -432,7 +435,7 @@ export default function PositionDescriptionDetailPage() {
               </button>
               <button
                 onClick={() => setShowVersionModal(false)}
-                className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
               >
                 Cancel
               </button>

@@ -93,7 +93,7 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
   const complete = pct === 100 && max > 0;
   return (
     <div className="w-full">
-      <div className="flex justify-between text-xs text-[#9BADB7] mb-1.5">
+      <div className="flex justify-between text-xs text-[#50676E] mb-1.5">
         <span>
           {value} of {max} required{complete ? " — all done!" : ""}
         </span>
@@ -176,7 +176,7 @@ function AddItemModal({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#223149]">Add Item</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
-            <X className="w-5 h-5 text-[#9BADB7]" />
+            <X className="w-5 h-5 text-[#50676E]" />
           </button>
         </div>
 
@@ -192,28 +192,28 @@ function AddItemModal({
               required
               autoFocus
               placeholder="e.g. Complete ID verification"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Description{" "}
-              <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
               placeholder="Additional context or instructions..."
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
             />
           </div>
 
           <div className="relative">
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Section{" "}
-              <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
             <input
               type="text"
@@ -222,7 +222,7 @@ function AddItemModal({
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="e.g. IT Setup"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
             {showSuggestions && (
               <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-[#ECE3DF] rounded-xl shadow-lg overflow-hidden">
@@ -245,14 +245,14 @@ function AddItemModal({
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Link URL{" "}
-              <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
             <input
               type="url"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
@@ -286,7 +286,7 @@ function AddItemModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               Cancel
             </button>
@@ -394,11 +394,11 @@ export default function ChecklistDetailPage() {
       <div className="space-y-4">
         <Link
           href="/dashboard/onboarding"
-          className="inline-flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-[#50676E] hover:text-[#223149] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Checklists
         </Link>
-        <p className="text-[#9BADB7]">{error || "Checklist not found."}</p>
+        <p className="text-[#50676E]">{error || "Checklist not found."}</p>
       </div>
     );
   }
@@ -447,7 +447,7 @@ export default function ChecklistDetailPage() {
             <TypeBadge isOffboarding={checklist.is_offboarding} />
           </div>
           {checklist.due_date && (
-            <p className="text-sm text-[#9BADB7] mt-1 flex items-center gap-1">
+            <p className="text-sm text-[#50676E] mt-1 flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
               Due {format(parseISO(checklist.due_date), "d MMMM yyyy")}
             </p>
@@ -466,9 +466,9 @@ export default function ChecklistDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-[#223149]">{checklist.staff?.full_name}</p>
-            <p className="text-xs text-[#9BADB7]">{checklist.staff?.email}</p>
+            <p className="text-xs text-[#50676E]">{checklist.staff?.email}</p>
             {(checklist.staff?.position || checklist.staff?.department) && (
-              <p className="text-xs text-[#9BADB7]">
+              <p className="text-xs text-[#50676E]">
                 {[checklist.staff.position, checklist.staff.department]
                   .filter(Boolean)
                   .join(" · ")}
@@ -487,7 +487,7 @@ export default function ChecklistDetailPage() {
         <ProgressBar value={completedRequired.length} max={requiredItems.length} />
 
         {/* Meta */}
-        <div className="flex flex-wrap gap-4 text-xs text-[#9BADB7] pt-1 border-t border-[#ECE3DF]">
+        <div className="flex flex-wrap gap-4 text-xs text-[#50676E] pt-1 border-t border-[#ECE3DF]">
           <span className="flex items-center gap-1">
             <ClipboardList className="w-3.5 h-3.5" />
             {allItems.length} item{allItems.length !== 1 ? "s" : ""}
@@ -506,7 +506,7 @@ export default function ChecklistDetailPage() {
 
       {/* Non-admin note */}
       {!isAdmin && allItems.length > 0 && (
-        <p className="text-xs text-[#9BADB7] -mb-2">
+        <p className="text-xs text-[#50676E] -mb-2">
           Your HR admin marks items complete as they&apos;re done.
         </p>
       )}
@@ -518,7 +518,7 @@ export default function ChecklistDetailPage() {
             <ClipboardList className="w-12 h-12 text-[#ECE3DF] mx-auto" />
             <p className="font-semibold text-[#223149]">No items yet</p>
             {isAdmin && (
-              <p className="text-sm text-[#9BADB7]">
+              <p className="text-sm text-[#50676E]">
                 Add items to this checklist using the button below.
               </p>
             )}
@@ -529,7 +529,7 @@ export default function ChecklistDetailPage() {
               <div key={sectionKey}>
                 {/* Section heading */}
                 <div className="px-6 pt-4 pb-1">
-                  <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-widest">
+                  <p className="text-xs font-semibold text-[#50676E] uppercase tracking-widest">
                     {sectionKey}
                   </p>
                 </div>
@@ -583,7 +583,7 @@ export default function ChecklistDetailPage() {
                             <p
                               className={`text-sm font-semibold transition-colors ${
                                 isDone
-                                  ? "text-[#9BADB7] line-through"
+                                  ? "text-[#50676E] line-through"
                                   : "text-[#223149]"
                               }`}
                             >
@@ -600,7 +600,7 @@ export default function ChecklistDetailPage() {
                                 href={item.link_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#F8F6F4] text-[#9BADB7] hover:text-[#5F7C84] transition-colors"
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#F8F6F4] text-[#50676E] hover:text-[#50676E] transition-colors"
                               >
                                 <ExternalLink className="w-2.5 h-2.5" />
                                 View doc
@@ -609,7 +609,7 @@ export default function ChecklistDetailPage() {
                           </div>
 
                           {item.description && (
-                            <p className="text-xs text-[#9BADB7] mt-0.5">
+                            <p className="text-xs text-[#50676E] mt-0.5">
                               {item.description}
                             </p>
                           )}
@@ -635,7 +635,7 @@ export default function ChecklistDetailPage() {
                                 : "Completed"}{" "}
                               · {format(parseISO(completion.completed_at), "d MMM yyyy")}
                               {completion.notes && (
-                                <span className="text-[#9BADB7]"> — {completion.notes}</span>
+                                <span className="text-[#50676E]"> — {completion.notes}</span>
                               )}
                             </p>
                           )}
@@ -653,7 +653,7 @@ export default function ChecklistDetailPage() {
           <div className="px-6 py-3 border-t border-[#ECE3DF]">
             <button
               onClick={() => setShowAddItem(true)}
-              className="flex items-center gap-2 text-sm font-semibold text-[#223149] hover:text-[#5F7C84] transition-colors"
+              className="flex items-center gap-2 text-sm font-semibold text-[#223149] hover:text-[#50676E] transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add Item
@@ -666,7 +666,7 @@ export default function ChecklistDetailPage() {
       {isAdmin && (
         <div className="border border-rose-100 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-rose-600 mb-2">Delete this checklist</h3>
-          <p className="text-xs text-[#9BADB7] mb-3">
+          <p className="text-xs text-[#50676E] mb-3">
             Deleting this checklist removes all items and completion records.
           </p>
           <button

@@ -408,7 +408,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#223149]">{isEdit ? "Edit Event" : "New Event"}</h2>
           <button onClick={onClose} className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
-            <X className="w-5 h-5 text-[#9BADB7]" />
+            <X className="w-5 h-5 text-[#50676E]" />
           </button>
         </div>
 
@@ -423,7 +423,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
               onChange={(e) => setSummary(e.target.value)}
               autoFocus
               placeholder="e.g. Work, Team Meeting..."
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
@@ -451,7 +451,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
           {/* Recurring series: scope selector */}
           {isRecurringInstance && (
             <div className="p-3 rounded-xl bg-[#F8F6F4] border border-[#ECE3DF] space-y-2">
-              <p className="text-xs font-semibold text-[#5F7C84]">This is a recurring event</p>
+              <p className="text-xs font-semibold text-[#50676E]">This is a recurring event</p>
               <div className="flex gap-2">
                 {(["this", "all"] as const).map((scope) => (
                   <button
@@ -461,7 +461,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
                     className={`flex-1 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
                       editScope === scope
                         ? "bg-[#223149] text-white border-[#223149]"
-                        : "border-[#ECE3DF] text-[#5F7C84] hover:bg-white"
+                        : "border-[#ECE3DF] text-[#50676E] hover:bg-white"
                     }`}
                   >
                     {scope === "this" ? "This event only" : "All events in series"}
@@ -469,10 +469,10 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
                 ))}
               </div>
               {editScope === "this" && (
-                <p className="text-xs text-[#9BADB7]">Only this occurrence will be changed. Other events in the series stay the same.</p>
+                <p className="text-xs text-[#50676E]">Only this occurrence will be changed. Other events in the series stay the same.</p>
               )}
               {editScope === "all" && (
-                <p className="text-xs text-[#9BADB7]">All events in the series will be updated, including future occurrences.</p>
+                <p className="text-xs text-[#50676E]">All events in the series will be updated, including future occurrences.</p>
               )}
             </div>
           )}
@@ -520,14 +520,14 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
                   className={`flex-1 px-4 py-2 rounded-xl border text-sm font-medium transition-colors ${
                     transparency === val
                       ? "bg-[#223149] text-white border-[#223149]"
-                      : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"
+                      : "border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4]"
                   }`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <p className="text-xs text-[#9BADB7] mt-1.5">
+            <p className="text-xs text-[#50676E] mt-1.5">
               {transparency === "transparent"
                 ? "Shows as a working block — others can see you're available"
                 : "Shows as busy — you're in a meeting or unavailable"}
@@ -538,10 +538,10 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-sm font-semibold text-[#223149]">
-                Invite people <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+                Invite people <span className="text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
               {attendees.length > 0 && (
-                <span className="text-xs text-[#9BADB7]">{attendees.length} selected</span>
+                <span className="text-xs text-[#50676E]">{attendees.length} selected</span>
               )}
             </div>
 
@@ -549,13 +549,13 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
             <div className="border border-[#ECE3DF] rounded-xl overflow-hidden">
               {/* Search */}
               <div className="flex items-center gap-2 px-3 py-2 border-b border-[#ECE3DF]">
-                <svg className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+                <svg className="w-3.5 h-3.5 text-[#50676E] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
                 <input
                   type="text"
                   value={staffSearch}
                   onChange={e => setStaffSearch(e.target.value)}
                   placeholder="Search staff…"
-                  className="flex-1 text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none bg-transparent"
+                  className="flex-1 text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none bg-transparent"
                 />
               </div>
 
@@ -572,7 +572,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
                   {someSelected && !allSelected && <div className="w-2 h-0.5 bg-[#223149] rounded" />}
                 </div>
                 <span className="text-sm font-semibold text-[#223149]">All staff</span>
-                <span className="ml-auto text-xs text-[#9BADB7]">{activeStaff.length} people</span>
+                <span className="ml-auto text-xs text-[#50676E]">{activeStaff.length} people</span>
               </button>
 
               {/* Staff list */}
@@ -587,7 +587,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
                       onClick={() => toggleStaff(s.email)}
                       className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${checked ? "bg-[#223149]/5" : "hover:bg-[#F8F6F4]"}`}
                     >
-                      <div className="w-7 h-7 rounded-full bg-[#ECE3DF] flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-[#5F7C84]">
+                      <div className="w-7 h-7 rounded-full bg-[#ECE3DF] flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-[#50676E]">
                         {initials}
                       </div>
                       <span className="flex-1 text-sm text-[#223149] truncate">{s.full_name}</span>
@@ -598,7 +598,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
                   );
                 })}
                 {filteredStaff.length === 0 && (
-                  <p className="px-3 py-3 text-sm text-[#9BADB7]">No staff found</p>
+                  <p className="px-3 py-3 text-sm text-[#50676E]">No staff found</p>
                 )}
               </div>
             </div>
@@ -630,13 +630,13 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
                   if (e.key === "Enter") { e.preventDefault(); addExternal(externalInput); }
                 }}
                 placeholder="Add external email address…"
-                className="flex-1 px-3 py-2 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                className="flex-1 px-3 py-2 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
               <button
                 type="button"
                 onClick={() => addExternal(externalInput)}
                 disabled={!externalInput.trim()}
-                className="px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
+                className="px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#50676E] hover:bg-[#F8F6F4] transition-colors disabled:opacity-40"
               >
                 Add
               </button>
@@ -656,7 +656,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               Cancel
             </button>
@@ -1164,7 +1164,7 @@ export default function CalendarPage() {
           </h2>
           <button
             onClick={goToday}
-            className="px-3 py-1.5 text-xs font-semibold border border-[#ECE3DF] rounded-lg text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold border border-[#ECE3DF] rounded-lg text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
           >
             Today
           </button>
@@ -1190,7 +1190,7 @@ export default function CalendarPage() {
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
                 selectedId === "primary"
                   ? "bg-[#223149] text-white border-[#223149]"
-                  : "bg-white text-[#5F7C84] border-[#ECE3DF] hover:border-[#9BADB7]"
+                  : "bg-white text-[#50676E] border-[#ECE3DF] hover:border-[#9BADB7]"
               }`}
             >
               My Calendar
@@ -1206,7 +1206,7 @@ export default function CalendarPage() {
                   key={s.id}
                   onClick={() => { setSelectedId(calId); setSelectedLabel(s.full_name); }}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
-                    active ? colors.chip + " border-transparent" : "bg-white text-[#5F7C84] border-[#ECE3DF] hover:border-[#9BADB7]"
+                    active ? colors.chip + " border-transparent" : "bg-white text-[#50676E] border-[#ECE3DF] hover:border-[#9BADB7]"
                   }`}
                 >
                   {s.full_name.split(" ")[0]}
@@ -1224,19 +1224,19 @@ export default function CalendarPage() {
                 className="w-3 h-3 rounded-sm border-l-2"
                 style={{ backgroundColor: hexA(eventColor.hex, 0.1), borderLeftColor: hexA(eventColor.hex, 0.5) }}
               />
-              <span className="text-xs text-[#9BADB7]">Working (available)</span>
+              <span className="text-xs text-[#50676E]">Working (available)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: eventColor.hex }} />
-              <span className="text-xs text-[#9BADB7]">Busy</span>
+              <span className="text-xs text-[#50676E]">Busy</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-sm border-l-2 bg-rose-100 border-rose-400" />
-              <span className="text-xs text-[#9BADB7]">Out of office</span>
+              <span className="text-xs text-[#50676E]">Out of office</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-sm border border-dashed border-amber-400 bg-amber-50" />
-              <span className="text-xs text-[#9BADB7]">Pending (not counted)</span>
+              <span className="text-xs text-[#50676E]">Pending (not counted)</span>
             </div>
           </div>
 
@@ -1245,9 +1245,9 @@ export default function CalendarPage() {
             const hrs = calcWeeklyHours(events);
             return hrs > 0 ? (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-xl border border-[#ECE3DF] shadow-sm">
-                <Clock className="w-3.5 h-3.5 text-[#9BADB7]" />
+                <Clock className="w-3.5 h-3.5 text-[#50676E]" />
                 <span className="text-xs font-semibold text-[#223149]">{hrs}h</span>
-                <span className="text-xs text-[#9BADB7]">this week</span>
+                <span className="text-xs text-[#50676E]">this week</span>
               </div>
             ) : null;
           })()}
@@ -1259,7 +1259,7 @@ export default function CalendarPage() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border shadow-sm text-xs font-medium transition-colors ${
               showDeclined
                 ? "bg-[#223149] text-white border-[#223149]"
-                : "bg-white text-[#5F7C84] border-[#ECE3DF] hover:bg-[#F8F6F4]"
+                : "bg-white text-[#50676E] border-[#ECE3DF] hover:bg-[#F8F6F4]"
             }`}
           >
             {showDeclined ? "Hide declined" : "Show declined"}
@@ -1279,7 +1279,7 @@ export default function CalendarPage() {
             </span>
             <span>Pending invite{pendingInvites.length !== 1 ? "s" : ""}</span>
             <svg
-              className={`w-3.5 h-3.5 text-[#9BADB7] transition-transform ${showPendingInvites ? "rotate-180" : ""}`}
+              className={`w-3.5 h-3.5 text-[#50676E] transition-transform ${showPendingInvites ? "rotate-180" : ""}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -1304,9 +1304,9 @@ export default function CalendarPage() {
                     {/* Event info */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[#223149] truncate">{ev.summary || "(No title)"}</p>
-                      <p className="text-xs text-[#9BADB7] mt-0.5">{dateLabel}</p>
+                      <p className="text-xs text-[#50676E] mt-0.5">{dateLabel}</p>
                       {organiserName && (
-                        <p className="text-xs text-[#9BADB7]">From {organiserName}</p>
+                        <p className="text-xs text-[#50676E]">From {organiserName}</p>
                       )}
                     </div>
                     {/* RSVP buttons */}
@@ -1372,7 +1372,7 @@ export default function CalendarPage() {
               key={day.toISOString()}
               className={`py-2 text-center border-r border-[#ECE3DF] last:border-r-0 ${isToday(day) ? "bg-[#223149]/5" : ""}`}
             >
-              <p className="text-xs text-[#9BADB7] uppercase tracking-wide">{format(day, "EEE")}</p>
+              <p className="text-xs text-[#50676E] uppercase tracking-wide">{format(day, "EEE")}</p>
               <p className={`text-base font-bold mt-0.5 w-8 h-8 flex items-center justify-center mx-auto rounded-full ${
                 isToday(day) ? "bg-[#223149] text-white" : "text-[#223149]"
               }`}>
@@ -1389,7 +1389,7 @@ export default function CalendarPage() {
             style={{ gridTemplateColumns: "52px repeat(7, 1fr)", paddingRight: scrollbarWidth }}
           >
             <div className="border-r border-[#ECE3DF] flex items-center justify-end pr-2">
-              <span className="text-[10px] text-[#9BADB7]">all-day</span>
+              <span className="text-[10px] text-[#50676E]">all-day</span>
             </div>
             {days.map((day) => {
               const allDay = allDayEventsForDay(events, day, showDeclined);
@@ -1435,7 +1435,7 @@ export default function CalendarPage() {
                   className="border-b border-[#ECE3DF]/60 flex items-start justify-end pr-2 pt-1"
                   style={{ height: HOUR_H }}
                 >
-                  <span className="text-[10px] text-[#9BADB7]">
+                  <span className="text-[10px] text-[#50676E]">
                     {h === 0 ? "12am" : h === 12 ? "12pm" : h > 12 ? `${h - 12}pm` : `${h}am`}
                   </span>
                 </div>
@@ -1770,10 +1770,10 @@ export default function CalendarPage() {
                     ? "bg-[#223149] text-white"
                     : today
                     ? "bg-[#223149]/5 ring-1 ring-[#223149]/20 text-[#223149]"
-                    : "text-[#5F7C84] hover:bg-[#F8F6F4]"
+                    : "text-[#50676E] hover:bg-[#F8F6F4]"
                 }`}
               >
-                <span className={`text-[10px] uppercase tracking-wide ${selected ? "text-white/70" : "text-[#9BADB7]"}`}>
+                <span className={`text-[10px] uppercase tracking-wide ${selected ? "text-white/70" : "text-[#50676E]"}`}>
                   {format(day, "EEE")}
                 </span>
                 <span className="text-base font-bold mt-0.5">{format(day, "d")}</span>
@@ -1786,7 +1786,7 @@ export default function CalendarPage() {
         {allDayEventsForDay(events, mobileDay, showDeclined).length > 0 && (
           <div className="flex-shrink-0 grid border-b border-[#ECE3DF]" style={{ gridTemplateColumns: "52px 1fr" }}>
             <div className="border-r border-[#ECE3DF] flex items-center justify-end pr-2">
-              <span className="text-[10px] text-[#9BADB7]">all-day</span>
+              <span className="text-[10px] text-[#50676E]">all-day</span>
             </div>
             <div className="p-1 min-h-[28px]">
               {allDayEventsForDay(events, mobileDay, showDeclined).map((ev) => {
@@ -1827,7 +1827,7 @@ export default function CalendarPage() {
                   className="border-b border-[#ECE3DF]/60 flex items-start justify-end pr-2 pt-1"
                   style={{ height: HOUR_H }}
                 >
-                  <span className="text-[10px] text-[#9BADB7]">
+                  <span className="text-[10px] text-[#50676E]">
                     {h === 0 ? "12am" : h === 12 ? "12pm" : h > 12 ? `${h - 12}pm` : `${h}am`}
                   </span>
                 </div>
@@ -2064,18 +2064,18 @@ export default function CalendarPage() {
           >
             <div className="flex items-start justify-between gap-2 mb-1.5">
               {badge}
-              <button onClick={() => setHoverPopup(null)} className="text-[#9BADB7] hover:text-[#223149] flex-shrink-0">
+              <button onClick={() => setHoverPopup(null)} className="text-[#50676E] hover:text-[#223149] flex-shrink-0">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
             <p className="text-sm font-semibold text-[#223149] truncate">{ev.summary || (ooo ? "Out of Office" : "(No title)")}</p>
-            {timeLabel && <p className="text-xs text-[#9BADB7] mt-0.5">{timeLabel}</p>}
-            {ev.location && <p className="text-xs text-[#9BADB7] mt-0.5 truncate">📍 {ev.location}</p>}
+            {timeLabel && <p className="text-xs text-[#50676E] mt-0.5">{timeLabel}</p>}
+            {ev.location && <p className="text-xs text-[#50676E] mt-0.5 truncate">📍 {ev.location}</p>}
 
             {/* Attendees list with response status */}
             {ev.attendees && ev.attendees.length > 0 && (
               <div className="mt-2 space-y-1">
-                <p className="text-[10px] font-semibold text-[#9BADB7] uppercase tracking-wide">Attendees</p>
+                <p className="text-[10px] font-semibold text-[#50676E] uppercase tracking-wide">Attendees</p>
                 {ev.attendees.slice(0, 5).map((a) => {
                   const staff = staffList.find((s) => s.email === a.email);
                   const name = staff ? staff.full_name : a.email.split("@")[0];
@@ -2088,17 +2088,17 @@ export default function CalendarPage() {
                     a.responseStatus === "accepted" ? "text-emerald-500"
                     : a.responseStatus === "declined" ? "text-rose-500"
                     : a.responseStatus === "tentative" ? "text-amber-500"
-                    : "text-[#9BADB7]";
+                    : "text-[#50676E]";
                   return (
                     <div key={a.email} className="flex items-center gap-1.5 min-w-0">
                       <span className={`text-xs font-bold w-3 text-center flex-shrink-0 ${statusColor}`}>{statusIcon}</span>
                       <span className="text-xs text-[#223149] truncate">{name}</span>
-                      {a.email === userEmail && <span className="text-[10px] text-[#9BADB7] ml-auto flex-shrink-0">(you)</span>}
+                      {a.email === userEmail && <span className="text-[10px] text-[#50676E] ml-auto flex-shrink-0">(you)</span>}
                     </div>
                   );
                 })}
                 {ev.attendees.length > 5 && (
-                  <p className="text-[10px] text-[#9BADB7]">+{ev.attendees.length - 5} more</p>
+                  <p className="text-[10px] text-[#50676E]">+{ev.attendees.length - 5} more</p>
                 )}
               </div>
             )}
@@ -2108,7 +2108,7 @@ export default function CalendarPage() {
               const myRsvp = ev.attendees!.find((a) => a.email === userEmail)?.responseStatus;
               return (
                 <div className="mt-2 pt-2 border-t border-[#ECE3DF]">
-                  <p className="text-[10px] font-semibold text-[#9BADB7] uppercase tracking-wide mb-1.5">Your response</p>
+                  <p className="text-[10px] font-semibold text-[#50676E] uppercase tracking-wide mb-1.5">Your response</p>
                   <div className="flex gap-1">
                     {(["accepted", "tentative", "declined"] as const).map((status) => {
                       const labels = { accepted: "✓ Yes", tentative: "~ Maybe", declined: "✗ No" };
@@ -2131,7 +2131,7 @@ export default function CalendarPage() {
                           className={`flex-1 text-[10px] font-semibold py-1.5 rounded-lg border transition-colors disabled:opacity-60 ${
                             isActive
                               ? activeClass[status]
-                              : `border-[#ECE3DF] text-[#5F7C84] ${hoverClass[status]}`
+                              : `border-[#ECE3DF] text-[#50676E] ${hoverClass[status]}`
                           }`}
                         >
                           {rsvpLoading === status ? "…" : labels[status]}
@@ -2209,14 +2209,14 @@ export default function CalendarPage() {
                     className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
                     title="Edit event"
                   >
-                    <Pencil className="w-4 h-4 text-[#5F7C84]" />
+                    <Pencil className="w-4 h-4 text-[#50676E]" />
                   </button>
                   <button
                     onClick={() => { setDuplicatingEvent(tooltip); setTooltip(null); }}
                     className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
                     title="Duplicate event"
                   >
-                    <Copy className="w-4 h-4 text-[#5F7C84]" />
+                    <Copy className="w-4 h-4 text-[#50676E]" />
                   </button>
                   <button
                     onClick={() => handleDelete(tooltip)}
@@ -2231,7 +2231,7 @@ export default function CalendarPage() {
 
             <h3 className="text-lg font-bold text-[#223149]">{tooltip.summary || "(No title)"}</h3>
 
-            <div className="space-y-1 text-sm text-[#5F7C84]">
+            <div className="space-y-1 text-sm text-[#50676E]">
               {tooltip.start.dateTime ? (
                 <p>
                   {format(new Date(tooltip.start.dateTime), "EEE d MMM, h:mm a")}
@@ -2246,7 +2246,7 @@ export default function CalendarPage() {
               {tooltip.location && <p>📍 {tooltip.location}</p>}
               {tooltip.attendees && tooltip.attendees.length > 0 && (
                 <div className="pt-1">
-                  <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1">Attendees</p>
+                  <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-1">Attendees</p>
                   <div className="flex flex-wrap gap-1">
                     {tooltip.attendees.map((a) => {
                       const staff = staffList.find((s) => s.email === a.email);
@@ -2266,7 +2266,7 @@ export default function CalendarPage() {
               const myRsvp = tooltip.attendees!.find((a) => a.email === userEmail)?.responseStatus;
               return (
                 <div className="pt-3 border-t border-[#ECE3DF]">
-                  <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1.5">Your response</p>
+                  <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-1.5">Your response</p>
                   <div className="flex gap-1.5">
                     {(["accepted", "tentative", "declined"] as const).map((status) => {
                       const labels = { accepted: "✓ Yes", tentative: "~ Maybe", declined: "✗ No" };
@@ -2289,7 +2289,7 @@ export default function CalendarPage() {
                           className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-colors disabled:opacity-60 ${
                             isActive
                               ? activeClass[status]
-                              : `border-[#ECE3DF] text-[#5F7C84] ${hoverClass[status]}`
+                              : `border-[#ECE3DF] text-[#50676E] ${hoverClass[status]}`
                           }`}
                         >
                           {rsvpLoading === status ? "…" : labels[status]}
@@ -2305,7 +2305,7 @@ export default function CalendarPage() {
             {role === "admin" && viewingStaff && (
               <div className="pt-3 border-t border-[#ECE3DF] space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">
+                  <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide">
                     Work hours (TOIL)
                   </p>
                   {overrideExisting !== null && (
@@ -2331,9 +2331,9 @@ export default function CalendarPage() {
                     value={overrideHours}
                     onChange={(e) => setOverrideHours(e.target.value)}
                     placeholder="e.g. 8 or 0"
-                    className="flex-1 px-3 py-1.5 text-sm rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                    className="flex-1 px-3 py-1.5 text-sm rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
-                  <span className="text-xs text-[#9BADB7] self-center">hrs</span>
+                  <span className="text-xs text-[#50676E] self-center">hrs</span>
                   <button
                     onClick={handleSaveOverride}
                     disabled={overrideSaving || overrideHours === ""}
@@ -2347,7 +2347,7 @@ export default function CalendarPage() {
                   value={overrideNote}
                   onChange={(e) => setOverrideNote(e.target.value)}
                   placeholder="Note (optional)"
-                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                 />
               </div>
             )}
@@ -2365,7 +2365,7 @@ export default function CalendarPage() {
 
             <button
               onClick={() => setTooltip(null)}
-              className="w-full px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+              className="w-full px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
             >
               Close
             </button>

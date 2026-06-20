@@ -22,7 +22,7 @@ export default function BottomNav() {
             href={tab.href}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1 py-2 min-h-[56px] transition-colors",
-              isActive ? "text-[#223149]" : "text-[#9BADB7]"
+              isActive ? "text-[#223149]" : "text-[#50676E]"
             )}
           >
             <Icon className={cn("w-5 h-5", isActive && "stroke-[2.5px]")} />
@@ -38,7 +38,7 @@ export default function BottomNav() {
       {/* More tab — fires a custom event that TopBar listens to */}
       <button
         onClick={() => window.dispatchEvent(new Event("openMobileMenu"))}
-        className="flex-1 flex flex-col items-center justify-center gap-1 py-2 min-h-[56px] text-[#9BADB7] transition-colors active:text-[#223149] cursor-pointer"
+        className="flex-1 flex flex-col items-center justify-center gap-1 py-2 min-h-[56px] text-[#50676E] transition-colors active:text-[#223149] cursor-pointer"
         style={{ touchAction: "manipulation" }}
       >
         <MoreHorizontal className="w-5 h-5" />

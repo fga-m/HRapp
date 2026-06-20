@@ -122,7 +122,7 @@ export default function MeetingDetailPage() {
         </div>
         <button
           onClick={fetchNote}
-          className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+          className="px-4 py-2 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
         >
           Try again
         </button>
@@ -130,7 +130,7 @@ export default function MeetingDetailPage() {
     );
   }
 
-  if (!data?.note) return <div className="text-[#9BADB7]">Meeting note not found.</div>;
+  if (!data?.note) return <div className="text-[#50676E]">Meeting note not found.</div>;
 
   const { note, attendees, myAck, suggestions, canManage } = data;
   const isShared = note.is_shared_with_staff;
@@ -149,7 +149,7 @@ export default function MeetingDetailPage() {
               {TYPE_LABELS[note.meeting_type] || note.meeting_type}
             </span>
           </div>
-          <p className="text-[#5F7C84] mt-1 text-sm">
+          <p className="text-[#50676E] mt-1 text-sm">
             {format(new Date(note.meeting_date), "EEEE, d MMMM yyyy")}
           </p>
         </div>
@@ -201,7 +201,7 @@ export default function MeetingDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-[#223149]">Open in Google Drive</p>
-                  <p className="text-xs text-[#9BADB7]">View the full meeting document</p>
+                  <p className="text-xs text-[#50676E]">View the full meeting document</p>
                 </div>
               </a>
             </div>
@@ -245,7 +245,7 @@ export default function MeetingDetailPage() {
               {!showSuggest ? (
                 <button
                   onClick={() => setShowSuggest(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                 >
                   <MessageSquare className="w-4 h-4" />
                   Suggest Changes
@@ -257,7 +257,7 @@ export default function MeetingDetailPage() {
                     value={suggestion}
                     onChange={(e) => setSuggestion(e.target.value)}
                     placeholder="Describe what you'd like amended or clarified..."
-                    className="w-full px-4 py-3 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
                   />
                   <div className="flex gap-2">
                     <button
@@ -270,7 +270,7 @@ export default function MeetingDetailPage() {
                     </button>
                     <button
                       onClick={() => { setShowSuggest(false); setSuggestion(""); }}
-                      className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                      className="px-4 py-2 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                     >
                       Cancel
                     </button>
@@ -286,7 +286,7 @@ export default function MeetingDetailPage() {
           {/* Attendees */}
           <div className="bg-white rounded-2xl shadow-sm p-5">
             <div className="flex items-center gap-2 mb-3">
-              <Users className="w-4 h-4 text-[#9BADB7]" />
+              <Users className="w-4 h-4 text-[#50676E]" />
               <p className="text-sm font-semibold text-[#223149]">Attendees</p>
             </div>
             <div className="space-y-2">
@@ -303,7 +303,7 @@ export default function MeetingDetailPage() {
                 </div>
               ))}
               {attendees.length === 0 && (
-                <p className="text-xs text-[#9BADB7]">No attendees listed</p>
+                <p className="text-xs text-[#50676E]">No attendees listed</p>
               )}
             </div>
           </div>
@@ -312,7 +312,7 @@ export default function MeetingDetailPage() {
           {canManage && suggestions.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <div className="flex items-center gap-2 mb-3">
-                <MessageSquare className="w-4 h-4 text-[#9BADB7]" />
+                <MessageSquare className="w-4 h-4 text-[#50676E]" />
                 <p className="text-sm font-semibold text-[#223149]">Suggested Changes</p>
               </div>
               <div className="space-y-3">
@@ -331,11 +331,11 @@ export default function MeetingDetailPage() {
 
           {/* Meta */}
           <div className="bg-white rounded-2xl shadow-sm p-5">
-            <p className="text-xs text-[#9BADB7]">
+            <p className="text-xs text-[#50676E]">
               Created {format(new Date(note.created_at), "d MMM yyyy")}
             </p>
             {note.creator?.full_name && !canManage && (
-              <p className="text-xs text-[#9BADB7] mt-1">by {note.creator.full_name}</p>
+              <p className="text-xs text-[#50676E] mt-1">by {note.creator.full_name}</p>
             )}
           </div>
         </div>

@@ -90,7 +90,7 @@ export default function NewMeetingPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">New Meeting Note</h1>
-          <p className="text-[#5F7C84] mt-1 text-sm">Saved privately to your Google Drive</p>
+          <p className="text-[#50676E] mt-1 text-sm">Saved privately to your Google Drive</p>
         </div>
       </div>
 
@@ -100,7 +100,7 @@ export default function NewMeetingPage() {
         )}
 
         {loading && (
-          <div className="p-4 bg-[#F8F6F4] border border-[#ECE3DF] rounded-xl text-sm text-[#5F7C84] text-center">
+          <div className="p-4 bg-[#F8F6F4] border border-[#ECE3DF] rounded-xl text-sm text-[#50676E] text-center">
             ⏳ Creating Google Doc in your Drive...
           </div>
         )}
@@ -118,7 +118,7 @@ export default function NewMeetingPage() {
                   className={`px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
                     form.meeting_type === type.value
                       ? "bg-[#223149] text-white border-[#223149]"
-                      : "bg-white text-[#5F7C84] border-[#ECE3DF] hover:border-[#223149]"
+                      : "bg-white text-[#50676E] border-[#ECE3DF] hover:border-[#223149]"
                   }`}
                 >
                   {type.label}
@@ -132,7 +132,7 @@ export default function NewMeetingPage() {
             <div>
               <label className="block text-sm font-semibold text-[#223149] mb-2">
                 Start from a template{" "}
-                <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+                <span className="text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {templates.map((t) => (
@@ -143,7 +143,7 @@ export default function NewMeetingPage() {
                     className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
                       form.content === t.content
                         ? "bg-[#223149] text-white border-[#223149]"
-                        : "border-[#ECE3DF] text-[#5F7C84] hover:border-[#223149] hover:text-[#223149]"
+                        : "border-[#ECE3DF] text-[#50676E] hover:border-[#223149] hover:text-[#223149]"
                     }`}
                   >
                     <FileText className="w-3.5 h-3.5" />
@@ -154,7 +154,7 @@ export default function NewMeetingPage() {
                   <button
                     type="button"
                     onClick={() => setForm((f) => ({ ...f, content: "" }))}
-                    className="px-3 py-2 rounded-xl border border-[#ECE3DF] text-xs text-[#9BADB7] hover:border-rose-300 hover:text-rose-500 transition-colors"
+                    className="px-3 py-2 rounded-xl border border-[#ECE3DF] text-xs text-[#50676E] hover:border-rose-300 hover:text-rose-500 transition-colors"
                   >
                     Clear
                   </button>
@@ -183,7 +183,7 @@ export default function NewMeetingPage() {
               required
               value={form.title}
               onChange={(e) => { setTitleTouched(true); setForm({ ...form, title: e.target.value }); }}
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
@@ -218,7 +218,7 @@ export default function NewMeetingPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-[#223149]">{s.full_name}</p>
-                    <p className="text-xs text-[#9BADB7]">{s.position || s.department || s.email}</p>
+                    <p className="text-xs text-[#50676E]">{s.position || s.department || s.email}</p>
                   </div>
                 </button>
               ))}
@@ -233,10 +233,10 @@ export default function NewMeetingPage() {
               value={form.content}
               onChange={(e) => setForm({ ...form, content: e.target.value })}
               placeholder="What was discussed? Key decisions, action items, follow-ups..."
-              className="w-full px-4 py-3 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none font-mono text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none font-mono text-sm"
             />
-            <p className="text-xs text-[#9BADB7] mt-1">Tip: use ## for headings and - for bullet points.</p>
-            <p className="text-xs text-[#9BADB7] mt-1">This will be saved as a Google Doc in your Drive</p>
+            <p className="text-xs text-[#50676E] mt-1">Tip: use ## for headings and - for bullet points.</p>
+            <p className="text-xs text-[#50676E] mt-1">This will be saved as a Google Doc in your Drive</p>
           </div>
         </div>
 
@@ -250,7 +250,7 @@ export default function NewMeetingPage() {
           </button>
           <Link
             href="/dashboard/meetings"
-            className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            className="px-6 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
           >
             Cancel
           </Link>

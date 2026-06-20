@@ -126,7 +126,7 @@ export default function TopBar({
                 <p className="font-bold text-[#223149] truncate" style={{ fontFamily: "var(--font-league-spartan)" }}>
                   {userName}
                 </p>
-                <p className="text-sm text-[#9BADB7] truncate">{userEmail}</p>
+                <p className="text-sm text-[#50676E] truncate">{userEmail}</p>
                 {roleBadge && (
                   <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#223149]/10 text-[#223149]">
                     {roleBadge}
@@ -134,7 +134,7 @@ export default function TopBar({
                 )}
               </div>
               <button onClick={() => setShowProfile(false)} className="p-2 rounded-xl hover:bg-[#F8F6F4] flex-shrink-0">
-                <X className="w-5 h-5 text-[#5F7C84]" />
+                <X className="w-5 h-5 text-[#50676E]" />
               </button>
             </div>
             {/* Actions */}
@@ -143,7 +143,7 @@ export default function TopBar({
                 <Link
                   href={`/dashboard/staff/${userId}`}
                   onClick={() => setShowProfile(false)}
-                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
                 >
                   <User className="w-5 h-5" />
                   <span className="font-medium">View my profile</span>
@@ -171,7 +171,7 @@ export default function TopBar({
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
               <p className="font-bold text-[#223149]" style={{ fontFamily: "var(--font-league-spartan)" }}>Menu</p>
               <button onClick={() => setShowMore(false)} className="p-2 rounded-xl hover:bg-[#F8F6F4]">
-                <X className="w-5 h-5 text-[#5F7C84]" />
+                <X className="w-5 h-5 text-[#50676E]" />
               </button>
             </div>
             <div className="px-4 py-3 space-y-1">
@@ -185,7 +185,7 @@ export default function TopBar({
                       href={item.href}
                       onClick={() => setShowMore(false)}
                       className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-colors ${
-                        isActive ? "bg-[#223149]/5 text-[#223149]" : "text-[#5F7C84] hover:bg-[#F8F6F4]"
+                        isActive ? "bg-[#223149]/5 text-[#223149]" : "text-[#50676E] hover:bg-[#F8F6F4]"
                       }`}
                     >
                       <Icon className="w-5 h-5" />

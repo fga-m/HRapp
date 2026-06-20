@@ -157,7 +157,7 @@ export default function ContractsPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Contracts</h1>
           <PageSubtitle pageKey="contracts" defaultDescription="View, sign, and manage employment contracts." />
-          <p className="text-[#5F7C84] mt-1 text-sm">
+          <p className="text-[#50676E] mt-1 text-sm">
             {role === "admin"
               ? `${totalGroupContracts} ${totalGroupContracts === 1 ? "group" : "groups"}${totalStandalone > 0 ? ` · ${totalStandalone} standalone` : ""}`
               : `${staffContracts.length} assigned to you`}
@@ -167,14 +167,14 @@ export default function ContractsPage() {
           <div className="flex items-center gap-2 flex-shrink-0">
             <Link
               href="/dashboard/contracts/templates"
-              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               <FileText className="w-4 h-4" />
               Templates
             </Link>
             <Link
               href="/dashboard/contracts/generate"
-              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               <Wand2 className="w-4 h-4" />
               Generate
@@ -195,8 +195,8 @@ export default function ContractsPage() {
         <>
           {groups.length === 0 && standalone.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-              <FileSignature className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
-              <p className="text-[#5F7C84] font-medium">No contracts yet</p>
+              <FileSignature className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
+              <p className="text-[#50676E] font-medium">No contracts yet</p>
               <button
                 onClick={() => openUploadModal()}
                 className="text-sm text-[#223149] underline mt-1 inline-block"
@@ -218,7 +218,7 @@ export default function ContractsPage() {
               {/* Standalone contracts */}
               {standalone.length > 0 && (
                 <div>
-                  <h2 className="text-sm font-semibold text-[#9BADB7] uppercase tracking-wide mb-3">
+                  <h2 className="text-sm font-semibold text-[#50676E] uppercase tracking-wide mb-3">
                     Standalone Contracts
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -238,8 +238,8 @@ export default function ContractsPage() {
         <>
           {staffContracts.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-              <FileSignature className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
-              <p className="text-[#5F7C84] font-medium">No contracts assigned to you</p>
+              <FileSignature className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
+              <p className="text-[#50676E] font-medium">No contracts assigned to you</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -261,7 +261,7 @@ export default function ContractsPage() {
                 onClick={closeUploadModal}
                 className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
               >
-                <X className="w-5 h-5 text-[#5F7C84]" />
+                <X className="w-5 h-5 text-[#50676E]" />
               </button>
             </div>
 
@@ -273,7 +273,7 @@ export default function ContractsPage() {
                 className={`flex-1 py-2 text-sm font-semibold rounded-xl border transition-colors ${
                   uploadMode === "new"
                     ? "bg-[#223149] text-white border-[#223149]"
-                    : "text-[#5F7C84] border-[#ECE3DF] hover:bg-[#F8F6F4]"
+                    : "text-[#50676E] border-[#ECE3DF] hover:bg-[#F8F6F4]"
                 }`}
               >
                 New Contract
@@ -285,7 +285,7 @@ export default function ContractsPage() {
                   className={`flex-1 py-2 text-sm font-semibold rounded-xl border transition-colors ${
                     uploadMode === "version"
                       ? "bg-[#223149] text-white border-[#223149]"
-                      : "text-[#5F7C84] border-[#ECE3DF] hover:bg-[#F8F6F4]"
+                      : "text-[#50676E] border-[#ECE3DF] hover:bg-[#F8F6F4]"
                   }`}
                 >
                   New Version of Existing
@@ -306,20 +306,20 @@ export default function ContractsPage() {
                       onChange={(e) => setTitle(e.target.value)}
                       required
                       placeholder="e.g. Employment Agreement 2025"
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                       Description
-                      <span className="ml-1 text-xs font-normal text-[#9BADB7]">(optional)</span>
+                      <span className="ml-1 text-xs font-normal text-[#50676E]">(optional)</span>
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
                       placeholder="Brief description of this contract…"
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
                     />
                   </div>
                 </>
@@ -341,7 +341,7 @@ export default function ContractsPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-[#9BADB7] mt-1.5">
+                  <p className="text-xs text-[#50676E] mt-1.5">
                     A new version will be created under this contract group.
                   </p>
                 </div>
@@ -359,12 +359,12 @@ export default function ContractsPage() {
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                   Assign to <span className="text-red-400">*</span>
                   {assignedIds.size > 0 && (
-                    <span className="ml-2 text-xs font-normal text-[#5F7C84]">{assignedIds.size} selected</span>
+                    <span className="ml-2 text-xs font-normal text-[#50676E]">{assignedIds.size} selected</span>
                   )}
                 </label>
 
                 {staffLoading ? (
-                  <div className="flex items-center gap-2 py-3 text-sm text-[#9BADB7]">
+                  <div className="flex items-center gap-2 py-3 text-sm text-[#50676E]">
                     <div className="w-4 h-4 border-2 border-[#9BADB7] border-t-transparent rounded-full animate-spin" />
                     Loading staff…
                   </div>
@@ -372,13 +372,13 @@ export default function ContractsPage() {
                   <div className="border border-[#ECE3DF] rounded-xl overflow-hidden">
                     {/* Search */}
                     <div className="flex items-center gap-2 px-3 py-2 border-b border-[#ECE3DF]">
-                      <Search className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" />
+                      <Search className="w-3.5 h-3.5 text-[#50676E] flex-shrink-0" />
                       <input
                         type="text"
                         value={staffSearch}
                         onChange={(e) => setStaffSearch(e.target.value)}
                         placeholder="Search staff…"
-                        className="flex-1 text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none bg-transparent"
+                        className="flex-1 text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none bg-transparent"
                       />
                     </div>
                     {/* Staff list */}
@@ -401,7 +401,7 @@ export default function ContractsPage() {
                               <div className="w-7 h-7 rounded-full bg-[#ECE3DF] flex items-center justify-center flex-shrink-0">
                                 {s.avatar_url
                                   ? <img src={s.avatar_url} alt={s.full_name} className="w-7 h-7 rounded-full object-cover" />
-                                  : <span className="text-[10px] font-bold text-[#5F7C84]">{initials}</span>
+                                  : <span className="text-[10px] font-bold text-[#50676E]">{initials}</span>
                                 }
                               </div>
                               <span className="flex-1 text-sm font-medium text-[#223149] truncate">{s.full_name}</span>
@@ -415,14 +415,14 @@ export default function ContractsPage() {
                         s.full_name.toLowerCase().includes(staffSearch.toLowerCase()) ||
                         s.email.toLowerCase().includes(staffSearch.toLowerCase())
                       ).length === 0 && (
-                        <p className="text-sm text-[#9BADB7] px-3 py-3">No staff found.</p>
+                        <p className="text-sm text-[#50676E] px-3 py-3">No staff found.</p>
                       )}
                     </div>
                     {/* Select all / none */}
                     <div className="flex gap-3 px-3 py-2 border-t border-[#ECE3DF]">
-                      <button type="button" onClick={() => setAssignedIds(new Set(allStaff.map((s: any) => s.id)))} className="text-xs text-[#5F7C84] hover:text-[#223149] transition-colors">Select all</button>
+                      <button type="button" onClick={() => setAssignedIds(new Set(allStaff.map((s: any) => s.id)))} className="text-xs text-[#50676E] hover:text-[#223149] transition-colors">Select all</button>
                       <span className="text-[#ECE3DF]">·</span>
-                      <button type="button" onClick={() => setAssignedIds(new Set())} className="text-xs text-[#5F7C84] hover:text-[#223149] transition-colors">Clear</button>
+                      <button type="button" onClick={() => setAssignedIds(new Set())} className="text-xs text-[#50676E] hover:text-[#223149] transition-colors">Clear</button>
                     </div>
                   </div>
                 )}
@@ -459,7 +459,7 @@ export default function ContractsPage() {
                 <button
                   type="button"
                   onClick={closeUploadModal}
-                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                 >
                   Cancel
                 </button>
@@ -500,21 +500,21 @@ function AdminGroupCard({ group }: { group: any }) {
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-[#223149] group-hover:underline leading-snug">{group.title}</p>
           {group.description && (
-            <p className="text-xs text-[#9BADB7] mt-1 line-clamp-2">{group.description}</p>
+            <p className="text-xs text-[#50676E] mt-1 line-clamp-2">{group.description}</p>
           )}
           {current && (
-            <p className="text-xs text-[#9BADB7] mt-2">
+            <p className="text-xs text-[#50676E] mt-2">
               Updated {format(new Date(current.created_at), "d MMM yyyy")}
             </p>
           )}
         </div>
         {current && (
           <div className="flex items-center gap-3 pt-2 border-t border-[#ECE3DF]">
-            <div className="flex items-center gap-1.5 text-xs text-[#5F7C84]">
+            <div className="flex items-center gap-1.5 text-xs text-[#50676E]">
               <CheckCircle className="w-3.5 h-3.5 text-green-500" />
               {current.signed_count} signed
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-[#5F7C84]">
+            <div className="flex items-center gap-1.5 text-xs text-[#50676E]">
               <Clock className="w-3.5 h-3.5 text-amber-500" />
               {current.assigned_count} assigned
             </div>
@@ -527,7 +527,7 @@ function AdminGroupCard({ group }: { group: any }) {
         <div className="border-t border-[#ECE3DF]">
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="w-full flex items-center justify-between px-5 py-2.5 text-xs font-semibold text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+            className="w-full flex items-center justify-between px-5 py-2.5 text-xs font-semibold text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
           >
             <span>{expanded ? "Hide" : "Show"} History ({group.versions.length} versions)</span>
             {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -544,15 +544,15 @@ function AdminGroupCard({ group }: { group: any }) {
                     <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
                       v.id === current?.id
                         ? "bg-[#223149] text-white"
-                        : "bg-[#ECE3DF] text-[#5F7C84]"
+                        : "bg-[#ECE3DF] text-[#50676E]"
                     }`}>
                       v{v.version}
                     </span>
-                    <span className="text-xs text-[#5F7C84] group-hover:underline">
+                    <span className="text-xs text-[#50676E] group-hover:underline">
                       {format(new Date(v.created_at), "d MMM yyyy")}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[#9BADB7]">
+                  <div className="flex items-center gap-2 text-xs text-[#50676E]">
                     <span>{v.signed_count}/{v.assigned_count} signed</span>
                   </div>
                 </Link>
@@ -582,19 +582,19 @@ function AdminContractCard({ contract }: { contract: any }) {
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-[#223149] group-hover:underline leading-snug">{contract.title}</p>
         {contract.description && (
-          <p className="text-xs text-[#9BADB7] mt-1 line-clamp-2">{contract.description}</p>
+          <p className="text-xs text-[#50676E] mt-1 line-clamp-2">{contract.description}</p>
         )}
-        <p className="text-xs text-[#9BADB7] mt-2">
+        <p className="text-xs text-[#50676E] mt-2">
           Added {format(new Date(contract.created_at), "d MMM yyyy")}
           {contract.created_by_staff?.full_name && ` · ${contract.created_by_staff.full_name}`}
         </p>
       </div>
       <div className="flex items-center gap-3 pt-2 border-t border-[#ECE3DF]">
-        <div className="flex items-center gap-1.5 text-xs text-[#5F7C84]">
+        <div className="flex items-center gap-1.5 text-xs text-[#50676E]">
           <CheckCircle className="w-3.5 h-3.5 text-green-500" />
           {contract.signed_count} signed
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-[#5F7C84]">
+        <div className="flex items-center gap-1.5 text-xs text-[#50676E]">
           <Clock className="w-3.5 h-3.5 text-amber-500" />
           {contract.assigned_count} assigned
         </div>
@@ -629,7 +629,7 @@ function StaffContractCard({ contract }: { contract: any }) {
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-[#223149] group-hover:underline leading-snug">{contract.title}</p>
         {contract.description && (
-          <p className="text-xs text-[#9BADB7] mt-1 line-clamp-2">{contract.description}</p>
+          <p className="text-xs text-[#50676E] mt-1 line-clamp-2">{contract.description}</p>
         )}
         {signed && contract.my_signature?.signed_at && (
           <p className="text-xs text-green-600 mt-2">

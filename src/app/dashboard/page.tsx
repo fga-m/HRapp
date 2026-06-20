@@ -211,7 +211,7 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold text-[#223149]">
           Welcome back, {firstName} 👋
         </h1>
-        <p className="text-[#5F7C84] mt-1">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
+        <p className="text-[#50676E] mt-1">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
         <PageSubtitle pageKey="dashboard" defaultDescription="Your overview of today's alerts, pending actions, and quick links." />
       </div>
 
@@ -322,7 +322,7 @@ export default async function DashboardPage() {
                 <p className={`text-2xl font-bold ${stat.warn ? "text-amber-600" : "text-[#223149]"}`}>
                   {stat.value}
                 </p>
-                <p className="text-xs text-[#5F7C84] leading-tight">{stat.label}</p>
+                <p className="text-xs text-[#50676E] leading-tight">{stat.label}</p>
               </div>
             </Link>
           );
@@ -345,10 +345,10 @@ export default async function DashboardPage() {
                   <Icon className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="font-semibold text-[#223149] group-hover:text-[#5F7C84] transition-colors">
+                  <p className="font-semibold text-[#223149] group-hover:text-[#50676E] transition-colors">
                     {link.label}
                   </p>
-                  <p className="text-xs text-[#9BADB7]">{link.description}</p>
+                  <p className="text-xs text-[#50676E]">{link.description}</p>
                 </div>
               </Link>
             );

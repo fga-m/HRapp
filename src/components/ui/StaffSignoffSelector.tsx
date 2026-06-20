@@ -55,11 +55,11 @@ export default function StaffSignoffSelector({ value, onChange, tall = false }: 
           }`}
         >
           <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${mode === "all" ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
-            <Users className={`w-3.5 h-3.5 ${mode === "all" ? "text-white" : "text-[#9BADB7]"}`} />
+            <Users className={`w-3.5 h-3.5 ${mode === "all" ? "text-white" : "text-[#50676E]"}`} />
           </div>
           <div>
             <p className="text-sm font-semibold text-[#223149]">All Staff</p>
-            <p className="text-xs text-[#9BADB7]">Everyone signs</p>
+            <p className="text-xs text-[#50676E]">Everyone signs</p>
           </div>
         </button>
         <button
@@ -72,11 +72,11 @@ export default function StaffSignoffSelector({ value, onChange, tall = false }: 
           }`}
         >
           <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${mode === "specific" ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
-            <Check className={`w-3.5 h-3.5 ${mode === "specific" ? "text-white" : "text-[#9BADB7]"}`} />
+            <Check className={`w-3.5 h-3.5 ${mode === "specific" ? "text-white" : "text-[#50676E]"}`} />
           </div>
           <div>
             <p className="text-sm font-semibold text-[#223149]">Specific Staff</p>
-            <p className="text-xs text-[#9BADB7]">Choose who signs</p>
+            <p className="text-xs text-[#50676E]">Choose who signs</p>
           </div>
         </button>
       </div>
@@ -87,25 +87,25 @@ export default function StaffSignoffSelector({ value, onChange, tall = false }: 
           {/* Search + select all */}
           <div className="p-3 border-b border-[#ECE3DF] space-y-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9BADB7]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#50676E]" />
               <input
                 type="text"
                 placeholder="Search staff..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:border-[#223149] transition-colors"
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:border-[#223149] transition-colors"
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#9BADB7]">
+              <span className="text-xs text-[#50676E]">
                 {value?.length || 0} of {staff.length} selected
               </span>
               <div className="flex gap-2">
                 <button type="button" onClick={selectAll} className="text-xs font-semibold text-[#223149] hover:underline">
                   Select all
                 </button>
-                <span className="text-[#9BADB7]">·</span>
-                <button type="button" onClick={clearAll} className="text-xs font-semibold text-[#5F7C84] hover:underline">
+                <span className="text-[#50676E]">·</span>
+                <button type="button" onClick={clearAll} className="text-xs font-semibold text-[#50676E] hover:underline">
                   Clear
                 </button>
               </div>
@@ -137,13 +137,13 @@ export default function StaffSignoffSelector({ value, onChange, tall = false }: 
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[#223149] truncate">{s.full_name}</p>
-                    <p className="text-xs text-[#9BADB7] truncate">{s.position || s.department || s.email}</p>
+                    <p className="text-xs text-[#50676E] truncate">{s.position || s.department || s.email}</p>
                   </div>
                 </button>
               );
             })}
             {filtered.length === 0 && (
-              <p className="px-4 py-6 text-sm text-[#9BADB7] text-center">No staff found</p>
+              <p className="px-4 py-6 text-sm text-[#50676E] text-center">No staff found</p>
             )}
           </div>
         </div>

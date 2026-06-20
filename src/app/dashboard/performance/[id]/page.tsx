@@ -27,7 +27,7 @@ function scoreBadgeClass(score: number) {
 }
 
 function scoreButtonClass(score: number, selected: boolean) {
-  if (!selected) return "bg-[#ECE3DF] text-[#9BADB7]";
+  if (!selected) return "bg-[#ECE3DF] text-[#50676E]";
   const map: Record<number, string> = {
     1: "bg-red-600/10 text-red-600 ring-1 ring-red-600",
     2: "bg-amber-500/10 text-amber-600 ring-1 ring-amber-500",
@@ -39,7 +39,7 @@ function scoreButtonClass(score: number, selected: boolean) {
 }
 
 function diffClass(diff: number) {
-  if (diff === 0) return "text-[#9BADB7]";
+  if (diff === 0) return "text-[#50676E]";
   if (diff > 0) return "text-green-600";
   return "text-amber-600";
 }
@@ -81,7 +81,7 @@ function EvalForm({
 
   return (
     <div className="space-y-6">
-      <p className="text-xs text-[#5F7C84] bg-[#F8F6F4] border border-[#ECE3DF] rounded-xl px-3 py-2">
+      <p className="text-xs text-[#50676E] bg-[#F8F6F4] border border-[#ECE3DF] rounded-xl px-3 py-2">
         Rate each area from 1 ({SCORE_LABELS[1]}) to 5 ({SCORE_LABELS[5]}). 3 ({SCORE_LABELS[3]}) is the expected standard.
       </p>
       {CRITERIA.map((criterion) => {
@@ -103,14 +103,14 @@ function EvalForm({
               ))}
             </div>
             {selected > 0 && (
-              <p className="text-xs text-[#5F7C84]">{SCORE_LABELS[selected]}</p>
+              <p className="text-xs text-[#50676E]">{SCORE_LABELS[selected]}</p>
             )}
             <textarea
               rows={2}
               value={data.comments[criterion.key] ?? ""}
               onChange={(e) => setComment(criterion.key, e.target.value)}
               placeholder="Comments…"
-              className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+              className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
             />
           </div>
         );
@@ -126,7 +126,7 @@ function EvalForm({
           value={data.overall}
           onChange={(e) => setData((d) => ({ ...d, overall: e.target.value }))}
           placeholder="Overall comments…"
-          className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+          className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
         />
       </div>
 
@@ -140,7 +140,7 @@ function EvalForm({
           value={data.goals}
           onChange={(e) => setData((d) => ({ ...d, goals: e.target.value }))}
           placeholder="Goals for next period…"
-          className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+          className="w-full px-3 py-2.5 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
         />
       </div>
 
@@ -150,7 +150,7 @@ function EvalForm({
             type="button"
             onClick={() => onSave(data)}
             disabled={saving}
-            className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
           >
             {saving ? "Saving…" : "Save draft"}
           </button>
@@ -163,7 +163,7 @@ function EvalForm({
             {submitting ? "Submitting…" : "Submit"}
           </button>
         </div>
-        <p className="text-xs text-[#9BADB7] mt-2">
+        <p className="text-xs text-[#50676E] mt-2">
           Submitting locks your self-evaluation — you won&apos;t be able to edit it.
         </p>
       </div>
@@ -181,7 +181,7 @@ function EvalReadOnly({ data }: { data: EvaluationData }) {
         const comment = data.comments?.[criterion.key];
         return (
           <div key={criterion.key}>
-            <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1">
+            <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-1">
               {criterion.label}
             </p>
             {score ? (
@@ -191,13 +191,13 @@ function EvalReadOnly({ data }: { data: EvaluationData }) {
                 >
                   {score}
                 </span>
-                <span className="text-sm text-[#5F7C84]">{SCORE_LABELS[score]}</span>
+                <span className="text-sm text-[#50676E]">{SCORE_LABELS[score]}</span>
               </div>
             ) : (
-              <span className="text-sm text-[#9BADB7] italic">No score</span>
+              <span className="text-sm text-[#50676E] italic">No score</span>
             )}
             {comment && (
-              <p className="text-sm text-[#5F7C84] mt-1 whitespace-pre-wrap">{comment}</p>
+              <p className="text-sm text-[#50676E] mt-1 whitespace-pre-wrap">{comment}</p>
             )}
           </div>
         );
@@ -205,18 +205,18 @@ function EvalReadOnly({ data }: { data: EvaluationData }) {
 
       {data.overall && (
         <div>
-          <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1">
+          <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-1">
             Overall Comments
           </p>
-          <p className="text-sm text-[#5F7C84] whitespace-pre-wrap">{data.overall}</p>
+          <p className="text-sm text-[#50676E] whitespace-pre-wrap">{data.overall}</p>
         </div>
       )}
       {data.goals && (
         <div>
-          <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1">
+          <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-1">
             Goals for Next Period
           </p>
-          <p className="text-sm text-[#5F7C84] whitespace-pre-wrap">{data.goals}</p>
+          <p className="text-sm text-[#50676E] whitespace-pre-wrap">{data.goals}</p>
         </div>
       )}
     </div>
@@ -359,7 +359,7 @@ export default function PerformanceDetailPage() {
         </div>
         <button
           onClick={fetchReview}
-          className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+          className="px-4 py-2 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
         >
           Try again
         </button>
@@ -368,7 +368,7 @@ export default function PerformanceDetailPage() {
   }
 
   if (!data?.review) {
-    return <div className="text-[#9BADB7]">Review not found.</div>;
+    return <div className="text-[#50676E]">Review not found.</div>;
   }
 
   const { review, role, callerId } = data;
@@ -417,7 +417,7 @@ export default function PerformanceDetailPage() {
             )}
           </div>
           {isManagerOrAdmin && review.staff && (
-            <p className="text-[#5F7C84] mt-0.5 text-sm">
+            <p className="text-[#50676E] mt-0.5 text-sm">
               {review.staff.full_name}
               {review.staff.position && ` · ${review.staff.position}`}
             </p>
@@ -442,10 +442,10 @@ export default function PerformanceDetailPage() {
         {/* Self Evaluation */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-5">
-            <TrendingUp className="w-4 h-4 text-[#9BADB7]" />
+            <TrendingUp className="w-4 h-4 text-[#50676E]" />
             <h2 className="text-base font-bold text-[#223149]">Self Evaluation</h2>
             {selfSubmitted && (
-              <span className="ml-auto text-xs text-[#9BADB7]">
+              <span className="ml-auto text-xs text-[#50676E]">
                 {format(new Date(review.self_submitted_at), "d MMM yyyy")}
               </span>
             )}
@@ -462,7 +462,7 @@ export default function PerformanceDetailPage() {
           ) : selfEval ? (
             <EvalReadOnly data={selfEval} />
           ) : (
-            <div className="flex items-center gap-2 text-sm text-[#9BADB7] py-4">
+            <div className="flex items-center gap-2 text-sm text-[#50676E] py-4">
               <AlertCircle className="w-4 h-4" />
               Not yet submitted
             </div>
@@ -473,10 +473,10 @@ export default function PerformanceDetailPage() {
         {showManagerCard && (
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-2 mb-5">
-              <TrendingUp className="w-4 h-4 text-[#9BADB7]" />
+              <TrendingUp className="w-4 h-4 text-[#50676E]" />
               <h2 className="text-base font-bold text-[#223149]">Manager Evaluation</h2>
               {managerSubmitted && (
-                <span className="ml-auto text-xs text-[#9BADB7]">
+                <span className="ml-auto text-xs text-[#50676E]">
                   {format(new Date(review.manager_submitted_at), "d MMM yyyy")}
                 </span>
               )}
@@ -493,7 +493,7 @@ export default function PerformanceDetailPage() {
             ) : managerEval ? (
               <EvalReadOnly data={managerEval} />
             ) : (
-              <div className="flex items-center gap-2 text-sm text-[#9BADB7] py-4">
+              <div className="flex items-center gap-2 text-sm text-[#50676E] py-4">
                 <AlertCircle className="w-4 h-4" />
                 {isManagerOrAdmin ? "Not yet submitted" : "Manager evaluation not yet available"}
               </div>
@@ -509,7 +509,7 @@ export default function PerformanceDetailPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-[#223149]">Share with staff member</p>
-              <p className="text-xs text-[#9BADB7] mt-0.5">
+              <p className="text-xs text-[#50676E] mt-0.5">
                 {review.is_visible_to_staff
                   ? "Staff can currently see the manager evaluation."
                   : "Staff cannot currently see the manager evaluation."}
@@ -520,7 +520,7 @@ export default function PerformanceDetailPage() {
               disabled={togglingVisibility}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${
                 review.is_visible_to_staff
-                  ? "bg-[#5F7C84]/10 text-[#5F7C84] hover:bg-[#5F7C84]/20"
+                  ? "bg-[#5F7C84]/10 text-[#50676E] hover:bg-[#5F7C84]/20"
                   : "bg-[#223149] text-white hover:bg-[#1a2638]"
               }`}
             >
@@ -542,16 +542,16 @@ export default function PerformanceDetailPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#ECE3DF]">
-                  <th className="sticky left-0 bg-white z-10 text-left py-3 pr-4 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
+                  <th className="sticky left-0 bg-white z-10 text-left py-3 pr-4 font-semibold text-[#50676E] text-xs uppercase tracking-wide">
                     Criterion
                   </th>
-                  <th className="text-center py-3 px-3 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
+                  <th className="text-center py-3 px-3 font-semibold text-[#50676E] text-xs uppercase tracking-wide">
                     Self
                   </th>
-                  <th className="text-center py-3 px-3 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
+                  <th className="text-center py-3 px-3 font-semibold text-[#50676E] text-xs uppercase tracking-wide">
                     Manager
                   </th>
-                  <th className="text-center py-3 pl-3 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
+                  <th className="text-center py-3 pl-3 font-semibold text-[#50676E] text-xs uppercase tracking-wide">
                     Manager − Self
                   </th>
                 </tr>
@@ -570,7 +570,7 @@ export default function PerformanceDetailPage() {
                             {selfScore}
                           </span>
                         ) : (
-                          <span className="text-[#9BADB7]">—</span>
+                          <span className="text-[#50676E]">—</span>
                         )}
                       </td>
                       <td className="py-3 px-3 text-center">
@@ -579,7 +579,7 @@ export default function PerformanceDetailPage() {
                             {managerScore}
                           </span>
                         ) : (
-                          <span className="text-[#9BADB7]">—</span>
+                          <span className="text-[#50676E]">—</span>
                         )}
                       </td>
                       <td className={`py-3 pl-3 text-center font-semibold ${diffClass(diff)}`}>
@@ -593,26 +593,26 @@ export default function PerformanceDetailPage() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-[#9BADB7] mt-3">
+          <p className="text-xs text-[#50676E] mt-3">
             &ldquo;Manager − Self&rdquo; is the difference between the manager&apos;s and your score.
           </p>
 
           {/* Overall & goals comparison */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-2">
+              <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-2">
                 Overall — Self
               </p>
-              <p className="text-sm text-[#5F7C84] whitespace-pre-wrap">
-                {selfEval?.overall || <span className="italic text-[#9BADB7]">None</span>}
+              <p className="text-sm text-[#50676E] whitespace-pre-wrap">
+                {selfEval?.overall || <span className="italic text-[#50676E]">None</span>}
               </p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-2">
+              <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-2">
                 Overall — Manager
               </p>
-              <p className="text-sm text-[#5F7C84] whitespace-pre-wrap">
-                {managerEval?.overall || <span className="italic text-[#9BADB7]">None</span>}
+              <p className="text-sm text-[#50676E] whitespace-pre-wrap">
+                {managerEval?.overall || <span className="italic text-[#50676E]">None</span>}
               </p>
             </div>
           </div>
@@ -623,7 +623,7 @@ export default function PerformanceDetailPage() {
       {hasMultiplePeriods && (
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <h2 className="text-base font-bold text-[#223149] mb-1">Year-on-Year Comparison</h2>
-          <p className="text-xs text-[#9BADB7] mb-5">
+          <p className="text-xs text-[#50676E] mb-5">
             Large number is the self-evaluation score.
             {(isManagerOrAdmin || review.is_visible_to_staff) ? " M = Manager score." : ""}
           </p>
@@ -631,13 +631,13 @@ export default function PerformanceDetailPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#ECE3DF]">
-                  <th className="sticky left-0 bg-white z-10 text-left py-3 pr-4 font-semibold text-[#5F7C84] text-xs uppercase tracking-wide">
+                  <th className="sticky left-0 bg-white z-10 text-left py-3 pr-4 font-semibold text-[#50676E] text-xs uppercase tracking-wide">
                     Criterion
                   </th>
                   {yoyReviews.map((r) => (
                     <th
                       key={r.id}
-                      className={`text-center py-3 px-3 text-xs uppercase tracking-wide font-semibold ${r.id === review.id ? "text-[#223149]" : "text-[#9BADB7]"}`}
+                      className={`text-center py-3 px-3 text-xs uppercase tracking-wide font-semibold ${r.id === review.id ? "text-[#223149]" : "text-[#50676E]"}`}
                     >
                       <Link
                         href={`/dashboard/performance/${r.id}`}
@@ -673,7 +673,7 @@ export default function PerformanceDetailPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-[#9BADB7]">—</span>
+                            <span className="text-[#50676E]">—</span>
                           )}
                         </td>
                       );
@@ -683,7 +683,7 @@ export default function PerformanceDetailPage() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-[#9BADB7] mt-3">
+          <p className="text-xs text-[#50676E] mt-3">
             Tap a period heading to open that review.
           </p>
         </div>

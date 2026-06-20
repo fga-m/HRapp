@@ -161,7 +161,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
         {staffList.length > 1 && (
           <div className="flex items-center gap-1">
             {currentIndex >= 0 && (
-              <span className="text-xs text-[#9BADB7] mr-2 hidden sm:block">
+              <span className="text-xs text-[#50676E] mr-2 hidden sm:block">
                 {currentIndex + 1} / {staffList.length}
               </span>
             )}
@@ -172,7 +172,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
                 title={`Previous: ${prevStaff.full_name}`}
               >
                 <ChevronLeft className="w-4 h-4 text-[#223149]" />
-                <span className="text-xs font-medium text-[#5F7C84] hidden sm:block max-w-[120px] truncate">
+                <span className="text-xs font-medium text-[#50676E] hidden sm:block max-w-[120px] truncate">
                   {prevStaff.full_name}
                 </span>
               </Link>
@@ -187,7 +187,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
                 className="flex items-center gap-1 px-3 py-2 rounded-xl border border-[#ECE3DF] hover:bg-[#ECE3DF] transition-colors group"
                 title={`Next: ${nextStaff.full_name}`}
               >
-                <span className="text-xs font-medium text-[#5F7C84] hidden sm:block max-w-[120px] truncate">
+                <span className="text-xs font-medium text-[#50676E] hidden sm:block max-w-[120px] truncate">
                   {nextStaff.full_name}
                 </span>
                 <ChevronRight className="w-4 h-4 text-[#223149]" />
@@ -228,13 +228,13 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
                 )}
               </div>
               {member.position && (
-                <p className="text-[#5F7C84] text-sm mt-0.5">{member.position}</p>
+                <p className="text-[#50676E] text-sm mt-0.5">{member.position}</p>
               )}
             </div>
           </div>
           <Link
             href={`/dashboard/staff/${member.id}/edit`}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
           >
             <Edit className="w-4 h-4" />
             Edit
@@ -243,35 +243,35 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl">
-            <Mail className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+            <Mail className="w-4 h-4 text-[#50676E] flex-shrink-0" />
             <div>
-              <p className="text-xs text-[#9BADB7] font-medium">Email</p>
+              <p className="text-xs text-[#50676E] font-medium">Email</p>
               <p className="text-sm text-[#223149]">{member.email}</p>
             </div>
           </div>
           {member.department && (
             <div className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl">
-              <Building2 className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+              <Building2 className="w-4 h-4 text-[#50676E] flex-shrink-0" />
               <div>
-                <p className="text-xs text-[#9BADB7] font-medium">Department</p>
+                <p className="text-xs text-[#50676E] font-medium">Department</p>
                 <p className="text-sm text-[#223149]">{member.department}</p>
               </div>
             </div>
           )}
           {member.position && (
             <div className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl">
-              <User className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+              <User className="w-4 h-4 text-[#50676E] flex-shrink-0" />
               <div>
-                <p className="text-xs text-[#9BADB7] font-medium">Position</p>
+                <p className="text-xs text-[#50676E] font-medium">Position</p>
                 <p className="text-sm text-[#223149]">{member.position}</p>
               </div>
             </div>
           )}
           {member.birthdate && (
             <div className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl">
-              <Cake className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+              <Cake className="w-4 h-4 text-[#50676E] flex-shrink-0" />
               <div>
-                <p className="text-xs text-[#9BADB7] font-medium">Date of Birth</p>
+                <p className="text-xs text-[#50676E] font-medium">Date of Birth</p>
                 <p className="text-sm text-[#223149]">
                   {new Date(member.birthdate).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
                 </p>
@@ -280,18 +280,18 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
           )}
           {member.contracted_hours != null && (
             <div className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl">
-              <Clock3 className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+              <Clock3 className="w-4 h-4 text-[#50676E] flex-shrink-0" />
               <div>
-                <p className="text-xs text-[#9BADB7] font-medium">Contracted Hours</p>
+                <p className="text-xs text-[#50676E] font-medium">Contracted Hours</p>
                 <p className="text-sm text-[#223149]">{member.contracted_hours} hrs / week</p>
               </div>
             </div>
           )}
           {member.google_calendar_id && (
             <div className="flex items-center gap-3 p-3 bg-[#F8F6F4] rounded-xl">
-              <Calendar className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+              <Calendar className="w-4 h-4 text-[#50676E] flex-shrink-0" />
               <div>
-                <p className="text-xs text-[#9BADB7] font-medium">Google Calendar</p>
+                <p className="text-xs text-[#50676E] font-medium">Google Calendar</p>
                 <p className="text-sm text-[#223149] truncate">{member.google_calendar_id}</p>
               </div>
             </div>
@@ -306,7 +306,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
                 <div className="w-5 h-5 rounded bg-[#13B5EA]/10 flex items-center justify-center">
                   <span className="text-[#13B5EA] text-[9px] font-bold">X</span>
                 </div>
-                <span className="text-xs font-medium text-[#9BADB7]">Xero Employee</span>
+                <span className="text-xs font-medium text-[#50676E]">Xero Employee</span>
               </div>
               {member.xero_employee_id ? (
                 <span className="text-xs text-[#223149] font-mono bg-[#F8F6F4] px-2 py-0.5 rounded-lg">
@@ -326,7 +326,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
         )}
 
         <div className="mt-4 pt-4 border-t border-[#ECE3DF]">
-          <p className="text-xs text-[#9BADB7]">
+          <p className="text-xs text-[#50676E]">
             Added {new Date(member.created_at).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
@@ -337,7 +337,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <FileSignature className="w-4 h-4 text-[#9BADB7]" />
+              <FileSignature className="w-4 h-4 text-[#50676E]" />
               <h3 className="text-sm font-semibold text-[#223149]">Contracts</h3>
             </div>
             {caller?.role === "admin" && (
@@ -345,7 +345,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
             )}
           </div>
           {contractRows.length === 0 ? (
-            <p className="text-sm text-[#9BADB7]">No contracts assigned</p>
+            <p className="text-sm text-[#50676E]">No contracts assigned</p>
           ) : (
             <div className="space-y-2">
               {contractRows.map((row) => {
@@ -376,7 +376,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
                             Signed
                           </span>
                           {row.current_version.signed_at && (
-                            <span className="text-xs text-[#9BADB7] hidden sm:block">
+                            <span className="text-xs text-[#50676E] hidden sm:block">
                               {new Date(row.current_version.signed_at).toLocaleDateString("en-AU", {
                                 day: "numeric",
                                 month: "short",

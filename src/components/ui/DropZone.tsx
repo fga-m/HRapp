@@ -63,7 +63,7 @@ export default function DropZone({
       >
         {file ? (
           <div className="flex items-center justify-center gap-2 text-[#223149]">
-            <FileText className="w-5 h-5 text-[#5F7C84] flex-shrink-0" />
+            <FileText className="w-5 h-5 text-[#50676E] flex-shrink-0" />
             <span className="text-sm font-medium truncate max-w-xs">{file.name}</span>
           </div>
         ) : dragging ? (
@@ -73,12 +73,12 @@ export default function DropZone({
           </>
         ) : (
           <>
-            <Upload className="w-8 h-8 text-[#9BADB7] mx-auto mb-2" />
-            <p className="text-sm text-[#5F7C84]">
+            <Upload className="w-8 h-8 text-[#50676E] mx-auto mb-2" />
+            <p className="text-sm text-[#50676E]">
               Tap to choose a file
               <span className="hidden md:inline">, or drag &amp; drop</span>
             </p>
-            <p className="text-xs text-[#9BADB7] mt-1">{label}</p>
+            <p className="text-xs text-[#50676E] mt-1">{label}</p>
           </>
         )}
       </div>

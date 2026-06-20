@@ -48,7 +48,7 @@ export default function NewPolicyPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">New Policy</h1>
-          <p className="text-[#5F7C84] mt-1 text-sm">The document itself lives in Google Drive</p>
+          <p className="text-[#50676E] mt-1 text-sm">The document itself lives in Google Drive</p>
         </div>
       </div>
 
@@ -69,7 +69,7 @@ export default function NewPolicyPage() {
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="e.g. Code of Conduct"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
@@ -80,7 +80,7 @@ export default function NewPolicyPage() {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Brief description of what this policy covers..."
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
             />
           </div>
 
@@ -92,16 +92,16 @@ export default function NewPolicyPage() {
                 value={form.content_drive_url}
                 onChange={(e) => setForm({ ...form, content_drive_url: e.target.value })}
                 placeholder="https://docs.google.com/..."
-                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
               {form.content_drive_url && (
                 <a href={form.content_drive_url} target="_blank" rel="noopener noreferrer"
                   className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <ExternalLink className="w-4 h-4 text-[#9BADB7] hover:text-[#223149]" />
+                  <ExternalLink className="w-4 h-4 text-[#50676E] hover:text-[#223149]" />
                 </a>
               )}
             </div>
-            <p className="text-xs text-[#9BADB7] mt-1">Paste the shareable link to the policy document in your Google Drive</p>
+            <p className="text-xs text-[#50676E] mt-1">Paste the shareable link to the policy document in your Google Drive</p>
           </div>
 
           <div>
@@ -114,7 +114,7 @@ export default function NewPolicyPage() {
               onChange={(e) => setForm({ ...form, version: parseFloat(e.target.value) || 1 })}
               className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
-            <p className="text-xs text-[#9BADB7] mt-1">Start at 1, or higher if this is a pre-existing policy</p>
+            <p className="text-xs text-[#50676E] mt-1">Start at 1, or higher if this is a pre-existing policy</p>
           </div>
 
           <div className="flex items-start gap-3 p-4 bg-[#F8F6F4] rounded-xl">
@@ -129,7 +129,7 @@ export default function NewPolicyPage() {
               <label htmlFor="requires_signoff" className="text-sm font-semibold text-[#223149] cursor-pointer">
                 Requires staff sign-off
               </label>
-              <p className="text-xs text-[#9BADB7] mt-0.5">
+              <p className="text-xs text-[#50676E] mt-0.5">
                 {form.requires_signoff ? "Select who needs to sign in the panel →" : "Staff will not be asked to acknowledge this policy"}
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function NewPolicyPage() {
             </button>
             <Link
               href="/dashboard/policies"
-              className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="px-6 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               Cancel
             </Link>

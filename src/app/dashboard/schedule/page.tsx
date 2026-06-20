@@ -100,7 +100,7 @@ function Avatar({ member }: { member: StaffMember }) {
 
 function VarianceBadge({ contracted, scheduled }: { contracted: number; scheduled: number | null }) {
   if (scheduled === null) {
-    return <span className="text-[#9BADB7] text-sm">—</span>;
+    return <span className="text-[#50676E] text-sm">—</span>;
   }
   const diff = Math.round((scheduled - contracted) * 10) / 10;
   if (diff === 0) {
@@ -234,7 +234,7 @@ export default function SchedulePage() {
             <h1 className="text-3xl font-bold text-[#223149]">Hours & TOIL</h1>
             <PageSubtitle pageKey="schedule" defaultDescription="Compare each person's scheduled hours against contracted hours and see TOIL balances." />
             {data && (
-              <p className="text-sm text-[#5F7C84]">
+              <p className="text-sm text-[#50676E]">
                 {formatWeekRange(data.weekStart, data.weekEnd)}
               </p>
             )}
@@ -287,7 +287,7 @@ export default function SchedulePage() {
             </div>
             <div>
               <p className="text-xl font-bold text-[#223149]">{totalContracted} hrs</p>
-              <p className="text-xs text-[#5F7C84]">Total contracted this week</p>
+              <p className="text-xs text-[#50676E]">Total contracted this week</p>
             </div>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
@@ -298,7 +298,7 @@ export default function SchedulePage() {
               <p className="text-xl font-bold text-[#223149]">
                 {Math.round(totalScheduled * 10) / 10} hrs
               </p>
-              <p className="text-xs text-[#5F7C84]">Total scheduled this week</p>
+              <p className="text-xs text-[#50676E]">Total scheduled this week</p>
             </div>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
@@ -307,7 +307,7 @@ export default function SchedulePage() {
             </div>
             <div>
               <p className="text-xl font-bold text-[#223149]">{staffWithToil}</p>
-              <p className="text-xs text-[#5F7C84]">Staff with TOIL banked</p>
+              <p className="text-xs text-[#50676E]">Staff with TOIL banked</p>
             </div>
           </div>
         </div>
@@ -318,7 +318,7 @@ export default function SchedulePage() {
         <div className="flex items-center justify-between gap-3 bg-white rounded-2xl p-4 shadow-sm">
           <div>
             <p className="text-sm font-semibold text-[#223149]">Time Off in Lieu (TOIL) rolling window</p>
-            <p className="text-xs text-[#5F7C84]">
+            <p className="text-xs text-[#50676E]">
               Balances sum each staff member&apos;s weekly difference over the last{" "}
               {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "week" : "weeks"} (the viewed
               week plus the {data.toilWindowWeeks - 1} before it).
@@ -338,7 +338,7 @@ export default function SchedulePage() {
                 </button>
                 <div className="min-w-[72px] text-center">
                   {savingWindow ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-[#5F7C84] mx-auto" />
+                    <Loader2 className="w-4 h-4 animate-spin text-[#50676E] mx-auto" />
                   ) : (
                     <span className="text-base font-bold text-[#223149]">
                       {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "week" : "weeks"}
@@ -355,14 +355,14 @@ export default function SchedulePage() {
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-              <span className="text-[11px] text-[#9BADB7]">includes current week</span>
+              <span className="text-[11px] text-[#50676E]">includes current week</span>
             </div>
           ) : (
             <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
               <span className="text-base font-bold text-[#223149]">
                 {data.toilWindowWeeks} {data.toilWindowWeeks === 1 ? "week" : "weeks"}
               </span>
-              <span className="text-[11px] text-[#9BADB7]">includes current week</span>
+              <span className="text-[11px] text-[#50676E]">includes current week</span>
             </div>
           )}
         </div>
@@ -371,8 +371,8 @@ export default function SchedulePage() {
       {/* Content area */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#5F7C84]" />
-          <p className="text-sm text-[#9BADB7]">Loading schedule…</p>
+          <Loader2 className="w-8 h-8 animate-spin text-[#50676E]" />
+          <p className="text-sm text-[#50676E]">Loading schedule…</p>
         </div>
       ) : error ? (
         <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
@@ -381,8 +381,8 @@ export default function SchedulePage() {
         </div>
       ) : !data || data.staff.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-2">
-          <Users className="w-10 h-10 text-[#9BADB7]" />
-          <p className="text-sm text-[#9BADB7]">No active staff found.</p>
+          <Users className="w-10 h-10 text-[#50676E]" />
+          <p className="text-sm text-[#50676E]">No active staff found.</p>
         </div>
       ) : (
         <>
@@ -391,20 +391,20 @@ export default function SchedulePage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#ECE3DF]">
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-[#50676E] uppercase tracking-wider">
                     Staff
                   </th>
-                  <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
+                  <th className="text-center px-4 py-4 text-xs font-semibold text-[#50676E] uppercase tracking-wider">
                     Contracted
                   </th>
-                  <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
+                  <th className="text-center px-4 py-4 text-xs font-semibold text-[#50676E] uppercase tracking-wider">
                     Scheduled
                   </th>
-                  <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
+                  <th className="text-center px-4 py-4 text-xs font-semibold text-[#50676E] uppercase tracking-wider">
                     Difference
                     <p className="text-[8px] font-normal normal-case tracking-normal mt-0.5 opacity-70">(over / under contracted)</p>
                   </th>
-                  <th className="text-center px-4 py-4 text-xs font-semibold text-[#9BADB7] uppercase tracking-wider">
+                  <th className="text-center px-4 py-4 text-xs font-semibold text-[#50676E] uppercase tracking-wider">
                     TOIL Balance
                     <p className="text-[8px] font-normal normal-case tracking-normal mt-0.5 opacity-70">rolling {data.toilWindowWeeks}-week window</p>
                   </th>
@@ -420,7 +420,7 @@ export default function SchedulePage() {
                         <div>
                           <p className="text-sm font-semibold text-[#223149] group-hover:underline">{member.full_name}</p>
                           {member.position && (
-                            <p className="text-xs text-[#9BADB7]">{member.position}</p>
+                            <p className="text-xs text-[#50676E]">{member.position}</p>
                           )}
                         </div>
                       </Link>
@@ -435,7 +435,7 @@ export default function SchedulePage() {
                     <td className="px-4 py-4 text-center">
                       {member.scheduled_hours === null ? (
                         <span
-                          className="text-[#9BADB7] text-sm"
+                          className="text-[#50676E] text-sm"
                           title={!member.has_calendar ? "No calendar linked" : "Calendar data unavailable"}
                         >
                           —
@@ -477,7 +477,7 @@ export default function SchedulePage() {
                     <div>
                       <p className="text-sm font-semibold text-[#223149] group-hover:underline">{member.full_name}</p>
                       {member.position && (
-                        <p className="text-xs text-[#9BADB7]">{member.position}</p>
+                        <p className="text-xs text-[#50676E]">{member.position}</p>
                       )}
                     </div>
                   </Link>
@@ -485,15 +485,15 @@ export default function SchedulePage() {
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-[#F8F6F4] rounded-xl px-3 py-2">
-                    <p className="text-[#9BADB7] mb-0.5">Contracted</p>
+                    <p className="text-[#50676E] mb-0.5">Contracted</p>
                     <p className="font-semibold text-[#223149]">{member.contracted_hours} hrs</p>
                   </div>
                   <div className="bg-[#F8F6F4] rounded-xl px-3 py-2">
-                    <p className="text-[#9BADB7] mb-0.5">Scheduled</p>
+                    <p className="text-[#50676E] mb-0.5">Scheduled</p>
                     <p className="font-semibold text-[#223149]">
                       {member.scheduled_hours === null ? (
                         <span
-                          className="text-[#9BADB7]"
+                          className="text-[#50676E]"
                           title={!member.has_calendar ? "No calendar linked" : "Unavailable"}
                         >
                           —
@@ -504,14 +504,14 @@ export default function SchedulePage() {
                     </p>
                   </div>
                   <div className="bg-[#F8F6F4] rounded-xl px-3 py-2">
-                    <p className="text-[#9BADB7] mb-1">Difference</p>
+                    <p className="text-[#50676E] mb-1">Difference</p>
                     <VarianceBadge
                       contracted={member.contracted_hours}
                       scheduled={member.scheduled_hours}
                     />
                   </div>
                   <div className="bg-[#F8F6F4] rounded-xl px-3 py-2">
-                    <p className="text-[#9BADB7] mb-1">TOIL Balance</p>
+                    <p className="text-[#50676E] mb-1">TOIL Balance</p>
                     <ToilBadge balance={member.toil_balance} />
                   </div>
                 </div>

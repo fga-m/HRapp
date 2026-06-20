@@ -99,7 +99,7 @@ export default function ImportStaffPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Import from Google</h1>
-          <p className="text-[#5F7C84] mt-1 text-sm">
+          <p className="text-[#50676E] mt-1 text-sm">
             Select staff from your @fgam.org.au Google Workspace
           </p>
         </div>
@@ -139,13 +139,13 @@ export default function ImportStaffPage() {
         <div className="px-6 py-4 border-b border-[#ECE3DF] space-y-3">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BADB7]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#50676E]" />
             <input
               type="text"
               placeholder="Search by name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
           {/* Count + actions */}
@@ -155,7 +155,7 @@ export default function ImportStaffPage() {
                 {loading ? "Loading..." : `${filteredUsers.length} of ${users.length} users`}
               </span>
               {!loading && selected.size > 0 && (
-                <span className="text-xs text-[#9BADB7]">({selected.size} selected)</span>
+                <span className="text-xs text-[#50676E]">({selected.size} selected)</span>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -164,15 +164,15 @@ export default function ImportStaffPage() {
                 className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
                 title="Refresh"
               >
-                <RefreshCw className="w-4 h-4 text-[#9BADB7]" />
+                <RefreshCw className="w-4 h-4 text-[#50676E]" />
               </button>
               {!loading && available.length > 0 && (
                 <>
                   <button onClick={selectAll} className="text-xs font-semibold text-[#223149] hover:underline">
                     Select all
                   </button>
-                  <span className="text-[#9BADB7]">·</span>
-                  <button onClick={clearAll} className="text-xs font-semibold text-[#5F7C84] hover:underline">
+                  <span className="text-[#50676E]">·</span>
+                  <button onClick={clearAll} className="text-xs font-semibold text-[#50676E] hover:underline">
                     Clear
                   </button>
                 </>
@@ -185,10 +185,10 @@ export default function ImportStaffPage() {
         {loading ? (
           <div className="px-6 py-12 text-center">
             <div className="inline-block w-6 h-6 border-2 border-[#223149] border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-sm text-[#9BADB7]">Fetching your Google Workspace users...</p>
+            <p className="text-sm text-[#50676E]">Fetching your Google Workspace users...</p>
           </div>
         ) : filteredUsers.length === 0 && !error ? (
-          <div className="px-6 py-12 text-center text-[#9BADB7] text-sm">
+          <div className="px-6 py-12 text-center text-[#50676E] text-sm">
             {search ? `No users match "${search}"` : "No users found in your Google Workspace."}
           </div>
         ) : (
@@ -238,7 +238,7 @@ export default function ImportStaffPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-[#223149] text-sm truncate">{user.full_name}</p>
-                    <p className="text-xs text-[#9BADB7] truncate">{user.email}</p>
+                    <p className="text-xs text-[#50676E] truncate">{user.email}</p>
                   </div>
 
                   {isImported && (
@@ -264,7 +264,7 @@ export default function ImportStaffPage() {
           </button>
           <Link
             href="/dashboard/staff"
-            className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            className="px-6 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
           >
             Cancel
           </Link>

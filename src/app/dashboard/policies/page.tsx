@@ -39,8 +39,8 @@ export default function PoliciesPage() {
   if (error) {
     return (
       <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-        <AlertCircle className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
-        <p className="text-[#5F7C84] font-medium">{error}</p>
+        <AlertCircle className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
+        <p className="text-[#50676E] font-medium">{error}</p>
       </div>
     );
   }
@@ -55,7 +55,7 @@ export default function PoliciesPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Policies</h1>
           <PageSubtitle pageKey="policies" defaultDescription="Review company policies and sign off where your acknowledgement is required." />
-          <p className="text-[#5F7C84] mt-1 text-sm">
+          <p className="text-[#50676E] mt-1 text-sm">
             {policies.length} active {policies.length === 1 ? "policy" : "policies"}
           </p>
         </div>
@@ -72,8 +72,8 @@ export default function PoliciesPage() {
 
       {policies.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-          <Shield className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
-          <p className="text-[#5F7C84] font-medium">No policies yet</p>
+          <Shield className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
+          <p className="text-[#50676E] font-medium">No policies yet</p>
           {role === "admin" && (
             <Link href="/dashboard/policies/new" className="text-sm text-[#223149] underline mt-1 inline-block">
               Create your first policy
@@ -85,7 +85,7 @@ export default function PoliciesPage() {
           {/* Requires sign-off */}
           {needsSignoff.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-sm font-semibold text-[#5F7C84] uppercase tracking-wide">
+              <h2 className="text-sm font-semibold text-[#50676E] uppercase tracking-wide">
                 Requires Sign-off
               </h2>
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
@@ -99,7 +99,7 @@ export default function PoliciesPage() {
           {/* Reference only */}
           {noSignoff.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-sm font-semibold text-[#5F7C84] uppercase tracking-wide">
+              <h2 className="text-sm font-semibold text-[#50676E] uppercase tracking-wide">
                 Reference Documents
               </h2>
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
@@ -127,27 +127,27 @@ function PolicyRow({ policy, role, staffId }: { policy: any; role: string; staff
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="font-semibold text-[#223149] truncate">{policy.title}</p>
-          <span className="text-xs text-[#9BADB7] flex-shrink-0">v{policy.version}</span>
+          <span className="text-xs text-[#50676E] flex-shrink-0">v{policy.version}</span>
           {!policy.is_active && (
             <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500 flex-shrink-0">Archived</span>
           )}
         </div>
         {policy.description && (
-          <p className="text-xs text-[#9BADB7] truncate mt-0.5">{policy.description}</p>
+          <p className="text-xs text-[#50676E] truncate mt-0.5">{policy.description}</p>
         )}
-        <p className="text-xs text-[#9BADB7] mt-0.5">
+        <p className="text-xs text-[#50676E] mt-0.5">
           Added {format(new Date(policy.created_at), "d MMM yyyy")}
           {policy.created_by_staff?.full_name && ` · by ${policy.created_by_staff.full_name}`}
         </p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         {policy.requires_signoff && (
-          <span className="flex items-center gap-1 text-xs text-[#9BADB7]">
+          <span className="flex items-center gap-1 text-xs text-[#50676E]">
             <Clock className="w-3.5 h-3.5" />
             Needs your signature
           </span>
         )}
-        <ChevronRight className="w-4 h-4 text-[#9BADB7] group-hover:text-[#223149] transition-colors" />
+        <ChevronRight className="w-4 h-4 text-[#50676E] group-hover:text-[#223149] transition-colors" />
       </div>
     </Link>
   );

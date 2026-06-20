@@ -194,8 +194,8 @@ export default function PerformancePage() {
       {/* Reviews list */}
       {reviews.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-          <TrendingUp className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
-          <p className="text-[#5F7C84] font-medium">No performance reviews yet</p>
+          <TrendingUp className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
+          <p className="text-[#50676E] font-medium">No performance reviews yet</p>
           {isManagerOrAdmin && (
             <button
               onClick={openModal}
@@ -234,9 +234,9 @@ export default function PerformancePage() {
                   </span>
                 </div>
                 {isManagerOrAdmin && review.staff?.position && (
-                  <p className="text-xs text-[#9BADB7] mt-0.5">{review.staff.position}</p>
+                  <p className="text-xs text-[#50676E] mt-0.5">{review.staff.position}</p>
                 )}
-                <p className="text-xs text-[#9BADB7] mt-0.5">
+                <p className="text-xs text-[#50676E] mt-0.5">
                   Created {format(new Date(review.created_at), "d MMM yyyy")}
                 </p>
               </div>
@@ -274,19 +274,19 @@ export default function PerformancePage() {
                 {/* Visibility badge (admin/manager) */}
                 {isManagerOrAdmin && (
                   review.is_visible_to_staff ? (
-                    <span className="flex items-center gap-1 text-xs font-medium text-[#5F7C84] bg-[#ECE3DF] px-2 py-1 rounded-lg">
+                    <span className="flex items-center gap-1 text-xs font-medium text-[#50676E] bg-[#ECE3DF] px-2 py-1 rounded-lg">
                       <Eye className="w-3.5 h-3.5" />
                       Shared with staff
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-xs font-medium text-[#9BADB7] bg-[#F8F6F4] px-2 py-1 rounded-lg">
+                    <span className="flex items-center gap-1 text-xs font-medium text-[#50676E] bg-[#F8F6F4] px-2 py-1 rounded-lg">
                       <EyeOff className="w-3.5 h-3.5" />
                       Not shared
                     </span>
                   )
                 )}
 
-                <ChevronRight className="w-4 h-4 text-[#9BADB7] group-hover:text-[#223149] transition-colors" />
+                <ChevronRight className="w-4 h-4 text-[#50676E] group-hover:text-[#223149] transition-colors" />
               </div>
             </Link>
           ))}
@@ -354,7 +354,7 @@ export default function PerformancePage() {
                         className={`px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
                           formPeriod === p
                             ? "bg-[#223149] text-white border-[#223149]"
-                            : "bg-white text-[#5F7C84] border-[#ECE3DF] hover:bg-[#F8F6F4]"
+                            : "bg-white text-[#50676E] border-[#ECE3DF] hover:bg-[#F8F6F4]"
                         }`}
                       >
                         {p === "mid_year" ? "Mid-Year" : "End-of-Year"}
@@ -371,7 +371,7 @@ export default function PerformancePage() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                    className="flex-1 px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                   >
                     Cancel
                   </button>

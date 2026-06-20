@@ -53,20 +53,20 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
     <div className="space-y-4">
       {/* Search bar */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BADB7] pointer-events-none" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#50676E] pointer-events-none" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by name, email, role or department…"
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] placeholder:text-[#9BADB7] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] bg-white text-[#223149] placeholder:text-[#6E8189] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
         />
         {query && (
           <button
             onClick={() => setQuery("")}
             aria-label="Clear search"
             title="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9BADB7] hover:text-[#223149] transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#50676E] hover:text-[#223149] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -75,7 +75,7 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
 
       {/* No results */}
       {q && !hasResults && (
-        <div className="bg-white rounded-2xl shadow-sm px-6 py-10 text-center text-[#9BADB7] text-sm">
+        <div className="bg-white rounded-2xl shadow-sm px-6 py-10 text-center text-[#50676E] text-sm">
           No staff found matching "{query}"
         </div>
       )}
@@ -85,7 +85,7 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-[#ECE3DF] flex items-center justify-between">
             <h2 className="font-semibold text-[#223149]">Active Staff</h2>
-            {q && <span className="text-xs text-[#9BADB7]">{filteredActive.length} result{filteredActive.length !== 1 ? "s" : ""}</span>}
+            {q && <span className="text-xs text-[#50676E]">{filteredActive.length} result{filteredActive.length !== 1 ? "s" : ""}</span>}
           </div>
           <div className="divide-y divide-[#ECE3DF]">
             {filteredActive.map((member) => (
@@ -99,7 +99,7 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-[#223149] group-hover:text-[#5F7C84] transition-colors truncate">
+                    <p className="font-semibold text-[#223149] group-hover:text-[#50676E] transition-colors truncate">
                       {member.full_name}
                     </p>
                     {member.role === "admin" && (
@@ -111,20 +111,20 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
                   </div>
                   <div className="flex items-center gap-4 mt-0.5">
                     {member.position && (
-                      <span className="flex items-center gap-1 text-xs text-[#9BADB7]">
+                      <span className="flex items-center gap-1 text-xs text-[#50676E]">
                         <User className="w-3 h-3" />
                         {member.position}
                       </span>
                     )}
                     {member.department && (
-                      <span className="flex items-center gap-1 text-xs text-[#9BADB7]">
+                      <span className="flex items-center gap-1 text-xs text-[#50676E]">
                         <Building2 className="w-3 h-3" />
                         {member.department}
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="hidden sm:flex items-center gap-1 text-sm text-[#9BADB7]">
+                <div className="hidden sm:flex items-center gap-1 text-sm text-[#50676E]">
                   <Mail className="w-3.5 h-3.5" />
                   {member.email}
                 </div>
@@ -156,7 +156,7 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-[#223149]">{member.full_name}</p>
-                  <p className="text-xs text-[#9BADB7]">{member.email}</p>
+                  <p className="text-xs text-[#50676E]">{member.email}</p>
                 </div>
               </Link>
             ))}

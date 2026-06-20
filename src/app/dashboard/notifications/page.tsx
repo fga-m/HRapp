@@ -142,14 +142,14 @@ export default function NotificationsPage() {
           <h1 className="text-3xl font-bold text-[#223149]">Notifications</h1>
           <PageSubtitle pageKey="notifications" defaultDescription="Your recent alerts and updates from across the portal." />
           {unreadCount > 0 && (
-            <p className="text-sm text-[#5F7C84] mt-1">{unreadCount} unread</p>
+            <p className="text-sm text-[#50676E] mt-1">{unreadCount} unread</p>
           )}
         </div>
         {unreadCount > 0 && (
           <button
             onClick={markAllRead}
             disabled={markingAll}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm font-semibold text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm font-semibold text-[#50676E] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
           >
             <Check className="w-4 h-4" />
             {markingAll ? "Marking..." : "Mark all read"}
@@ -179,7 +179,7 @@ export default function NotificationsPage() {
           <p className="font-semibold text-[#223149]">{error}</p>
           <button
             onClick={() => { setLoading(true); fetchNotifications(); }}
-            className="mt-4 px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm font-semibold text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+            className="mt-4 px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm font-semibold text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
           >
             Try again
           </button>
@@ -190,17 +190,17 @@ export default function NotificationsPage() {
       {!loading && !error && notifications.length === 0 && (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
           <div className="w-14 h-14 rounded-full bg-[#ECE3DF] flex items-center justify-center mx-auto mb-4">
-            <Bell className="w-6 h-6 text-[#9BADB7]" />
+            <Bell className="w-6 h-6 text-[#50676E]" />
           </div>
           <p className="font-semibold text-[#223149]">You're all caught up</p>
-          <p className="text-sm text-[#9BADB7] mt-1">No notifications yet</p>
+          <p className="text-sm text-[#50676E] mt-1">No notifications yet</p>
         </div>
       )}
 
       {/* Notification groups */}
       {!loading && !error && groups.map((group) => (
         <div key={group.label}>
-          <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-2 px-1">
+          <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-2 px-1">
             {group.label}
           </p>
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
@@ -221,12 +221,12 @@ export default function NotificationsPage() {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${n.is_read ? "text-[#5F7C84]" : "font-semibold text-[#223149]"}`}>
+                    <p className={`text-sm leading-snug ${n.is_read ? "text-[#50676E]" : "font-semibold text-[#223149]"}`}>
                       {n.title}
                     </p>
-                    <p className="text-xs text-[#9BADB7] mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-xs text-[#50676E] mt-0.5 line-clamp-2">{n.message}</p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <p className="text-xs text-[#9BADB7]">
+                      <p className="text-xs text-[#50676E]">
                         {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                       </p>
                       {href && (

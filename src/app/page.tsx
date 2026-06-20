@@ -24,7 +24,7 @@ export default async function Home() {
           >
             FGA Melbourne
           </h1>
-          <p className="text-[#5F7C84] mt-1 text-sm">Staff HR Portal</p>
+          <p className="text-[#50676E] mt-1 text-sm">Staff HR Portal</p>
         </div>
 
         {/* Sign in form */}
@@ -65,7 +65,7 @@ export default async function Home() {
           </button>
         </form>
 
-        <p className="text-xs text-[#9BADB7] mt-4">
+        <p className="text-xs text-[#50676E] mt-4">
           Only @fgam.org.au accounts are permitted
         </p>
       </div>

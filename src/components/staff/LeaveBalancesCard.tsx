@@ -55,7 +55,7 @@ export default function LeaveBalancesCard({ staffId, isOwnProfile }: Props) {
     <div className="bg-white rounded-2xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <Palmtree className="w-4 h-4 text-[#9BADB7]" />
+          <Palmtree className="w-4 h-4 text-[#50676E]" />
           <span className="font-semibold text-[#223149]">Leave Balances</span>
           <span className="flex items-center px-1.5 py-0.5 rounded-md bg-[#13B5EA]/10 text-[#13B5EA] text-[10px] font-semibold">
             Xero
@@ -64,7 +64,7 @@ export default function LeaveBalancesCard({ staffId, isOwnProfile }: Props) {
         {isOwnProfile && (
           <Link
             href="/dashboard/leave"
-            className="text-xs font-medium text-[#5F7C84] hover:text-[#223149] transition-colors"
+            className="text-xs font-medium text-[#50676E] hover:text-[#223149] transition-colors"
           >
             View all →
           </Link>
@@ -84,7 +84,7 @@ export default function LeaveBalancesCard({ staffId, isOwnProfile }: Props) {
       )}
 
       {status === "ready" && balances.length === 0 && (
-        <p className="text-sm text-[#9BADB7] text-center py-4">No leave balances found.</p>
+        <p className="text-sm text-[#50676E] text-center py-4">No leave balances found.</p>
       )}
 
       {status === "ready" && balances.length > 0 && (

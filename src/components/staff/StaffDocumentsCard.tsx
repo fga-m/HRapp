@@ -104,9 +104,9 @@ function FileIcon({ fileName }: { fileName: string }) {
   const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
   const isImage = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
   if (isImage) {
-    return <Image className="w-5 h-5 text-[#5F7C84] flex-shrink-0" />;
+    return <Image className="w-5 h-5 text-[#50676E] flex-shrink-0" />;
   }
-  return <FileText className="w-5 h-5 text-[#5F7C84] flex-shrink-0" />;
+  return <FileText className="w-5 h-5 text-[#50676E] flex-shrink-0" />;
 }
 
 export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOwnProfile, callerId }: Props) {
@@ -127,6 +127,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
   // Delete confirmation
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Inline visibility editing
   const [editingVisId, setEditingVisId] = useState<string | null>(null);
@@ -220,6 +221,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
   }
 
   async function handleDelete(docId: string) {
+    setDeleteError(null);
     try {
       const res = await fetch(`/api/staff/${staffId}/documents/${docId}`, {
         method: "DELETE",
@@ -230,7 +232,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
       }
       setDocuments((prev) => prev.filter((d) => d.id !== docId));
     } catch (err: any) {
-      alert(err.message ?? "Could not delete document");
+      setDeleteError(err.message ?? "Could not delete document");
     } finally {
       setDeletingId(null);
     }
@@ -242,7 +244,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <FileArchive className="w-4 h-4 text-[#9BADB7]" />
+            <FileArchive className="w-4 h-4 text-[#50676E]" />
             <h3 className="text-sm font-semibold text-[#223149]">Documents</h3>
           </div>
           {canUpload && (
@@ -257,12 +259,24 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
         </div>
 
         {/* Body */}
+        {deleteError && (
+          <div className="mb-3 flex items-start justify-between gap-2 rounded-xl bg-red-50 px-3 py-2">
+            <p className="text-sm text-red-600">{deleteError}</p>
+            <button
+              onClick={() => setDeleteError(null)}
+              aria-label="Dismiss error"
+              className="text-red-400 hover:text-red-600 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         {loading ? (
-          <p className="text-sm text-[#9BADB7]">Loading…</p>
+          <p className="text-sm text-[#50676E]">Loading…</p>
         ) : error ? (
           <p className="text-sm text-red-500">{error}</p>
         ) : documents.length === 0 ? (
-          <div className="flex flex-col items-center py-8 gap-2 text-[#9BADB7]">
+          <div className="flex flex-col items-center py-8 gap-2 text-[#50676E]">
             <FileArchive className="w-8 h-8" />
             <p className="text-sm">No documents uploaded yet</p>
           </div>
@@ -308,7 +322,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                               className={`text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors ${
                                 editingVis.includes(opt.key)
                                   ? "bg-[#223149] text-white border-[#223149]"
-                                  : "border-[#ECE3DF] text-[#9BADB7] hover:border-[#9BADB7]"
+                                  : "border-[#ECE3DF] text-[#50676E] hover:border-[#9BADB7]"
                               } ${opt.key === "admin" ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                             >
                               {opt.label}
@@ -319,17 +333,17 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                             {savingVis ? "…" : "Save"}
                           </button>
                           <button onClick={() => setEditingVisId(null)}
-                            className="text-[10px] px-2 py-0.5 rounded-full border border-[#ECE3DF] text-[#9BADB7] hover:bg-[#F8F6F4]">
+                            className="text-[10px] px-2 py-0.5 rounded-full border border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4]">
                             Cancel
                           </button>
                         </div>
                       ) : (
                         <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] text-[#9BADB7]">Visible to:</span>
+                          <span className="text-[10px] text-[#50676E]">Visible to:</span>
                           {(doc.visibility ?? ["admin", "self"]).map((v: string) => {
                             const opt = VISIBILITY_OPTIONS.find(o => o.key === v);
                             return opt ? (
-                              <span key={v} className="text-[10px] px-2 py-0.5 rounded-full bg-[#ECE3DF] text-[#5F7C84] font-medium">
+                              <span key={v} className="text-[10px] px-2 py-0.5 rounded-full bg-[#ECE3DF] text-[#50676E] font-medium">
                                 {opt.label}
                               </span>
                             ) : null;
@@ -338,7 +352,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                           {(callerId === doc.uploaded_by || canUpload) && (
                             <button
                               onClick={() => { setEditingVisId(doc.id); setEditingVis(doc.visibility ?? ["admin", "self"]); }}
-                              className="text-[10px] text-[#9BADB7] hover:text-[#223149] transition-colors underline"
+                              className="text-[10px] text-[#50676E] hover:text-[#223149] transition-colors underline"
                             >
                               Edit
                             </button>
@@ -347,7 +361,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                       )}
 
                       {/* Uploaded by + timestamp */}
-                      <p className="text-[10px] text-[#9BADB7] mt-0.5">
+                      <p className="text-[10px] text-[#50676E] mt-0.5">
                         Uploaded by {doc.uploader?.full_name ?? "unknown"} · {new Date(doc.created_at).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}{" "}
                         {new Date(doc.created_at).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", hour12: true })}
                       </p>
@@ -368,7 +382,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                             </span>
                           )}
                           {expiry.status === "ok" && (
-                            <span className="text-xs text-[#9BADB7]">{expiry.label}</span>
+                            <span className="text-xs text-[#50676E]">{expiry.label}</span>
                           )}
                         </div>
                       )}
@@ -383,7 +397,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                           href={doc.signedUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#ECE3DF] transition-colors"
+                          className="p-2 rounded-xl text-[#50676E] hover:bg-[#ECE3DF] transition-colors"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
@@ -391,7 +405,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                         <a
                           href={doc.signedUrl}
                           download={doc.file_name}
-                          className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#ECE3DF] transition-colors"
+                          className="p-2 rounded-xl text-[#50676E] hover:bg-[#ECE3DF] transition-colors"
                           title="Download"
                         >
                           <Download className="w-4 h-4" />
@@ -409,7 +423,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                           </button>
                           <button
                             onClick={() => setDeletingId(null)}
-                            className="text-xs px-2 py-1 rounded-lg bg-[#ECE3DF] text-[#5F7C84] font-medium hover:bg-[#d9d0cc] transition-colors"
+                            className="text-xs px-2 py-1 rounded-lg bg-[#ECE3DF] text-[#50676E] font-medium hover:bg-[#d9d0cc] transition-colors"
                           >
                             Cancel
                           </button>
@@ -417,7 +431,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                       ) : (
                         <button
                           onClick={() => setDeletingId(doc.id)}
-                          className="p-2 rounded-xl text-[#9BADB7] hover:bg-red-50 hover:text-red-600 transition-colors"
+                          className="p-2 rounded-xl text-[#50676E] hover:bg-red-50 hover:text-red-600 transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -450,7 +464,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
               </h2>
               <button
                 onClick={() => !uploading && setShowUpload(false)}
-                className="p-1.5 rounded-xl text-[#9BADB7] hover:bg-[#ECE3DF] transition-colors"
+                className="p-1.5 rounded-xl text-[#50676E] hover:bg-[#ECE3DF] transition-colors"
                 disabled={uploading}
               >
                 <X className="w-4 h-4" />
@@ -460,7 +474,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
             <form onSubmit={handleUpload} className="space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">
+                <label className="block text-xs font-medium text-[#50676E] mb-1">
                   Title <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -475,7 +489,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
               {/* Category */}
               <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">
+                <label className="block text-xs font-medium text-[#50676E] mb-1">
                   Category <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -494,8 +508,8 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
               {/* Expiry date */}
               <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">
-                  Expiry date <span className="text-[#9BADB7] font-normal">(optional)</span>
+                <label className="block text-xs font-medium text-[#50676E] mb-1">
+                  Expiry date <span className="text-[#50676E] font-normal">(optional)</span>
                 </label>
                 <input
                   type="date"
@@ -507,8 +521,8 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">
-                  Notes <span className="text-[#9BADB7] font-normal">(optional)</span>
+                <label className="block text-xs font-medium text-[#50676E] mb-1">
+                  Notes <span className="text-[#50676E] font-normal">(optional)</span>
                 </label>
                 <textarea
                   value={notes}
@@ -521,7 +535,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
               {/* Visibility */}
               <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-2">
+                <label className="block text-xs font-medium text-[#50676E] mb-2">
                   Visible to
                 </label>
                 <div className="space-y-2">
@@ -545,7 +559,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                       />
                       <div>
                         <p className="text-sm font-medium text-[#223149]">{opt.label}</p>
-                        <p className="text-xs text-[#9BADB7]">{opt.description}</p>
+                        <p className="text-xs text-[#50676E]">{opt.description}</p>
                       </div>
                     </label>
                   ))}
@@ -554,7 +568,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
 
               {/* File */}
               <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">
+                <label className="block text-xs font-medium text-[#50676E] mb-1">
                   File <span className="text-red-500">*</span>
                 </label>
                 <DropZone
@@ -574,7 +588,7 @@ export default function StaffDocumentsCard({ staffId, staffName, canUpload, isOw
                   type="button"
                   onClick={() => !uploading && setShowUpload(false)}
                   disabled={uploading}
-                  className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold border border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold border border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>

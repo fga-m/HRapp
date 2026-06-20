@@ -106,7 +106,7 @@ export default function ContractTemplatesPage() {
   if (forbidden) {
     return (
       <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-        <p className="text-[#5F7C84] font-medium">Contract templates are available to admins only.</p>
+        <p className="text-[#50676E] font-medium">Contract templates are available to admins only.</p>
       </div>
     );
   }
@@ -116,13 +116,13 @@ export default function ContractTemplatesPage() {
       <div>
         <Link
           href="/dashboard/contracts"
-          className="inline-flex items-center gap-1.5 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-[#50676E] hover:text-[#223149] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to contracts
         </Link>
         <h1 className="text-3xl font-bold text-[#223149] mt-2">Contract templates</h1>
-        <p className="text-[#5F7C84] mt-1 text-sm">
+        <p className="text-[#50676E] mt-1 text-sm">
           Register a Google Doc with <span className="font-mono text-xs">{"{{merge fields}}"}</span> so you can
           generate per-employee contracts from it.
         </p>
@@ -131,7 +131,7 @@ export default function ContractTemplatesPage() {
       {/* Authoring guidance */}
       <div className="bg-[#223149]/5 rounded-2xl p-4 flex items-start gap-3">
         <Info className="w-5 h-5 text-[#223149] flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-[#5F7C84] space-y-1">
+        <div className="text-sm text-[#50676E] space-y-1">
           <p>
             Use a <span className="font-medium text-[#223149]">Google Doc</span> (if it&apos;s a Word file, open it
             and choose <span className="font-medium text-[#223149]">File → Save as Google Docs</span> first). Write
@@ -167,12 +167,12 @@ export default function ContractTemplatesPage() {
           <div className="min-w-0">
             <p className="font-semibold text-[#223149]">Google account for contracts</p>
             {conn?.connected ? (
-              <p className="text-sm text-[#5F7C84] mt-0.5">
+              <p className="text-sm text-[#50676E] mt-0.5">
                 Connected as <span className="font-medium text-[#223149]">{conn.email ?? "—"}</span>. Templates and
                 generated contracts live in this account — no per-person sharing needed.
               </p>
             ) : (
-              <p className="text-sm text-[#5F7C84] mt-0.5">
+              <p className="text-sm text-[#50676E] mt-0.5">
                 Connect the account that holds your templates (e.g. hrapp@fgam.org.au). Every admin generates through
                 it, and the app shares each generated contract with whoever made it.
               </p>
@@ -182,7 +182,7 @@ export default function ContractTemplatesPage() {
         {conn?.connected ? (
           <button
             onClick={disconnectGoogle}
-            className="flex-shrink-0 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            className="flex-shrink-0 px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
           >
             Disconnect
           </button>
@@ -211,7 +211,7 @@ export default function ContractTemplatesPage() {
               onChange={(e) => setTitle(e.target.value)}
               required
               placeholder="e.g. Full-time employment agreement"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
           <div>
@@ -224,7 +224,7 @@ export default function ContractTemplatesPage() {
               onChange={(e) => setDocUrl(e.target.value)}
               required
               placeholder="https://docs.google.com/document/d/…"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
         </div>
@@ -245,8 +245,8 @@ export default function ContractTemplatesPage() {
       {/* Template list */}
       {templates.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-          <FileText className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
-          <p className="text-[#5F7C84] font-medium">No templates yet</p>
+          <FileText className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
+          <p className="text-[#50676E] font-medium">No templates yet</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -362,7 +362,7 @@ function TemplateRow({
               template.fields.map((f) => (
                 <span
                   key={f}
-                  className="text-xs font-mono bg-[#F8F6F4] border border-[#ECE3DF] text-[#5F7C84] rounded-full px-2 py-0.5"
+                  className="text-xs font-mono bg-[#F8F6F4] border border-[#ECE3DF] text-[#50676E] rounded-full px-2 py-0.5"
                 >
                   {f}
                 </span>
@@ -375,7 +375,7 @@ function TemplateRow({
             <button
               onClick={() => (configuring ? setConfiguring(false) : openConfig())}
               title="Configure fields"
-              className={`p-2 rounded-xl transition-colors ${configuring ? "bg-[#223149]/10 text-[#223149]" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+              className={`p-2 rounded-xl transition-colors ${configuring ? "bg-[#223149]/10 text-[#223149]" : "text-[#50676E] hover:bg-[#F8F6F4]"}`}
             >
               <Sliders className="w-4 h-4" />
             </button>
@@ -386,7 +386,7 @@ function TemplateRow({
               target="_blank"
               rel="noopener noreferrer"
               title="Open in Google Docs"
-              className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+              className="p-2 rounded-xl text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
             </a>
@@ -395,7 +395,7 @@ function TemplateRow({
             onClick={rescan}
             disabled={busy !== null}
             title="Re-scan fields"
-            className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
+            className="p-2 rounded-xl text-[#50676E] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
           >
             {busy === "rescan" ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           </button>
@@ -413,7 +413,7 @@ function TemplateRow({
       {/* Field config editor */}
       {configuring && (
         <div className="mt-4 border-t border-[#ECE3DF] pt-4 space-y-2">
-          <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Configure fields</p>
+          <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide">Configure fields</p>
           {template.fields.map((f) => {
             const d = draft[f] ?? { label: "", type: "text" as ContractFieldType, optionsText: "" };
             return (
@@ -424,7 +424,7 @@ function TemplateRow({
                   value={d.label}
                   onChange={(e) => setDraft((p) => ({ ...p, [f]: { ...d, label: e.target.value } }))}
                   placeholder="Label (optional)"
-                  className="px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
+                  className="px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
                 />
                 <select
                   value={d.type}
@@ -441,7 +441,7 @@ function TemplateRow({
                     value={d.optionsText}
                     onChange={(e) => setDraft((p) => ({ ...p, [f]: { ...d, optionsText: e.target.value } }))}
                     placeholder="Options, comma-separated — e.g. Full-time, Part-time, Casual"
-                    className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
+                    className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
                   />
                 )}
                 <input
@@ -449,14 +449,14 @@ function TemplateRow({
                   value={d.description}
                   onChange={(e) => setDraft((p) => ({ ...p, [f]: { ...d, description: e.target.value } }))}
                   placeholder="Help text shown under this field (optional)"
-                  className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
+                  className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
                 />
                 <input
                   type="text"
                   value={d.example}
                   onChange={(e) => setDraft((p) => ({ ...p, [f]: { ...d, example: e.target.value } }))}
                   placeholder="Example shown inside the box (optional) — e.g. 80000"
-                  className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
+                  className="sm:col-span-3 px-3 py-1.5 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
                 />
               </div>
             );
@@ -472,7 +472,7 @@ function TemplateRow({
             </button>
             <button
               onClick={() => setConfiguring(false)}
-              className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="px-4 py-2 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               Cancel
             </button>
