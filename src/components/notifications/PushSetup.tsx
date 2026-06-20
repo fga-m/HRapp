@@ -134,7 +134,7 @@ export default function PushSetup() {
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-[#223149]">Get notifications on your iPhone</p>
-            <p className="text-sm text-[#5F7C84] mt-1">
+            <p className="text-sm text-[#50676E] mt-1">
               On iPhone &amp; iPad, tap the Share button{" "}
               <Share className="inline w-4 h-4 -mt-0.5" /> in Safari, choose{" "}
               <span className="font-medium text-[#223149]">Add to Home Screen</span>, then open
@@ -151,11 +151,11 @@ export default function PushSetup() {
       <div className="bg-white rounded-2xl shadow-sm p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#9BADB7]/10 flex items-center justify-center flex-shrink-0">
-            <Bell className="w-5 h-5 text-[#9BADB7]" />
+            <Bell className="w-5 h-5 text-[#50676E]" />
           </div>
           <div>
             <p className="font-semibold text-[#223149]">Device notifications</p>
-            <p className="text-sm text-[#9BADB7] mt-0.5">
+            <p className="text-sm text-[#50676E] mt-0.5">
               This browser doesn&apos;t support push notifications.
             </p>
           </div>
@@ -181,7 +181,7 @@ export default function PushSetup() {
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-[#223149]">Notifications on this device</p>
-            <p className="text-sm text-[#5F7C84] mt-0.5">
+            <p className="text-sm text-[#50676E] mt-0.5">
               {subscribed
                 ? "You'll get a push alert on this device for new notifications."
                 : "Turn on to get push alerts on this device, even when the portal is closed."}
@@ -194,7 +194,7 @@ export default function PushSetup() {
           disabled={busy}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors flex-shrink-0 disabled:opacity-50 ${
             subscribed
-              ? "border border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"
+              ? "border border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4]"
               : "bg-[#223149] text-white hover:bg-[#1a2638]"
           }`}
         >

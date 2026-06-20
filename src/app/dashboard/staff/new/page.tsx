@@ -68,7 +68,7 @@ export default function NewStaffPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Add Staff Member</h1>
-          <p className="text-[#5F7C84] mt-1 text-sm">
+          <p className="text-[#50676E] mt-1 text-sm">
             They'll be able to sign in with their @fgam.org.au Google account
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function NewStaffPage() {
               value={form.full_name}
               onChange={(e) => setForm({ ...form, full_name: e.target.value })}
               placeholder="e.g. Sarah Johnson"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
@@ -107,9 +107,9 @@ export default function NewStaffPage() {
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="name@fgam.org.au"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
-            <p className="text-xs text-[#9BADB7] mt-1">Must be an @fgam.org.au address</p>
+            <p className="text-xs text-[#50676E] mt-1">Must be an @fgam.org.au address</p>
           </div>
 
           <div>
@@ -121,7 +121,7 @@ export default function NewStaffPage() {
               value={form.position}
               onChange={(e) => setForm({ ...form, position: e.target.value })}
               placeholder="e.g. Youth Pastor"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
@@ -169,11 +169,11 @@ export default function NewStaffPage() {
                 onChange={(e) => setForm({ ...form, contracted_hours: e.target.value })}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
-              <p className="text-xs text-[#9BADB7] mt-1">1 FTE = 37.5 hrs</p>
+              <p className="text-xs text-[#50676E] mt-1">1 FTE = 37.5 hrs</p>
             </div>
             <div>
               <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-                Birthdate <span className="text-[#9BADB7] font-normal">(optional)</span>
+                Birthdate <span className="text-[#50676E] font-normal">(optional)</span>
               </label>
               <input
                 type="date"
@@ -193,9 +193,9 @@ export default function NewStaffPage() {
               value={form.google_calendar_id}
               onChange={(e) => setForm({ ...form, google_calendar_id: e.target.value })}
               placeholder="name@fgam.org.au"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
-            <p className="text-xs text-[#9BADB7] mt-1">Usually same as email</p>
+            <p className="text-xs text-[#50676E] mt-1">Usually same as email</p>
           </div>
         </div>
 
@@ -209,7 +209,7 @@ export default function NewStaffPage() {
           </button>
           <Link
             href="/dashboard/staff"
-            className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            className="px-6 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
           >
             Cancel
           </Link>

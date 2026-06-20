@@ -149,10 +149,10 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF] sticky top-0 bg-white z-10">
           <div>
             <h2 className="text-lg font-bold text-[#223149]">Edit claim</h2>
-            {subtitle && <p className="text-xs text-[#9BADB7]">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-[#50676E]">{subtitle}</p>}
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors" aria-label="Close">
-            <X className="w-5 h-5 text-[#5F7C84]" />
+            <X className="w-5 h-5 text-[#50676E]" />
           </button>
         </div>
         <form onSubmit={save} className="p-6 space-y-4">
@@ -165,7 +165,7 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#9BADB7] font-normal">(optional)</span></label>
+              <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#50676E] font-normal">(optional)</span></label>
               <input type="text" value={form.spent_at}
                 onChange={(e) => setForm({ ...form, spent_at: e.target.value })}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
@@ -176,7 +176,7 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
           <div className="flex items-center justify-between border-t border-[#ECE3DF] pt-4">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#223149]">Itemise this claim</p>
-              <p className="text-xs text-[#9BADB7] mt-0.5">Split into lines, each with its own account.</p>
+              <p className="text-xs text-[#50676E] mt-0.5">Split into lines, each with its own account.</p>
             </div>
             <button
               type="button" role="switch" aria-checked={itemise}
@@ -203,15 +203,15 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
               <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">Amount (AUD)</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9BADB7] text-sm">$</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#50676E] text-sm">$</span>
                   <input type="text" inputMode="text" required value={form.amount}
                     onChange={(e) => setForm({ ...form, amount: e.target.value })}
                     placeholder="0.00  or  12.50 + 8.30"
-                    className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+                    className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
                 </div>
                 {looksLikeExpression(form.amount) && (
                   evaluateAmount(form.amount) !== null ? (
-                    <p className="text-xs text-[#5F7C84] mt-1 font-medium">= ${evaluateAmount(form.amount)!.toFixed(2)}</p>
+                    <p className="text-xs text-[#50676E] mt-1 font-medium">= ${evaluateAmount(form.amount)!.toFixed(2)}</p>
                   ) : (
                     <p className="text-xs text-amber-600 mt-1">Can&apos;t calculate that</p>
                   )
@@ -242,18 +242,18 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
 
               {/* GST (auto, editable override) */}
               <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="text-[#5F7C84]">GST{selectedTax ? ` (${Math.round((selectedTax.rate ?? 0) * 100) / 100}%)` : ""}</span>
+                <span className="text-[#50676E]">GST{selectedTax ? ` (${Math.round((selectedTax.rate ?? 0) * 100) / 100}%)` : ""}</span>
                 <div className="flex items-center gap-2">
                   <div className="flex items-stretch">
                     <span className="inline-flex items-center px-2 rounded-l-lg border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-xs">$</span>
                     <input type="text" inputMode="decimal" value={form.gstOverride}
                       onChange={(e) => setForm({ ...form, gstOverride: e.target.value })} placeholder={autoGst.toFixed(2)}
-                      className="w-24 px-2 py-1.5 rounded-r-lg border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+                      className="w-24 px-2 py-1.5 rounded-r-lg border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
                   </div>
                   {gstOverridden ? (
-                    <button type="button" onClick={() => setForm({ ...form, gstOverride: "" })} className="text-[11px] text-[#5F7C84] hover:text-[#223149] underline">auto</button>
+                    <button type="button" onClick={() => setForm({ ...form, gstOverride: "" })} className="text-[11px] text-[#50676E] hover:text-[#223149] underline">auto</button>
                   ) : (
-                    <span className="text-[11px] text-[#9BADB7] w-8">auto</span>
+                    <span className="text-[11px] text-[#50676E] w-8">auto</span>
                   )}
                 </div>
               </div>
@@ -272,7 +272,7 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
               {saving ? "Saving…" : "Save changes"}
             </button>
             <button type="button" onClick={onClose}
-              className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
+              className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
               Cancel
             </button>
           </div>

@@ -102,12 +102,12 @@ export default function LineItemsEditor({
         return (
           <div key={r.key} className="border border-[#ECE3DF] rounded-xl p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#9BADB7]">Item {i + 1}</span>
+              <span className="text-xs font-semibold text-[#50676E]">Item {i + 1}</span>
               {rows.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeRow(r.key)}
-                  className="p-1.5 rounded-lg text-[#9BADB7] hover:bg-red-50 hover:text-red-500 transition-colors"
+                  className="p-1.5 rounded-lg text-[#50676E] hover:bg-red-50 hover:text-red-500 transition-colors"
                   aria-label="Remove item"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -121,26 +121,26 @@ export default function LineItemsEditor({
               value={r.description}
               onChange={(e) => update(r.key, { description: e.target.value })}
               placeholder="What's this item?"
-              className="w-full px-3 py-2 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-3 py-2 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
 
             <div className="grid grid-cols-2 gap-2">
               {/* Amount (calculator) */}
               <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">Amount (incl. GST)</label>
+                <label className="block text-xs font-medium text-[#50676E] mb-1">Amount (incl. GST)</label>
                 <div className="flex items-stretch">
-                  <span className="inline-flex items-center px-2 rounded-l-lg border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-xs text-[#5F7C84]">$</span>
+                  <span className="inline-flex items-center px-2 rounded-l-lg border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-xs text-[#50676E]">$</span>
                   <input
                     type="text"
                     inputMode="text"
                     value={r.amountText}
                     onChange={(e) => update(r.key, { amountText: e.target.value })}
                     placeholder="0.00"
-                    className="flex-1 min-w-0 px-3 py-2 rounded-r-lg border border-[#ECE3DF] text-sm text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                    className="flex-1 min-w-0 px-3 py-2 rounded-r-lg border border-[#ECE3DF] text-sm text-[#223149] text-right placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
                 {looksLikeExpression(r.amountText) && (
-                  <p className="text-[11px] text-[#5F7C84] mt-1 text-right">
+                  <p className="text-[11px] text-[#50676E] mt-1 text-right">
                     {evaluateAmount(r.amountText) !== null ? `= $${amt.toFixed(2)}` : "Can't calculate that"}
                   </p>
                 )}
@@ -148,7 +148,7 @@ export default function LineItemsEditor({
 
               {/* Tax rate */}
               <div>
-                <label className="block text-xs font-medium text-[#5F7C84] mb-1">GST</label>
+                <label className="block text-xs font-medium text-[#50676E] mb-1">GST</label>
                 <select
                   value={r.tax_type}
                   disabled={loading}
@@ -165,7 +165,7 @@ export default function LineItemsEditor({
 
             {/* Account */}
             <div>
-              <label className="block text-xs font-medium text-[#5F7C84] mb-1">Account</label>
+              <label className="block text-xs font-medium text-[#50676E] mb-1">Account</label>
               <AccountSelect
                 accounts={accounts}
                 value={r.account_code}
@@ -176,29 +176,29 @@ export default function LineItemsEditor({
 
             {/* GST amount: auto, with override */}
             <div className="flex items-center justify-between gap-2">
-              <label className="text-xs font-medium text-[#5F7C84]">GST amount</label>
+              <label className="text-xs font-medium text-[#50676E]">GST amount</label>
               <div className="flex items-center gap-2">
                 <div className="flex items-stretch">
-                  <span className="inline-flex items-center px-2 rounded-l-lg border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-xs text-[#5F7C84]">$</span>
+                  <span className="inline-flex items-center px-2 rounded-l-lg border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-xs text-[#50676E]">$</span>
                   <input
                     type="text"
                     inputMode="decimal"
                     value={r.gstText}
                     onChange={(e) => update(r.key, { gstText: e.target.value })}
                     placeholder={auto.toFixed(2)}
-                    className="w-24 px-2 py-1.5 rounded-r-lg border border-[#ECE3DF] text-sm text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                    className="w-24 px-2 py-1.5 rounded-r-lg border border-[#ECE3DF] text-sm text-[#223149] text-right placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
                 {overridden ? (
                   <button
                     type="button"
                     onClick={() => update(r.key, { gstText: "" })}
-                    className="text-[11px] text-[#5F7C84] hover:text-[#223149] underline"
+                    className="text-[11px] text-[#50676E] hover:text-[#223149] underline"
                   >
                     auto
                   </button>
                 ) : (
-                  <span className="text-[11px] text-[#9BADB7] w-8">auto</span>
+                  <span className="text-[11px] text-[#50676E] w-8">auto</span>
                 )}
               </div>
             </div>
@@ -209,18 +209,18 @@ export default function LineItemsEditor({
       <button
         type="button"
         onClick={addRow}
-        className="flex items-center gap-1.5 text-sm font-medium text-[#5F7C84] hover:text-[#223149] transition-colors"
+        className="flex items-center gap-1.5 text-sm font-medium text-[#50676E] hover:text-[#223149] transition-colors"
       >
         <Plus className="w-4 h-4" /> Add item
       </button>
 
       {/* Totals */}
       <div className="space-y-1 text-sm border-t border-[#ECE3DF] pt-3">
-        <div className="flex items-center justify-between text-[#5F7C84]">
+        <div className="flex items-center justify-between text-[#50676E]">
           <span>Subtotal (excl. GST)</span>
           <span>AUD {totals.subtotal.toFixed(2)}</span>
         </div>
-        <div className="flex items-center justify-between text-[#5F7C84]">
+        <div className="flex items-center justify-between text-[#50676E]">
           <span>GST</span>
           <span>AUD {totals.gst.toFixed(2)}</span>
         </div>

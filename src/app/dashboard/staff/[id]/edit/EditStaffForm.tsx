@@ -149,7 +149,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
         </div>
         <button
           onClick={loadStaff}
-          className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+          className="px-4 py-2 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
         >
           Try again
         </button>
@@ -190,7 +190,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
               value={form.position}
               onChange={(e) => setForm({ ...form, position: e.target.value })}
               placeholder="e.g. Youth Pastor"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
@@ -222,14 +222,14 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
               type="text"
               value={form.google_calendar_id}
               onChange={(e) => setForm({ ...form, google_calendar_id: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Contracted Hours
-              <span className="ml-1.5 text-xs font-normal text-[#9BADB7]">per week</span>
+              <span className="ml-1.5 text-xs font-normal text-[#50676E]">per week</span>
             </label>
             <div className="relative">
               <input
@@ -241,9 +241,9 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 onChange={(e) => setForm({ ...form, contracted_hours: parseFloat(e.target.value) || 0 })}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors pr-14"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[#9BADB7] pointer-events-none">hrs</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[#50676E] pointer-events-none">hrs</span>
             </div>
-            <p className="text-xs text-[#9BADB7] mt-1">1 FTE = 37.5 hrs/week (7.5 hrs/day × 5 days, excl. 30 min lunch). Every block over 5 hours excludes a 30 min lunch.</p>
+            <p className="text-xs text-[#50676E] mt-1">1 FTE = 37.5 hrs/week (7.5 hrs/day × 5 days, excl. 30 min lunch). Every block over 5 hours excludes a 30 min lunch.</p>
           </div>
 
           {/* Role — highlighted section */}
@@ -258,11 +258,11 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 }`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "staff" ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
-                  <span className={`text-xs font-bold ${form.role === "staff" ? "text-white" : "text-[#9BADB7]"}`}>S</span>
+                  <span className={`text-xs font-bold ${form.role === "staff" ? "text-white" : "text-[#50676E]"}`}>S</span>
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-[#223149]">Staff</p>
-                  <p className="text-xs text-[#9BADB7]">Standard access</p>
+                  <p className="text-xs text-[#50676E]">Standard access</p>
                 </div>
               </button>
               <button
@@ -273,11 +273,11 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 }`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "manager" ? "bg-[#5F7C84]" : "bg-[#ECE3DF]"}`}>
-                  <span className={`text-xs font-bold ${form.role === "manager" ? "text-white" : "text-[#9BADB7]"}`}>M</span>
+                  <span className={`text-xs font-bold ${form.role === "manager" ? "text-white" : "text-[#50676E]"}`}>M</span>
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-[#223149]">Manager</p>
-                  <p className="text-xs text-[#9BADB7]">Configurable access</p>
+                  <p className="text-xs text-[#50676E]">Configurable access</p>
                 </div>
               </button>
               <button
@@ -288,11 +288,11 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 }`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "leave_approver" ? "bg-[#7C5C8A]" : "bg-[#ECE3DF]"}`}>
-                  <span className={`text-xs font-bold ${form.role === "leave_approver" ? "text-white" : "text-[#9BADB7]"}`}>LA</span>
+                  <span className={`text-xs font-bold ${form.role === "leave_approver" ? "text-white" : "text-[#50676E]"}`}>LA</span>
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-[#223149]">Leave Approver</p>
-                  <p className="text-xs text-[#9BADB7]">Approves leave requests</p>
+                  <p className="text-xs text-[#50676E]">Approves leave requests</p>
                 </div>
               </button>
               <button
@@ -303,11 +303,11 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 }`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "finance" ? "bg-[#2E7D52]" : "bg-[#ECE3DF]"}`}>
-                  <span className={`text-xs font-bold ${form.role === "finance" ? "text-white" : "text-[#9BADB7]"}`}>F</span>
+                  <span className={`text-xs font-bold ${form.role === "finance" ? "text-white" : "text-[#50676E]"}`}>F</span>
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-[#223149]">Finance</p>
-                  <p className="text-xs text-[#9BADB7]">Payroll &amp; hours</p>
+                  <p className="text-xs text-[#50676E]">Payroll &amp; hours</p>
                 </div>
               </button>
               <button
@@ -318,11 +318,11 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 }`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "admin" ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
-                  <Shield className={`w-4 h-4 ${form.role === "admin" ? "text-white" : "text-[#9BADB7]"}`} />
+                  <Shield className={`w-4 h-4 ${form.role === "admin" ? "text-white" : "text-[#50676E]"}`} />
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-[#223149]">Admin</p>
-                  <p className="text-xs text-[#9BADB7]">Full access</p>
+                  <p className="text-xs text-[#50676E]">Full access</p>
                 </div>
               </button>
             </div>
@@ -332,7 +332,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
               </p>
             )}
             {form.role === "manager" && (
-              <p className="text-xs text-[#5F7C84] mt-2">
+              <p className="text-xs text-[#50676E] mt-2">
                 Managers get the permissions configured on the Access Levels page.
               </p>
             )}
@@ -353,7 +353,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
             <div className="sm:col-span-2">
               <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Xero Employee
-                <span className="ml-1.5 text-xs font-normal text-[#9BADB7]">for leave requests · admin only</span>
+                <span className="ml-1.5 text-xs font-normal text-[#50676E]">for leave requests · admin only</span>
               </label>
               {form.xero_employee_id ? (
                 <div className="flex items-center gap-3 px-4 py-3 bg-[#F8F6F4] rounded-xl border border-[#ECE3DF]">
@@ -364,7 +364,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                     {xeroLinked ? (
                       <>
                         <p className="text-sm font-semibold text-[#223149]">{xeroLinked.firstName} {xeroLinked.lastName}</p>
-                        {xeroLinked.email && <p className="text-xs text-[#9BADB7] truncate">{xeroLinked.email}</p>}
+                        {xeroLinked.email && <p className="text-xs text-[#50676E] truncate">{xeroLinked.email}</p>}
                       </>
                     ) : (
                       <p className="text-sm text-[#223149] font-mono truncate">{form.xero_employee_id}</p>
@@ -373,7 +373,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                   <button
                     type="button"
                     onClick={() => { setForm({ ...form, xero_employee_id: "" }); setXeroLinked(null); }}
-                    className="p-1 rounded-lg hover:bg-[#ECE3DF] text-[#9BADB7] hover:text-red-400 transition-colors flex-shrink-0"
+                    className="p-1 rounded-lg hover:bg-[#ECE3DF] text-[#50676E] hover:text-red-400 transition-colors flex-shrink-0"
                     title="Remove link"
                   >
                     <X className="w-4 h-4" />
@@ -383,7 +383,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 <button
                   type="button"
                   onClick={openXeroLookup}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-[#9BADB7] text-[#5F7C84] hover:border-[#13B5EA] hover:text-[#13B5EA] transition-colors text-sm"
+                  className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-[#9BADB7] text-[#50676E] hover:border-[#13B5EA] hover:text-[#13B5EA] transition-colors text-sm"
                 >
                   <Search className="w-4 h-4" />
                   Search Xero employees…
@@ -395,19 +395,19 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                 <div className="mt-2 bg-white border border-[#ECE3DF] rounded-xl shadow-lg overflow-hidden">
                   <div className="p-3 border-b border-[#ECE3DF]">
                     <div className="flex items-center gap-2 px-3 py-2 bg-[#F8F6F4] rounded-lg">
-                      <Search className="w-4 h-4 text-[#9BADB7] flex-shrink-0" />
+                      <Search className="w-4 h-4 text-[#50676E] flex-shrink-0" />
                       <input
                         autoFocus
                         type="text"
                         placeholder="Search by name or email…"
                         value={xeroSearch}
                         onChange={(e) => setXeroSearch(e.target.value)}
-                        className="flex-1 bg-transparent text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none"
+                        className="flex-1 bg-transparent text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => { setShowXeroLookup(false); setXeroSearch(""); }}
-                        className="text-[#9BADB7] hover:text-[#223149]"
+                        className="text-[#50676E] hover:text-[#223149]"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -415,7 +415,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                   </div>
                   <div className="max-h-52 overflow-y-auto">
                     {xeroLoading ? (
-                      <div className="flex items-center justify-center gap-2 py-6 text-sm text-[#9BADB7]">
+                      <div className="flex items-center justify-center gap-2 py-6 text-sm text-[#50676E]">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Loading from Xero…
                       </div>
@@ -426,7 +426,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                           : xeroError}
                       </div>
                     ) : filteredXeroEmployees.length === 0 ? (
-                      <p className="p-4 text-sm text-[#9BADB7] text-center">
+                      <p className="p-4 text-sm text-[#50676E] text-center">
                         {xeroSearch ? "No employees match your search." : "No employees found in Xero."}
                       </p>
                     ) : (
@@ -446,7 +446,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-[#223149]">{emp.firstName} {emp.lastName}</p>
-                              {emp.email && <p className="text-xs text-[#9BADB7] truncate">{emp.email}</p>}
+                              {emp.email && <p className="text-xs text-[#50676E] truncate">{emp.email}</p>}
                             </div>
                           </button>
                         ))
@@ -454,7 +454,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
                   </div>
                 </div>
               )}
-              <p className="text-xs text-[#9BADB7] mt-1.5">Links this staff member to their Xero Payroll record for leave requests.</p>
+              <p className="text-xs text-[#50676E] mt-1.5">Links this staff member to their Xero Payroll record for leave requests.</p>
             </div>
           )}
 
@@ -462,7 +462,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           <div className="sm:col-span-2 flex items-center justify-between p-4 bg-[#F8F6F4] rounded-xl">
             <div>
               <p className="text-sm font-semibold text-[#223149]">Active Staff Member</p>
-              <p className="text-xs text-[#9BADB7]">Inactive staff won't be able to sign in</p>
+              <p className="text-xs text-[#50676E]">Inactive staff won't be able to sign in</p>
             </div>
             <button
               type="button"
@@ -484,7 +484,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           </button>
           <Link
             href={`/dashboard/staff/${id}`}
-            className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            className="px-6 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
           >
             Cancel
           </Link>

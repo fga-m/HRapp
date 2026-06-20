@@ -59,7 +59,7 @@ export default function MeetingsPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard/meetings/templates"
-              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               <LayoutTemplate className="w-4 h-4" />
               Templates
@@ -81,8 +81,8 @@ export default function MeetingsPage() {
 
       {notes.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-          <FileText className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
-          <p className="text-[#5F7C84] font-medium">
+          <FileText className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
+          <p className="text-[#50676E] font-medium">
             {canManage ? "No meeting notes yet" : "No notes have been shared with you yet"}
           </p>
           {canManage && (
@@ -109,7 +109,7 @@ export default function MeetingsPage() {
                     {TYPE_LABELS[note.meeting_type] || note.meeting_type}
                   </span>
                 </div>
-                <p className="text-xs text-[#9BADB7] mt-0.5">
+                <p className="text-xs text-[#50676E] mt-0.5">
                   {format(new Date(note.meeting_date), "d MMM yyyy")}
                   {note.creator?.full_name && !canManage && ` · ${note.creator.full_name}`}
                 </p>
@@ -121,12 +121,12 @@ export default function MeetingsPage() {
                       <CheckCircle className="w-3.5 h-3.5" /> Shared with staff
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-xs text-[#9BADB7]">
+                    <span className="flex items-center gap-1 text-xs text-[#50676E]">
                       <Clock className="w-3.5 h-3.5" /> Not shared
                     </span>
                   )
                 )}
-                <ChevronRight className="w-4 h-4 text-[#9BADB7] group-hover:text-[#223149] transition-colors" />
+                <ChevronRight className="w-4 h-4 text-[#50676E] group-hover:text-[#223149] transition-colors" />
               </div>
             </Link>
           ))}

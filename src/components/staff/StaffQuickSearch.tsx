@@ -40,7 +40,7 @@ export default function StaffQuickSearch({ staffList }: { staffList: StaffMember
   return (
     <div ref={containerRef} className="relative">
       <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] bg-white hover:border-[#9BADB7] transition-colors w-44 sm:w-56">
-        <Search className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" />
+        <Search className="w-3.5 h-3.5 text-[#50676E] flex-shrink-0" />
         <input
           type="text"
           value={query}
@@ -51,7 +51,7 @@ export default function StaffQuickSearch({ staffList }: { staffList: StaffMember
             if (e.key === "Enter" && filtered.length > 0) go(filtered[0].id);
           }}
           placeholder="Jump to staff…"
-          className="flex-1 text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none bg-transparent min-w-0"
+          className="flex-1 text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none bg-transparent min-w-0"
         />
       </div>
 

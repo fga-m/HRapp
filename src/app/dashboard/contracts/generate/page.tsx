@@ -56,7 +56,7 @@ type Batch = { batch_id: string; batch_label: string | null; created_at: string;
 type ActionTarget = { genId: string; recipient_name: string; staff_id: string | null; google_doc_url: string | null; contract_id: string | null };
 
 const STATUS_BADGE: Record<DraftRowStatus, { label: string; cls: string }> = {
-  draft: { label: "Draft", cls: "bg-[#F8F6F4] text-[#5F7C84] border-[#ECE3DF]" },
+  draft: { label: "Draft", cls: "bg-[#F8F6F4] text-[#50676E] border-[#ECE3DF]" },
   generated: { label: "Generated", cls: "bg-blue-50 text-blue-700 border-blue-200" },
   generated_changed: { label: "Edited · regenerate", cls: "bg-amber-50 text-amber-700 border-amber-200" },
   sent: { label: "Sent", cls: "bg-green-50 text-green-700 border-green-200" },
@@ -409,7 +409,7 @@ export default function GenerateContractsPage() {
             target="_blank"
             rel="noopener noreferrer"
             title="Open & edit in Google Docs"
-            className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+            className="p-2 rounded-xl text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
           </a>
@@ -418,7 +418,7 @@ export default function GenerateContractsPage() {
           onClick={() => downloadPdf(t.genId, t.recipient_name)}
           disabled={!!busy[t.genId]}
           title="Download PDF"
-          className="p-2 rounded-xl text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
+          className="p-2 rounded-xl text-[#50676E] hover:bg-[#F8F6F4] transition-colors disabled:opacity-50"
         >
           {busy[t.genId] === "download" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
         </button>
@@ -441,7 +441,7 @@ export default function GenerateContractsPage() {
             Send for signing
           </button>
         ) : (
-          <span className="text-xs text-[#9BADB7] px-2" title="Link this person to a staff member to enable signing">
+          <span className="text-xs text-[#50676E] px-2" title="Link this person to a staff member to enable signing">
             Not linked
           </span>
         )}
@@ -460,7 +460,7 @@ export default function GenerateContractsPage() {
   if (forbidden) {
     return (
       <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-        <p className="text-[#5F7C84] font-medium">Contract generation is available to admins only.</p>
+        <p className="text-[#50676E] font-medium">Contract generation is available to admins only.</p>
       </div>
     );
   }
@@ -476,13 +476,13 @@ export default function GenerateContractsPage() {
       <div>
         <Link
           href="/dashboard/contracts"
-          className="inline-flex items-center gap-1.5 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-[#50676E] hover:text-[#223149] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to contracts
         </Link>
         <h1 className="text-3xl font-bold text-[#223149] mt-2">Generate contracts</h1>
-        <p className="text-[#5F7C84] mt-1 text-sm">
+        <p className="text-[#50676E] mt-1 text-sm">
           Build a roster of employees and their details, tick who&apos;s ready, then generate &amp; send. Your list is
           saved automatically.
         </p>
@@ -490,8 +490,8 @@ export default function GenerateContractsPage() {
 
       {templates.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
-          <FileText className="w-10 h-10 text-[#9BADB7] mx-auto mb-3" />
-          <p className="text-[#5F7C84] font-medium">No templates yet</p>
+          <FileText className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
+          <p className="text-[#50676E] font-medium">No templates yet</p>
           <Link href="/dashboard/contracts/templates" className="text-sm text-[#223149] underline mt-1 inline-block">
             Add a contract template first
           </Link>
@@ -515,14 +515,14 @@ export default function GenerateContractsPage() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-                Batch name <span className="ml-1 text-xs font-normal text-[#9BADB7]">(optional)</span>
+                Batch name <span className="ml-1 text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
               <input
                 type="text"
                 value={batchLabel}
                 onChange={(e) => setBatchLabel(e.target.value)}
                 placeholder="e.g. June 2026 new starters"
-                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
             </div>
           </div>
@@ -550,13 +550,13 @@ export default function GenerateContractsPage() {
                   {showStaffPicker && (
                     <div className="absolute z-10 mt-2 w-72 bg-white rounded-xl border border-[#ECE3DF] shadow-lg overflow-hidden">
                       <div className="flex items-center gap-2 px-3 py-2 border-b border-[#ECE3DF]">
-                        <Search className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0" />
+                        <Search className="w-3.5 h-3.5 text-[#50676E] flex-shrink-0" />
                         <input
                           autoFocus
                           value={staffSearch}
                           onChange={(e) => setStaffSearch(e.target.value)}
                           placeholder="Search staff…"
-                          className="flex-1 text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none bg-transparent"
+                          className="flex-1 text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none bg-transparent"
                         />
                       </div>
                       <div className="max-h-56 overflow-y-auto divide-y divide-[#F8F6F4]">
@@ -576,7 +576,7 @@ export default function GenerateContractsPage() {
                           );
                         })}
                         {filteredStaff.length === 0 && (
-                          <p className="text-sm text-[#9BADB7] px-3 py-3">No staff found.</p>
+                          <p className="text-sm text-[#50676E] px-3 py-3">No staff found.</p>
                         )}
                       </div>
                     </div>
@@ -585,22 +585,22 @@ export default function GenerateContractsPage() {
                 <button
                   type="button"
                   onClick={addBlankRow}
-                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                 >
                   Add blank row
                 </button>
-                <span className="ml-auto text-xs text-[#9BADB7]">
+                <span className="ml-auto text-xs text-[#50676E]">
                   {savingCount > 0 ? "Saving…" : everSaved ? "All changes saved" : ""}
                 </span>
               </div>
 
               {/* Grid */}
               {rowsLoading ? (
-                <div className="flex items-center gap-2 text-sm text-[#9BADB7] py-6">
+                <div className="flex items-center gap-2 text-sm text-[#50676E] py-6">
                   <Loader2 className="w-4 h-4 animate-spin" /> Loading your list…
                 </div>
               ) : rows.length === 0 ? (
-                <p className="text-sm text-[#9BADB7] py-6">No one on this list yet — add employees above.</p>
+                <p className="text-sm text-[#50676E] py-6">No one on this list yet — add employees above.</p>
               ) : (
                 <div className="border border-[#ECE3DF] rounded-xl overflow-x-auto">
                   <table className="w-full text-sm">
@@ -619,10 +619,10 @@ export default function GenerateContractsPage() {
                         {fields.map((f) => {
                           const s = fieldSetting(template?.field_config, f);
                           return (
-                            <th key={f} className="px-3 py-2 align-bottom text-[#5F7C84]">
+                            <th key={f} className="px-3 py-2 align-bottom text-[#50676E]">
                               <div className="font-semibold text-xs">{fieldLabel(template?.field_config, f)}</div>
                               {s.description && (
-                                <div className="text-[11px] font-normal text-[#9BADB7] whitespace-normal max-w-[11rem] mt-0.5">
+                                <div className="text-[11px] font-normal text-[#50676E] whitespace-normal max-w-[11rem] mt-0.5">
                                   {s.description}
                                 </div>
                               )}
@@ -668,7 +668,7 @@ export default function GenerateContractsPage() {
                                   ) : setting.type === "date" ? (
                                     <input type="date" value={r.values[f] ?? ""} onChange={(e) => setValue(r.id, f, e.target.value)} className={cls} />
                                   ) : (
-                                    <input value={r.values[f] ?? ""} onChange={(e) => setValue(r.id, f, e.target.value)} placeholder={setting.example ?? ""} className={`${cls} placeholder:text-[#9BADB7]`} />
+                                    <input value={r.values[f] ?? ""} onChange={(e) => setValue(r.id, f, e.target.value)} placeholder={setting.example ?? ""} className={`${cls} placeholder:text-[#6E8189]`} />
                                   )}
                                 </td>
                               );
@@ -698,7 +698,7 @@ export default function GenerateContractsPage() {
                               <button
                                 onClick={() => removeRow(r.id)}
                                 title="Remove from list"
-                                className="p-1.5 rounded-lg text-[#9BADB7] hover:bg-[#F8F6F4] hover:text-red-500 transition-colors"
+                                className="p-1.5 rounded-lg text-[#50676E] hover:bg-[#F8F6F4] hover:text-red-500 transition-colors"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -732,7 +732,7 @@ export default function GenerateContractsPage() {
       {/* Recent batches (historical log across templates) */}
       {batches.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-[#9BADB7] uppercase tracking-wide mb-3">Recent batches</h2>
+          <h2 className="text-sm font-semibold text-[#50676E] uppercase tracking-wide mb-3">Recent batches</h2>
           <div className="space-y-3">
             {batches.map((b) => (
               <div key={b.batch_id} className="bg-white rounded-2xl shadow-sm p-5">

@@ -66,7 +66,7 @@ function Toggle({
       {value ? (
         <ToggleRight className="w-6 h-6 text-rose-500" />
       ) : (
-        <ToggleLeft className="w-6 h-6 text-[#9BADB7]" />
+        <ToggleLeft className="w-6 h-6 text-[#50676E]" />
       )}
       <span>{value ? labelOn : labelOff}</span>
     </button>
@@ -77,7 +77,7 @@ function Toggle({
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-widest px-1 pt-2 pb-1">
+    <p className="text-xs font-semibold text-[#50676E] uppercase tracking-widest px-1 pt-2 pb-1">
       {label || "General"}
     </p>
   );
@@ -141,7 +141,7 @@ function ItemModal({
             {initial ? "Edit Item" : "Add Item"}
           </h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
-            <X className="w-5 h-5 text-[#9BADB7]" />
+            <X className="w-5 h-5 text-[#50676E]" />
           </button>
         </div>
 
@@ -157,21 +157,21 @@ function ItemModal({
               required
               autoFocus
               placeholder="e.g. Complete tax file declaration"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Description{" "}
-              <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
               placeholder="Additional context or instructions..."
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
             />
           </div>
 
@@ -179,7 +179,7 @@ function ItemModal({
           <div className="relative">
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Section{" "}
-              <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
             <input
               type="text"
@@ -188,7 +188,7 @@ function ItemModal({
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="e.g. IT Setup"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
             {showSuggestions && (
               <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-[#ECE3DF] rounded-xl shadow-lg overflow-hidden">
@@ -211,14 +211,14 @@ function ItemModal({
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
               Link URL{" "}
-              <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
             <input
               type="url"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
 
@@ -245,7 +245,7 @@ function ItemModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               Cancel
             </button>
@@ -302,7 +302,7 @@ function EditTemplateModal({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#223149]">Edit Template</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
-            <X className="w-5 h-5 text-[#9BADB7]" />
+            <X className="w-5 h-5 text-[#50676E]" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -318,7 +318,7 @@ function EditTemplateModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description <span className="text-xs font-normal text-[#9BADB7]">(optional)</span></label>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Description <span className="text-xs font-normal text-[#50676E]">(optional)</span></label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -341,7 +341,7 @@ function EditTemplateModal({
                   className={`flex-1 px-4 py-2 rounded-xl border text-sm font-medium transition-colors ${
                     category === cat
                       ? "bg-[#223149] text-white border-[#223149]"
-                      : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"
+                      : "border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4]"
                   }`}
                 >
                   {cat === "generic" ? "Generic" : "Ministry-Specific"}
@@ -357,7 +357,7 @@ function EditTemplateModal({
                 value={ministry}
                 onChange={(e) => setMinistry(e.target.value)}
                 placeholder="e.g. Youth Ministry"
-                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
             </div>
           )}
@@ -366,7 +366,7 @@ function EditTemplateModal({
             <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50">
               {saving ? "Saving..." : "Save Changes"}
             </button>
-            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
+            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
               Cancel
             </button>
           </div>
@@ -488,10 +488,10 @@ export default function TemplateEditorPage() {
   if (error || !template) {
     return (
       <div className="space-y-4">
-        <Link href="/dashboard/onboarding" className="inline-flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors">
+        <Link href="/dashboard/onboarding" className="inline-flex items-center gap-2 text-sm text-[#50676E] hover:text-[#223149] transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Checklists
         </Link>
-        <p className="text-[#9BADB7]">{error || "Template not found."}</p>
+        <p className="text-[#50676E]">{error || "Template not found."}</p>
       </div>
     );
   }
@@ -514,10 +514,10 @@ export default function TemplateEditorPage() {
               <TypeBadge isOffboarding={template.is_offboarding} />
             </div>
             {template.description && (
-              <p className="text-[#5F7C84] mt-1 text-sm">{template.description}</p>
+              <p className="text-[#50676E] mt-1 text-sm">{template.description}</p>
             )}
             {template.ministry && (
-              <p className="text-xs text-[#9BADB7] mt-0.5">{template.ministry}</p>
+              <p className="text-xs text-[#50676E] mt-0.5">{template.ministry}</p>
             )}
           </div>
         </div>
@@ -525,7 +525,7 @@ export default function TemplateEditorPage() {
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setEditTemplate(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
           >
             <Pencil className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Edit</span>
@@ -541,7 +541,7 @@ export default function TemplateEditorPage() {
       </div>
 
       {/* Stats bar */}
-      <div className="flex items-center gap-4 text-sm text-[#9BADB7]">
+      <div className="flex items-center gap-4 text-sm text-[#50676E]">
         <span>{items.length} item{items.length !== 1 ? "s" : ""}</span>
         <span>·</span>
         <span>{items.filter((i) => i.is_required).length} required</span>
@@ -559,7 +559,7 @@ export default function TemplateEditorPage() {
           <div className="p-12 text-center space-y-3">
             <Plus className="w-12 h-12 text-[#ECE3DF] mx-auto" />
             <p className="font-semibold text-[#223149]">No items yet</p>
-            <p className="text-sm text-[#9BADB7]">Add checklist items to this template.</p>
+            <p className="text-sm text-[#50676E]">Add checklist items to this template.</p>
           </div>
         ) : (
           <div className="divide-y divide-[#ECE3DF]">
@@ -592,7 +592,7 @@ export default function TemplateEditorPage() {
                               href={item.link_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#F8F6F4] text-[#9BADB7] hover:text-[#5F7C84] transition-colors"
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#F8F6F4] text-[#50676E] hover:text-[#50676E] transition-colors"
                             >
                               <ExternalLink className="w-2.5 h-2.5" />
                               Link
@@ -600,7 +600,7 @@ export default function TemplateEditorPage() {
                           )}
                         </div>
                         {item.description && (
-                          <p className="text-xs text-[#9BADB7] mt-0.5 line-clamp-2">
+                          <p className="text-xs text-[#50676E] mt-0.5 line-clamp-2">
                             {item.description}
                           </p>
                         )}
@@ -614,7 +614,7 @@ export default function TemplateEditorPage() {
                           title="Edit item"
                           aria-label="Edit item"
                         >
-                          <Pencil className="w-3.5 h-3.5 text-[#5F7C84]" />
+                          <Pencil className="w-3.5 h-3.5 text-[#50676E]" />
                         </button>
                         <button
                           onClick={() => handleDeleteItem(item.id)}
@@ -637,7 +637,7 @@ export default function TemplateEditorPage() {
         <div className="px-6 py-3 border-t border-[#ECE3DF]">
           <button
             onClick={() => setShowAddItem(true)}
-            className="flex items-center gap-2 text-sm font-semibold text-[#223149] hover:text-[#5F7C84] transition-colors"
+            className="flex items-center gap-2 text-sm font-semibold text-[#223149] hover:text-[#50676E] transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Item
@@ -648,7 +648,7 @@ export default function TemplateEditorPage() {
       {/* Danger zone */}
       <div className="border border-rose-100 rounded-2xl p-5">
         <h3 className="text-sm font-semibold text-rose-600 mb-2">Delete this template</h3>
-        <p className="text-xs text-[#9BADB7] mb-3">Deleting this template cannot be undone. Assigned checklists will not be affected.</p>
+        <p className="text-xs text-[#50676E] mb-3">Deleting this template cannot be undone. Assigned checklists will not be affected.</p>
         <button
           onClick={handleDeleteTemplate}
           className="flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-200 text-sm font-semibold text-rose-500 hover:bg-rose-50 transition-colors"

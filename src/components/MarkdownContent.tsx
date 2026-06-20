@@ -33,7 +33,7 @@ export function MarkdownContent({ content }: { content: string }) {
       hasCheckboxes ? (
         <ul key={key++} className="space-y-1.5 mb-3 ml-1">
           {listItems.map((li, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-[#5F7C84]">
+            <li key={i} className="flex items-start gap-2 text-sm text-[#50676E]">
               <span
                 className={`mt-0.5 w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center ${
                   li.checked
@@ -52,7 +52,7 @@ export function MarkdownContent({ content }: { content: string }) {
           ))}
         </ul>
       ) : (
-        <ul key={key++} className="list-disc list-inside space-y-1 mb-3 ml-1 text-sm text-[#5F7C84]">
+        <ul key={key++} className="list-disc list-inside space-y-1 mb-3 ml-1 text-sm text-[#50676E]">
           {listItems.map((li, i) => (
             <li key={i}>
               <InlineText text={li.text} />
@@ -107,7 +107,7 @@ export function MarkdownContent({ content }: { content: string }) {
     else {
       flushList();
       nodes.push(
-        <p key={key++} className="text-sm text-[#5F7C84] mb-2 leading-relaxed">
+        <p key={key++} className="text-sm text-[#50676E] mb-2 leading-relaxed">
           <InlineText text={line} />
         </p>
       );

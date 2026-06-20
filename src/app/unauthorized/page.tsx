@@ -11,7 +11,7 @@ export default function Unauthorized() {
         >
           Access Denied
         </h1>
-        <p className="text-[#5F7C84] text-sm mb-6">
+        <p className="text-[#50676E] text-sm mb-6">
           Only <span className="font-semibold">@fgam.org.au</span> accounts can
           access this portal. Please sign in with your FGA Melbourne Google
           account.

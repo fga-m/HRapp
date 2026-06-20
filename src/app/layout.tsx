@@ -28,8 +28,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Allow pinch-zoom for accessibility (WCAG 1.4.4). Do not disable user scaling.
+  maximumScale: 5,
 };
 
 export default function RootLayout({

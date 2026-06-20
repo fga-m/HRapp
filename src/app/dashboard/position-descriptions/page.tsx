@@ -167,10 +167,10 @@ export default function PositionDescriptionsPage() {
         <PageSubtitle pageKey="position-descriptions" defaultDescription="Your job description and the key responsibilities of your role." />
         <div className="bg-white rounded-2xl shadow-sm p-10 flex flex-col items-center text-center gap-4">
           <div className="w-16 h-16 rounded-full bg-[#ECE3DF] flex items-center justify-center">
-            <Briefcase className="w-8 h-8 text-[#9BADB7]" />
+            <Briefcase className="w-8 h-8 text-[#50676E]" />
           </div>
           <h2 className="text-lg font-semibold text-[#223149]">Not set up yet</h2>
-          <p className="text-sm text-[#9BADB7] max-w-sm">
+          <p className="text-sm text-[#50676E] max-w-sm">
             Your position description hasn&apos;t been set up yet. Your manager will share it with you once it&apos;s ready.
           </p>
         </div>
@@ -193,7 +193,7 @@ export default function PositionDescriptionsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="font-semibold text-[#223149] text-base">{pd.title}</h2>
-                <p className="text-xs text-[#9BADB7] mt-0.5">Version {pd.version}</p>
+                <p className="text-xs text-[#50676E] mt-0.5">Version {pd.version}</p>
               </div>
               <div className="flex-shrink-0">
                 {pd.acknowledged ? (
@@ -235,10 +235,10 @@ export default function PositionDescriptionsPage() {
       {pds.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-10 flex flex-col items-center text-center gap-4">
           <div className="w-16 h-16 rounded-full bg-[#ECE3DF] flex items-center justify-center">
-            <Briefcase className="w-8 h-8 text-[#9BADB7]" />
+            <Briefcase className="w-8 h-8 text-[#50676E]" />
           </div>
           <h2 className="text-lg font-semibold text-[#223149]">No position descriptions yet</h2>
-          <p className="text-sm text-[#9BADB7]">Create one to get started.</p>
+          <p className="text-sm text-[#50676E]">Create one to get started.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -254,10 +254,10 @@ export default function PositionDescriptionsPage() {
                     <p className="font-semibold text-[#223149] text-sm leading-tight truncate">
                       {pd.assigned_staff?.full_name || "Unknown"}
                     </p>
-                    <p className="text-xs text-[#9BADB7] truncate">{pd.assigned_staff?.email}</p>
-                    <p className="text-sm font-medium text-[#5F7C84] mt-1.5 truncate">{pd.title}</p>
+                    <p className="text-xs text-[#50676E] truncate">{pd.assigned_staff?.email}</p>
+                    <p className="text-sm font-medium text-[#50676E] mt-1.5 truncate">{pd.title}</p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span className="text-xs text-[#9BADB7] bg-[#F8F6F4] px-2 py-0.5 rounded-full">
+                      <span className="text-xs text-[#50676E] bg-[#F8F6F4] px-2 py-0.5 rounded-full">
                         v{pd.version}
                       </span>
                       {pd.acknowledged ? (
@@ -290,7 +290,7 @@ export default function PositionDescriptionsPage() {
                 onClick={() => setShowModal(false)}
                 className="p-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors"
               >
-                <X className="w-4 h-4 text-[#9BADB7]" />
+                <X className="w-4 h-4 text-[#50676E]" />
               </button>
             </div>
 
@@ -321,7 +321,7 @@ export default function PositionDescriptionsPage() {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="e.g. Youth Pastor"
-                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
             </div>
 
@@ -333,7 +333,7 @@ export default function PositionDescriptionsPage() {
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 rows={16}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] font-mono text-xs placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-y"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] font-mono text-xs placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-y"
               />
             </div>
 
@@ -349,7 +349,7 @@ export default function PositionDescriptionsPage() {
               </button>
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
               >
                 Cancel
               </button>

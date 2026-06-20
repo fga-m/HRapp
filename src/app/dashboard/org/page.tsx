@@ -106,7 +106,7 @@ function RoleCard({
         <div className="absolute top-2 right-2 flex items-center gap-1">
           <button
             onClick={() => onEdit(role)}
-            className="w-6 h-6 rounded-lg flex items-center justify-center bg-[#F8F6F4] hover:bg-[#ECE3DF] text-[#5F7C84] transition-colors"
+            className="w-6 h-6 rounded-lg flex items-center justify-center bg-[#F8F6F4] hover:bg-[#ECE3DF] text-[#50676E] transition-colors"
             title="Edit role"
           >
             <Pencil className="w-3 h-3" />
@@ -128,7 +128,7 @@ function RoleCard({
 
       {/* Description */}
       {role.description && (
-        <p className="text-xs text-[#9BADB7] mt-0.5 line-clamp-2">{role.description}</p>
+        <p className="text-xs text-[#50676E] mt-0.5 line-clamp-2">{role.description}</p>
       )}
 
       {/* Divider */}
@@ -136,7 +136,7 @@ function RoleCard({
 
       {/* Staff */}
       {staffList.length === 0 ? (
-        <span className="inline-block px-2 py-0.5 rounded-full bg-[#F8F6F4] text-[#9BADB7] text-xs">
+        <span className="inline-block px-2 py-0.5 rounded-full bg-[#F8F6F4] text-[#50676E] text-xs">
           Vacant
         </span>
       ) : (
@@ -146,7 +146,7 @@ function RoleCard({
             const content = (
               <div className="flex flex-col items-center gap-0.5">
                 <Avatar member={member} size="sm" />
-                <span className="text-xs text-[#5F7C84] leading-tight max-w-[160px] truncate">
+                <span className="text-xs text-[#50676E] leading-tight max-w-[160px] truncate">
                   {member.full_name}
                 </span>
               </div>
@@ -167,7 +167,7 @@ function RoleCard({
             ) : (
               <div key={member.id} className="flex flex-col items-center gap-0.5">
                 <Avatar member={member} size="sm" />
-                <span className="text-xs text-[#5F7C84] leading-tight max-w-[160px] truncate">
+                <span className="text-xs text-[#50676E] leading-tight max-w-[160px] truncate">
                   {member.full_name}
                 </span>
               </div>
@@ -180,7 +180,7 @@ function RoleCard({
       {role.pd && (
         <Link
           href={`/dashboard/position-descriptions/${role.pd.id}`}
-          className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#F8F6F4] text-[#5F7C84] hover:bg-[#ECE3DF] hover:text-[#223149] text-xs font-medium transition-colors"
+          className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#F8F6F4] text-[#50676E] hover:bg-[#ECE3DF] hover:text-[#223149] text-xs font-medium transition-colors"
           title="View position description"
         >
           <FileText className="w-3 h-3 flex-shrink-0" />
@@ -192,7 +192,7 @@ function RoleCard({
       {isEditMode && (
         <button
           onClick={() => onAddChild(role.id)}
-          className="mt-3 w-full flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-dashed border-[#9BADB7] text-[#9BADB7] hover:border-[#5F7C84] hover:text-[#5F7C84] text-xs transition-colors"
+          className="mt-3 w-full flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-dashed border-[#9BADB7] text-[#50676E] hover:border-[#5F7C84] hover:text-[#50676E] text-xs transition-colors"
         >
           <Plus className="w-3 h-3" />
           Add child role
@@ -301,7 +301,7 @@ function Modal({
           <h2 className="font-bold text-[#223149] text-base">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#F8F6F4] text-[#9BADB7] transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#F8F6F4] text-[#50676E] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -574,7 +574,7 @@ export default function OrgChartPage() {
           <div>
             <h1 className="text-3xl font-bold text-[#223149]">Org Chart</h1>
             <PageSubtitle pageKey="org" defaultDescription="A visual map of how the team is structured and who reports to whom." />
-            <p className="text-[#5F7C84] text-sm">
+            <p className="text-[#50676E] text-sm">
               {allRoles.length} role{allRoles.length !== 1 ? "s" : ""}
             </p>
           </div>
@@ -610,11 +610,11 @@ export default function OrgChartPage() {
       {/* ── Org tree ── */}
       {allRoles.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-[#ECE3DF] p-16 text-center">
-          <Network className="w-10 h-10 text-[#9BADB7] mx-auto mb-4" />
+          <Network className="w-10 h-10 text-[#50676E] mx-auto mb-4" />
           {isAdmin ? (
             <>
               <p className="text-[#223149] font-semibold text-lg mb-1">Build your org chart</p>
-              <p className="text-[#9BADB7] text-sm mb-6">
+              <p className="text-[#50676E] text-sm mb-6">
                 Add your first role to get started.
               </p>
               <button
@@ -626,7 +626,7 @@ export default function OrgChartPage() {
               </button>
             </>
           ) : (
-            <p className="text-[#9BADB7] text-sm">The org chart hasn&apos;t been set up yet.</p>
+            <p className="text-[#50676E] text-sm">The org chart hasn&apos;t been set up yet.</p>
           )}
         </div>
       ) : (
@@ -687,7 +687,7 @@ export default function OrgChartPage() {
             <div>
               <label className="block text-sm font-medium text-[#223149] mb-1">
                 Description{" "}
-                <span className="text-[#9BADB7] font-normal">(optional)</span>
+                <span className="text-[#50676E] font-normal">(optional)</span>
               </label>
               <textarea
                 value={addDescription}
@@ -700,7 +700,7 @@ export default function OrgChartPage() {
             <div>
               <label className="block text-sm font-medium text-[#223149] mb-1">
                 Assign staff{" "}
-                <span className="text-[#9BADB7] font-normal">(optional)</span>
+                <span className="text-[#50676E] font-normal">(optional)</span>
               </label>
               {/* Selected staff chips */}
               {addStaffIds.length > 0 && (
@@ -742,7 +742,7 @@ export default function OrgChartPage() {
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#5F7C84] text-sm font-medium hover:bg-[#F8F6F4] transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#50676E] text-sm font-medium hover:bg-[#F8F6F4] transition-colors"
               >
                 Cancel
               </button>
@@ -778,7 +778,7 @@ export default function OrgChartPage() {
               <div>
                 <label className="block text-sm font-medium text-[#223149] mb-1">
                   Description{" "}
-                  <span className="text-[#9BADB7] font-normal">(optional)</span>
+                  <span className="text-[#50676E] font-normal">(optional)</span>
                 </label>
                 <textarea
                   value={editDescription}
@@ -811,7 +811,7 @@ export default function OrgChartPage() {
                         <button
                           onClick={() => handleRemoveStaff(member.id)}
                           disabled={staffLoading}
-                          className="w-6 h-6 flex items-center justify-center rounded-lg text-[#9BADB7] hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+                          className="w-6 h-6 flex items-center justify-center rounded-lg text-[#50676E] hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
                           title="Remove from role"
                         >
                           <UserMinus className="w-3.5 h-3.5" />
@@ -821,7 +821,7 @@ export default function OrgChartPage() {
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-[#9BADB7] mb-3 italic">No staff assigned yet.</p>
+                <p className="text-xs text-[#50676E] mb-3 italic">No staff assigned yet.</p>
               )}
 
               {/* Add staff dropdown */}
@@ -857,7 +857,7 @@ export default function OrgChartPage() {
               {editRole.pd ? (
                 <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F8F6F4]">
                   <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="w-4 h-4 text-[#5F7C84] flex-shrink-0" />
+                    <FileText className="w-4 h-4 text-[#50676E] flex-shrink-0" />
                     <Link
                       href={`/dashboard/position-descriptions/${editRole.pd.id}`}
                       className="text-sm text-[#223149] font-medium truncate hover:underline"
@@ -869,7 +869,7 @@ export default function OrgChartPage() {
                   <button
                     onClick={handleUnlinkPd}
                     disabled={pdLoading}
-                    className="flex items-center gap-1 text-xs text-[#9BADB7] hover:text-red-500 transition-colors flex-shrink-0 ml-2"
+                    className="flex items-center gap-1 text-xs text-[#50676E] hover:text-red-500 transition-colors flex-shrink-0 ml-2"
                     title="Unlink position description"
                   >
                     <Link2Off className="w-3.5 h-3.5" />
@@ -898,9 +898,9 @@ export default function OrgChartPage() {
                       Link
                     </button>
                   </div>
-                  <p className="text-xs text-[#9BADB7]">
+                  <p className="text-xs text-[#50676E]">
                     Don&apos;t see it?{" "}
-                    <Link href="/dashboard/position-descriptions" className="underline hover:text-[#5F7C84]">
+                    <Link href="/dashboard/position-descriptions" className="underline hover:text-[#50676E]">
                       Create one first
                     </Link>
                     , then come back to link it.
@@ -913,7 +913,7 @@ export default function OrgChartPage() {
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#5F7C84] text-sm font-medium hover:bg-[#F8F6F4] transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#50676E] text-sm font-medium hover:bg-[#F8F6F4] transition-colors"
               >
                 Cancel
               </button>

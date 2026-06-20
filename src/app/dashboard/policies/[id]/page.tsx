@@ -33,6 +33,7 @@ export default function PolicyDetailPage() {
   const [archiving, setArchiving] = useState(false);
   const [signSuccess, setSignSuccess] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
+  const [versionError, setVersionError] = useState("");
   const [newVersionNumber, setNewVersionNumber] = useState("");
   const [newDriveUrl, setNewDriveUrl] = useState("");
   const [docExpanded, setDocExpanded] = useState(true);
@@ -69,9 +70,10 @@ export default function PolicyDetailPage() {
   const handleBumpVersion = async () => {
     const versionNum = parseFloat(newVersionNumber);
     if (!newVersionNumber || isNaN(versionNum) || versionNum <= (data?.policy?.version || 0)) {
-      alert(`Version must be a number greater than the current version (${data?.policy?.version})`);
+      setVersionError(`Version must be a number greater than the current version (${data?.policy?.version}).`);
       return;
     }
+    setVersionError("");
     setBumpingVersion(true);
     setShowVersionModal(false);
     await fetch(`/api/policies/${id}`, {
@@ -119,7 +121,7 @@ export default function PolicyDetailPage() {
         </div>
         <button
           onClick={fetchPolicy}
-          className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+          className="px-4 py-2 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
         >
           Try again
         </button>
@@ -127,7 +129,7 @@ export default function PolicyDetailPage() {
     );
   }
 
-  if (!data?.policy) return <div className="text-[#9BADB7]">Policy not found.</div>;
+  if (!data?.policy) return <div className="text-[#50676E]">Policy not found.</div>;
 
   const { policy, signoffs, signoffHistory, unsigned, mySignoff, role, currentYear } = data;
   const signedCount = signoffs.length;
@@ -145,19 +147,19 @@ export default function PolicyDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl md:text-3xl font-bold text-[#223149]">{policy.title}</h1>
-            <span className="text-sm text-[#9BADB7] font-medium">v{policy.version}</span>
+            <span className="text-sm text-[#50676E] font-medium">v{policy.version}</span>
             {!policy.is_active && (
               <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">Archived</span>
             )}
           </div>
           {policy.description && (
-            <p className="text-[#5F7C84] mt-1 text-sm">{policy.description}</p>
+            <p className="text-[#50676E] mt-1 text-sm">{policy.description}</p>
           )}
         </div>
         {role === "admin" && (
           <Link
             href={`/dashboard/policies/${id}/edit`}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors flex-shrink-0"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#ECE3DF] text-sm font-medium text-[#50676E] hover:bg-[#F8F6F4] transition-colors flex-shrink-0"
           >
             <Edit className="w-4 h-4" />
             <span className="hidden sm:inline">Edit</span>
@@ -172,7 +174,7 @@ export default function PolicyDetailPage() {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#ECE3DF]">
             <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-[#9BADB7]" />
+              <Shield className="w-4 h-4 text-[#50676E]" />
               <span className="text-sm font-semibold text-[#223149]">Policy Document</span>
             </div>
             <div className="flex items-center gap-2">
@@ -185,8 +187,8 @@ export default function PolicyDetailPage() {
                     aria-label={docExpanded ? "Collapse" : "Expand"}
                   >
                     {docExpanded
-                      ? <Minimize2 className="w-4 h-4 text-[#9BADB7]" />
-                      : <Maximize2 className="w-4 h-4 text-[#9BADB7]" />}
+                      ? <Minimize2 className="w-4 h-4 text-[#50676E]" />
+                      : <Maximize2 className="w-4 h-4 text-[#50676E]" />}
                   </button>
                   <a
                     href={policy.content_drive_url}
@@ -196,7 +198,7 @@ export default function PolicyDetailPage() {
                     title="Open in Google Drive"
                     aria-label="Open in Google Drive"
                   >
-                    <ExternalLink className="w-4 h-4 text-[#9BADB7]" />
+                    <ExternalLink className="w-4 h-4 text-[#50676E]" />
                   </a>
                 </>
               )}
@@ -217,16 +219,16 @@ export default function PolicyDetailPage() {
                 className="px-5 py-4 cursor-pointer hover:bg-[#F8F6F4] transition-colors"
                 onClick={() => setDocExpanded(true)}
               >
-                <p className="text-sm text-[#5F7C84]">Click to view document</p>
+                <p className="text-sm text-[#50676E]">Click to view document</p>
               </div>
             )
           ) : (
-            <div className="px-5 py-12 text-sm text-[#9BADB7] text-center">
+            <div className="px-5 py-12 text-sm text-[#50676E] text-center">
               No document linked yet.
             </div>
           )}
 
-          <div className="px-5 py-3 border-t border-[#ECE3DF] text-xs text-[#9BADB7]">
+          <div className="px-5 py-3 border-t border-[#ECE3DF] text-xs text-[#50676E]">
             Created {format(new Date(policy.created_at), "d MMM yyyy")}
             {policy.created_by_staff?.full_name && ` by ${policy.created_by_staff.full_name}`}
           </div>
@@ -244,10 +246,10 @@ export default function PolicyDetailPage() {
                     <CheckCircle className="w-6 h-6 text-green-500" />
                   </div>
                   <p className="font-semibold text-[#223149] text-sm">Signed for {currentYear}</p>
-                  <p className="text-xs text-[#9BADB7]">
+                  <p className="text-xs text-[#50676E]">
                     {format(new Date(mySignoff.signed_at), "d MMM yyyy, h:mm a")}
                   </p>
-                  <p className="text-xs text-[#9BADB7]">Renews each year.</p>
+                  <p className="text-xs text-[#50676E]">Renews each year.</p>
                 </>
               ) : (
                 <>
@@ -255,7 +257,7 @@ export default function PolicyDetailPage() {
                     <Clock className="w-6 h-6 text-amber-500" />
                   </div>
                   <p className="font-semibold text-[#223149] text-sm">Sign-off required</p>
-                  <p className="text-xs text-[#9BADB7]">Please read the policy then sign off below</p>
+                  <p className="text-xs text-[#50676E]">Please read the policy then sign off below</p>
                   {error && <p className="text-xs text-red-500">{error}</p>}
                   {signSuccess && <p className="text-xs text-green-600">Signed successfully!</p>}
                   <button
@@ -271,7 +273,7 @@ export default function PolicyDetailPage() {
               {/* Admin progress bar */}
               {role === "admin" && (
                 <div className="w-full pt-3 border-t border-[#ECE3DF] space-y-2">
-                  <div className="flex justify-between text-xs text-[#9BADB7]">
+                  <div className="flex justify-between text-xs text-[#50676E]">
                     <span>Team sign-off</span>
                     <span>{signedCount} / {totalCount}</span>
                   </div>
@@ -281,7 +283,7 @@ export default function PolicyDetailPage() {
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <p className="text-xs text-[#9BADB7]">{progress}% of team signed</p>
+                  <p className="text-xs text-[#50676E]">{progress}% of team signed</p>
                 </div>
               )}
             </div>
@@ -292,7 +294,7 @@ export default function PolicyDetailPage() {
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-5 py-3.5 border-b border-[#ECE3DF] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#9BADB7]" />
+                  <Users className="w-4 h-4 text-[#50676E]" />
                   <span className="font-semibold text-[#223149] text-sm">Sign-off Tracker</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -303,7 +305,7 @@ export default function PolicyDetailPage() {
                       setShowVersionModal(true);
                     }}
                     disabled={bumpingVersion}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     {bumpingVersion ? "Updating..." : "New Version"}
@@ -330,9 +332,9 @@ export default function PolicyDetailPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-[#223149] truncate">{s.staff?.full_name}</p>
-                          <p className="text-xs text-[#9BADB7] truncate">{s.staff?.email}</p>
+                          <p className="text-xs text-[#50676E] truncate">{s.staff?.email}</p>
                         </div>
-                        <p className="text-xs text-[#9BADB7] flex-shrink-0">
+                        <p className="text-xs text-[#50676E] flex-shrink-0">
                           {format(new Date(s.signed_at), "d MMM")}
                         </p>
                       </div>
@@ -353,7 +355,7 @@ export default function PolicyDetailPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-[#223149] truncate">{s.full_name}</p>
-                          <p className="text-xs text-[#9BADB7] truncate">{s.email}</p>
+                          <p className="text-xs text-[#50676E] truncate">{s.email}</p>
                         </div>
                       </div>
                     ))}
@@ -371,26 +373,26 @@ export default function PolicyDetailPage() {
                 className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-[#F8F6F4] transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <History className="w-4 h-4 text-[#9BADB7]" />
+                  <History className="w-4 h-4 text-[#50676E]" />
                   <span className="font-semibold text-[#223149] text-sm">Sign-off History</span>
-                  <span className="text-xs text-[#9BADB7]">({signoffHistory.length})</span>
+                  <span className="text-xs text-[#50676E]">({signoffHistory.length})</span>
                 </div>
                 {showHistory
-                  ? <ChevronUp className="w-4 h-4 text-[#9BADB7]" />
-                  : <ChevronDown className="w-4 h-4 text-[#9BADB7]" />}
+                  ? <ChevronUp className="w-4 h-4 text-[#50676E]" />
+                  : <ChevronDown className="w-4 h-4 text-[#50676E]" />}
               </button>
               {showHistory && (
                 <div className="px-5 pb-4 space-y-2 border-t border-[#ECE3DF] pt-3">
                   {signoffHistory.map((s: any) => (
                     <div key={s.id} className="flex items-center gap-2.5">
                       <div className="w-6 h-6 rounded-full bg-[#F8F6F4] flex items-center justify-center flex-shrink-0">
-                        <Check className="w-3 h-3 text-[#5F7C84]" />
+                        <Check className="w-3 h-3 text-[#50676E]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-[#223149] truncate">{s.staff?.full_name}</p>
-                        <p className="text-xs text-[#9BADB7]">v{s.policy_version} · {s.signoff_year}</p>
+                        <p className="text-xs text-[#50676E]">v{s.policy_version} · {s.signoff_year}</p>
                       </div>
-                      <p className="text-xs text-[#9BADB7] flex-shrink-0">
+                      <p className="text-xs text-[#50676E] flex-shrink-0">
                         {format(new Date(s.signed_at), "d MMM yy")}
                       </p>
                     </div>
@@ -407,7 +409,7 @@ export default function PolicyDetailPage() {
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
           <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-6 w-full md:max-w-sm space-y-4 pb-safe">
             <h2 className="text-lg font-bold text-[#223149]">Update Version</h2>
-            <p className="text-sm text-[#5F7C84]">
+            <p className="text-sm text-[#50676E]">
               Current version: <span className="font-semibold">v{data?.policy?.version}</span>. All staff will be notified to re-sign.
             </p>
             <div>
@@ -417,25 +419,26 @@ export default function PolicyDetailPage() {
                 min={Number(data?.policy?.version || 1) + 0.1}
                 step={0.1}
                 value={newVersionNumber}
-                onChange={(e) => setNewVersionNumber(e.target.value)}
+                onChange={(e) => { setNewVersionNumber(e.target.value); if (versionError) setVersionError(""); }}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                 placeholder={String(Math.floor(data?.policy?.version || 1) + 1)}
                 autoFocus
               />
+              {versionError && <p className="text-xs text-red-500 mt-1.5">{versionError}</p>}
             </div>
             <div>
               <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                 Updated Drive Link
-                <span className="ml-1 text-xs font-normal text-[#9BADB7]">(optional)</span>
+                <span className="ml-1 text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
               <input
                 type="url"
                 value={newDriveUrl}
                 onChange={(e) => setNewDriveUrl(e.target.value)}
                 placeholder="https://docs.google.com/..."
-                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
-              <p className="text-xs text-[#9BADB7] mt-1">Leave blank to keep the existing document</p>
+              <p className="text-xs text-[#50676E] mt-1">Leave blank to keep the existing document</p>
             </div>
             <div className="flex gap-3">
               <button
@@ -447,7 +450,7 @@ export default function PolicyDetailPage() {
               </button>
               <button
                 onClick={() => setShowVersionModal(false)}
-                className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
               >
                 Cancel
               </button>

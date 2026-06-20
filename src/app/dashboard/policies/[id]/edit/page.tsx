@@ -83,7 +83,7 @@ export default function EditPolicyPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Edit Policy</h1>
-          <p className="text-[#5F7C84] mt-1 text-sm">Changes are saved immediately — use "New Version" to notify staff to re-sign</p>
+          <p className="text-[#50676E] mt-1 text-sm">Changes are saved immediately — use "New Version" to notify staff to re-sign</p>
         </div>
       </div>
 
@@ -113,7 +113,7 @@ export default function EditPolicyPage() {
               rows={3}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
             />
           </div>
 
@@ -125,12 +125,12 @@ export default function EditPolicyPage() {
                 value={form.content_drive_url}
                 onChange={(e) => setForm({ ...form, content_drive_url: e.target.value })}
                 placeholder="https://docs.google.com/..."
-                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
               {form.content_drive_url && (
                 <a href={form.content_drive_url} target="_blank" rel="noopener noreferrer"
                   className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <ExternalLink className="w-4 h-4 text-[#9BADB7] hover:text-[#223149]" />
+                  <ExternalLink className="w-4 h-4 text-[#50676E] hover:text-[#223149]" />
                 </a>
               )}
             </div>
@@ -146,7 +146,7 @@ export default function EditPolicyPage() {
               onChange={(e) => setForm({ ...form, version: parseFloat(e.target.value) || 1 })}
               className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
-            <p className="text-xs text-[#9BADB7] mt-1">
+            <p className="text-xs text-[#50676E] mt-1">
               Changing the version here won't notify staff. Use "New Version" on the policy page to notify staff to re-sign.
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function EditPolicyPage() {
               <label htmlFor="requires_signoff" className="text-sm font-semibold text-[#223149] cursor-pointer">
                 Requires staff sign-off
               </label>
-              <p className="text-xs text-[#9BADB7] mt-0.5">
+              <p className="text-xs text-[#50676E] mt-0.5">
                 {form.requires_signoff ? "Select who needs to sign in the panel →" : "Staff will not be asked to acknowledge this policy"}
               </p>
             </div>
@@ -187,7 +187,7 @@ export default function EditPolicyPage() {
             </button>
             <Link
               href={`/dashboard/policies/${id}`}
-              className="px-6 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="px-6 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               Cancel
             </Link>

@@ -70,7 +70,7 @@ export default function PageSubtitle({ pageKey, defaultDescription }: Props) {
               if (e.key === "Escape") cancel();
             }}
             rows={2}
-            className="flex-1 text-sm text-[#5F7C84] bg-white border border-[#223149]/30 rounded-lg px-3 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
+            className="flex-1 text-sm text-[#50676E] bg-white border border-[#223149]/30 rounded-lg px-3 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-[#223149]/20"
           />
           <div className="flex gap-1 mt-0.5">
             <button
@@ -83,7 +83,7 @@ export default function PageSubtitle({ pageKey, defaultDescription }: Props) {
             </button>
             <button
               onClick={cancel}
-              className="p-1.5 rounded-lg border border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+              className="p-1.5 rounded-lg border border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
               title="Cancel"
             >
               <X className="w-3.5 h-3.5" />
@@ -97,11 +97,11 @@ export default function PageSubtitle({ pageKey, defaultDescription }: Props) {
 
   return (
     <div className="flex items-center gap-1.5 mt-1 group">
-      <p className="text-[#5F7C84] text-sm leading-relaxed">{description}</p>
+      <p className="text-[#50676E] text-sm leading-relaxed">{description}</p>
       {isAdmin && (
         <button
           onClick={startEdit}
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-[#ECE3DF] text-[#9BADB7] hover:text-[#5F7C84] flex-shrink-0"
+          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-[#ECE3DF] text-[#50676E] hover:text-[#50676E] flex-shrink-0"
           title="Edit page description"
         >
           <Pencil className="w-3 h-3" />

@@ -123,7 +123,7 @@ function LinkModal({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#223149]">{initial ? "Edit Link" : "Add Link"}</h2>
           <button onClick={onClose} className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
-            <X className="w-5 h-5 text-[#9BADB7]" />
+            <X className="w-5 h-5 text-[#50676E]" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,7 +137,7 @@ function LinkModal({
               onChange={(e) => setLabel(e.target.value)}
               autoFocus
               placeholder="e.g. Leave Request Form"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
           <div>
@@ -149,25 +149,25 @@ function LinkModal({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-              Description <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              Description <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of what this link is for"
               rows={3}
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
             />
           </div>
           {/* Icon picker */}
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-              Icon <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+              Icon <span className="text-xs font-normal text-[#50676E]">(optional)</span>
             </label>
             <div className="flex items-center gap-2 mb-2">
               {/* Preview */}
@@ -185,11 +185,11 @@ function LinkModal({
               <button
                 type="button"
                 onClick={() => { setIconMode("emoji"); setShowEmojiPicker((v) => !v); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${iconMode === "emoji" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${iconMode === "emoji" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4]"}`}
               >
                 😊 Emoji
               </button>
-              <label className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${iconMode === "image" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"}`}>
+              <label className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${iconMode === "image" ? "bg-[#223149] text-white border-[#223149]" : "border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4]"}`}>
                 {uploading ? "Uploading…" : "📷 Image"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
               </label>
@@ -220,7 +220,7 @@ function LinkModal({
           {groups.length > 0 && (
             <div>
               <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-                Group <span className="text-xs font-normal text-[#9BADB7]">(optional)</span>
+                Group <span className="text-xs font-normal text-[#50676E]">(optional)</span>
               </label>
               <select
                 value={groupId ?? ""}
@@ -239,7 +239,7 @@ function LinkModal({
             <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50">
               {saving ? "Saving..." : initial ? "Save Changes" : "Add Link"}
             </button>
-            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
+            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
               Cancel
             </button>
           </div>
@@ -283,7 +283,7 @@ function GroupModal({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#223149]">{initial ? "Rename Group" : "New Group"}</h2>
           <button onClick={onClose} className="p-2.5 rounded-lg hover:bg-[#F8F6F4] transition-colors">
-            <X className="w-5 h-5 text-[#9BADB7]" />
+            <X className="w-5 h-5 text-[#50676E]" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -293,14 +293,14 @@ function GroupModal({
             onChange={(e) => setLabel(e.target.value)}
             autoFocus
             placeholder="e.g. Ministry Resources"
-            className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+            className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
           />
           {error && <p className="text-sm text-rose-500">{error}</p>}
           <div className="flex gap-3">
             <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50">
               {saving ? "Saving..." : initial ? "Save" : "Create Group"}
             </button>
-            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
+            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
               Cancel
             </button>
           </div>
@@ -354,7 +354,7 @@ function SortableLinkCard({
           aria-label="Drag to reorder link"
           onClick={(e) => e.preventDefault()}
         >
-          <GripHorizontal className="w-3 h-3 text-[#9BADB7]" />
+          <GripHorizontal className="w-3 h-3 text-[#50676E]" />
         </button>
       )}
 
@@ -372,13 +372,13 @@ function SortableLinkCard({
           ) : link.icon ? (
             <span className="text-lg leading-none">{link.icon}</span>
           ) : (
-            <ExternalLink className="w-3.5 h-3.5 text-[#9BADB7]" />
+            <ExternalLink className="w-3.5 h-3.5 text-[#50676E]" />
           )}
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-[#223149]">{link.label}</p>
           {link.description && (
-            <p className="text-xs text-[#9BADB7] leading-relaxed">{link.description}</p>
+            <p className="text-xs text-[#50676E] leading-relaxed">{link.description}</p>
           )}
         </div>
       </a>
@@ -392,7 +392,7 @@ function SortableLinkCard({
             title="Edit link"
             aria-label="Edit link"
           >
-            <Pencil className="w-3 h-3 text-[#5F7C84]" />
+            <Pencil className="w-3 h-3 text-[#50676E]" />
           </button>
           <button
             onClick={(e) => { e.preventDefault(); onDelete(); }}
@@ -472,7 +472,7 @@ function SortableGroupSection({
             ref={setActivatorNodeRef}
             {...attributes}
             {...listeners}
-            className="p-1 rounded cursor-grab active:cursor-grabbing text-[#C5CDD0] hover:text-[#9BADB7] transition-colors flex-shrink-0"
+            className="p-1 rounded cursor-grab active:cursor-grabbing text-[#C5CDD0] hover:text-[#50676E] transition-colors flex-shrink-0"
             title="Drag to reorder group"
             aria-label="Drag to reorder group"
           >
@@ -489,7 +489,7 @@ function SortableGroupSection({
               title="Add link to group"
               aria-label="Add link to group"
             >
-              <Plus className="w-3.5 h-3.5 text-[#9BADB7]" />
+              <Plus className="w-3.5 h-3.5 text-[#50676E]" />
             </button>
             <button
               onClick={onEditGroup}
@@ -497,7 +497,7 @@ function SortableGroupSection({
               title="Rename group"
               aria-label="Rename group"
             >
-              <Pencil className="w-3.5 h-3.5 text-[#9BADB7]" />
+              <Pencil className="w-3.5 h-3.5 text-[#50676E]" />
             </button>
             <button
               onClick={onDeleteGroup}
@@ -514,7 +514,7 @@ function SortableGroupSection({
 
       {/* Links row with its own DnD context */}
       {groupLinks.length === 0 ? (
-        <p className="text-sm text-[#9BADB7] italic pl-1">
+        <p className="text-sm text-[#50676E] italic pl-1">
           No links yet.{isAdmin && " Click + to add one."}
         </p>
       ) : (
@@ -695,7 +695,7 @@ export default function StaffHubPage() {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
         <p className="font-semibold text-[#223149]">Couldn&apos;t load resources</p>
-        <p className="text-sm text-[#9BADB7]">Something went wrong. Please check your connection and try again.</p>
+        <p className="text-sm text-[#50676E]">Something went wrong. Please check your connection and try again.</p>
         <button
           onClick={() => { setLoading(true); fetchAll(); }}
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors"
@@ -718,7 +718,7 @@ export default function StaffHubPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowAddGroup(true)}
-              className="flex items-center gap-2 px-3 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="flex items-center gap-2 px-3 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               <FolderPlus className="w-4 h-4" />
               <span className="hidden sm:inline">New Group</span>
@@ -739,12 +739,12 @@ export default function StaffHubPage() {
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center space-y-3">
           <BookOpen className="w-12 h-12 text-[#ECE3DF] mx-auto" />
           <p className="font-semibold text-[#223149]">No links yet</p>
-          <p className="text-sm text-[#9BADB7]">
+          <p className="text-sm text-[#50676E]">
             {isAdmin ? "Create a group or add links for your team." : "Your admin hasn't added any links yet."}
           </p>
           {isAdmin && (
             <div className="flex justify-center gap-2 mt-2">
-              <button onClick={() => setShowAddGroup(true)} className="inline-flex items-center gap-2 px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
+              <button onClick={() => setShowAddGroup(true)} className="inline-flex items-center gap-2 px-4 py-2 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors">
                 <FolderPlus className="w-4 h-4" /> New Group
               </button>
               <button onClick={() => { setAddLinkGroupId(null); setShowAddLink(true); }} className="inline-flex items-center gap-2 px-4 py-2 bg-[#223149] text-white rounded-xl text-sm font-semibold hover:bg-[#1a2638] transition-colors">

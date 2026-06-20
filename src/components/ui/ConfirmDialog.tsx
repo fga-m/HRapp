@@ -59,10 +59,10 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               )}
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg font-bold text-[#223149]">{opts.title}</h2>
-                {opts.message && <p className="text-sm text-[#5F7C84] mt-1">{opts.message}</p>}
+                {opts.message && <p className="text-sm text-[#50676E] mt-1">{opts.message}</p>}
               </div>
               <button onClick={() => settle(false)} className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors flex-shrink-0" aria-label="Cancel">
-                <X className="w-5 h-5 text-[#5F7C84]" />
+                <X className="w-5 h-5 text-[#50676E]" />
               </button>
             </div>
             <div className="flex gap-3 pt-1">
@@ -77,7 +77,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               </button>
               <button
                 onClick={() => settle(false)}
-                className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
               >
                 {opts.cancelLabel ?? "Cancel"}
               </button>

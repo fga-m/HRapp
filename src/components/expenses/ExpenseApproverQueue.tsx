@@ -76,7 +76,7 @@ export default function ExpenseApproverQueue() {
   if (loading) {
     return (
       <div className="flex justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-[#5F7C84]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#50676E]" />
       </div>
     );
   }
@@ -93,8 +93,8 @@ export default function ExpenseApproverQueue() {
   if (claims.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-2">
-        <CheckCircle2 className="w-10 h-10 text-[#9BADB7]" />
-        <p className="text-sm text-[#9BADB7]">No expense claims awaiting review.</p>
+        <CheckCircle2 className="w-10 h-10 text-[#50676E]" />
+        <p className="text-sm text-[#50676E]">No expense claims awaiting review.</p>
       </div>
     );
   }
@@ -125,7 +125,7 @@ export default function ExpenseApproverQueue() {
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-[#223149] truncate">{claim.staff?.full_name ?? "Unknown"}</p>
-                  <p className="text-xs text-[#9BADB7]">
+                  <p className="text-xs text-[#50676E]">
                     {format(parseISO(claim.date), "d MMM yyyy")}
                     {claim.spent_at ? ` · ${claim.spent_at}` : ""}
                   </p>
@@ -142,7 +142,7 @@ export default function ExpenseApproverQueue() {
                   <div key={i} className="flex items-start justify-between gap-3 px-3 py-2 text-xs">
                     <div className="min-w-0">
                       <p className="text-[#223149] truncate">{l.description}</p>
-                      <p className="text-[#9BADB7]">
+                      <p className="text-[#50676E]">
                         {l.account_name || l.account_code}
                         {l.tax_rate_name ? ` · ${l.tax_rate_name}` : ""}
                         {l.tax_amount != null ? ` · GST $${Number(l.tax_amount).toFixed(2)}` : ""}
@@ -154,9 +154,9 @@ export default function ExpenseApproverQueue() {
               </div>
             ) : (
               (claim.account_name || claim.tax_rate_name) && (
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#5F7C84]">
-                  {claim.account_name && <span><span className="text-[#9BADB7]">Account:</span> {claim.account_name}</span>}
-                  {claim.tax_rate_name && <span><span className="text-[#9BADB7]">Tax:</span> {claim.tax_rate_name}</span>}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#50676E]">
+                  {claim.account_name && <span><span className="text-[#50676E]">Account:</span> {claim.account_name}</span>}
+                  {claim.tax_rate_name && <span><span className="text-[#50676E]">Tax:</span> {claim.tax_rate_name}</span>}
                 </div>
               )
             )}
@@ -185,7 +185,7 @@ export default function ExpenseApproverQueue() {
                   <iframe src={claim.receipt_signed_url} title="Receipt" className="w-full h-[60vh] md:h-[480px] bg-[#F8F6F4]" />
                 )}
                 <div className="px-3 py-2 text-right bg-white border-t border-[#ECE3DF]">
-                  <a href={claim.receipt_signed_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#5F7C84] hover:text-[#223149] hover:underline">
+                  <a href={claim.receipt_signed_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#50676E] hover:text-[#223149] hover:underline">
                     Open in new tab
                   </a>
                 </div>
@@ -204,7 +204,7 @@ export default function ExpenseApproverQueue() {
                 <textarea
                   rows={2} value={note} onChange={(e) => setNote(e.target.value)}
                   placeholder="Reason for declining (optional)…"
-                  className="w-full px-3 py-2 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 resize-none"
+                  className="w-full px-3 py-2 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 resize-none"
                 />
                 <div className="flex gap-2">
                   <button disabled={busy} onClick={() => decide(claim, "REJECT", note)}
@@ -212,7 +212,7 @@ export default function ExpenseApproverQueue() {
                     {busy ? "Declining…" : "Confirm decline"}
                   </button>
                   <button onClick={() => { setRejectingId(null); setNote(""); }}
-                    className="px-3 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors">
+                    className="px-3 py-2 border border-[#ECE3DF] text-[#50676E] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors">
                     Cancel
                   </button>
                 </div>
@@ -224,12 +224,12 @@ export default function ExpenseApproverQueue() {
                   {busy ? "Working…" : failed ? "Retry sending to Xero" : "Approve & send to Xero"}
                 </button>
                 <button disabled={busy} onClick={() => setEditing(claim)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50">
+                  className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#ECE3DF] text-[#50676E] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50">
                   <Pencil className="w-3.5 h-3.5" /> Edit
                 </button>
                 {!failed && (
                   <button disabled={busy} onClick={() => { setRejectingId(claim.id); setNote(""); }}
-                    className="px-3 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50">
+                    className="px-3 py-2 border border-[#ECE3DF] text-[#50676E] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50">
                     Decline
                   </button>
                 )}

@@ -228,16 +228,16 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
       <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-[#9BADB7]" />
+            <Receipt className="w-4 h-4 text-[#50676E]" />
             <span className="font-semibold text-[#223149]">Expense Claims</span>
             {claims.length > 0 && isManager && (
-              <span className="text-xs text-[#9BADB7]">{claims.length}</span>
+              <span className="text-xs text-[#50676E]">{claims.length}</span>
             )}
           </div>
           {isOwnProfile && (
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-1.5 text-xs font-medium text-[#5F7C84] hover:text-[#223149] transition-colors"
+              className="flex items-center gap-1.5 text-xs font-medium text-[#50676E] hover:text-[#223149] transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               New claim
@@ -250,7 +250,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
             <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : claims.length === 0 ? (
-          <p className="text-sm text-[#9BADB7] text-center py-4">
+          <p className="text-sm text-[#50676E] text-center py-4">
             {isOwnProfile ? "No expense claims yet. Use the New claim button to submit one." : "No expense claims."}
           </p>
         ) : (
@@ -263,10 +263,10 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                       <span className="text-sm font-semibold text-[#223149]">
                         ${Number(claim.amount).toFixed(2)}
                       </span>
-                      {claim.account_name && <span className="text-xs text-[#9BADB7]">{claim.account_name}</span>}
+                      {claim.account_name && <span className="text-xs text-[#50676E]">{claim.account_name}</span>}
                     </div>
-                    <p className="text-sm text-[#5F7C84] mt-0.5 truncate">{claim.description}</p>
-                    <p className="text-xs text-[#9BADB7] mt-0.5">
+                    <p className="text-sm text-[#50676E] mt-0.5 truncate">{claim.description}</p>
+                    <p className="text-xs text-[#50676E] mt-0.5">
                       {format(parseISO(claim.date), "d MMM yyyy")}
                       {claim.spent_at ? ` · ${claim.spent_at}` : ""}
                     </p>
@@ -276,7 +276,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     {isOwnProfile && claim.status === "submitted" && (
                       <button
                         onClick={() => setEditingClaim(claim)}
-                        className="p-2 rounded-lg hover:bg-[#F8F6F4] text-[#9BADB7] hover:text-[#223149] transition-colors"
+                        className="p-2 rounded-lg hover:bg-[#F8F6F4] text-[#50676E] hover:text-[#223149] transition-colors"
                         title="Edit claim"
                         aria-label="Edit claim"
                       >
@@ -286,7 +286,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     {isOwnProfile && claim.status === "submitted" && (
                       <button
                         onClick={() => handleDelete(claim.id)}
-                        className="p-2 rounded-lg hover:bg-red-50 text-[#9BADB7] hover:text-red-400 transition-colors"
+                        className="p-2 rounded-lg hover:bg-red-50 text-[#50676E] hover:text-red-400 transition-colors"
                         title="Delete claim"
                         aria-label="Delete claim"
                       >
@@ -301,14 +301,14 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     href={claim.receipt_signed_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-[#5F7C84] hover:text-[#223149] transition-colors"
+                    className="inline-flex items-center gap-1 text-xs text-[#50676E] hover:text-[#223149] transition-colors"
                   >
                     <Paperclip className="w-3 h-3" /> View receipt
                   </a>
                 )}
 
                 {claim.reviewer_notes && (
-                  <p className="text-xs text-[#5F7C84] italic bg-[#F8F6F4] px-3 py-2 rounded-lg">
+                  <p className="text-xs text-[#50676E] italic bg-[#F8F6F4] px-3 py-2 rounded-lg">
                     {claim.reviewer_notes}
                   </p>
                 )}
@@ -318,7 +318,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
             {claims.length > 3 && (
               <button
                 onClick={() => setShowAll((v) => !v)}
-                className="flex items-center gap-1 text-xs text-[#5F7C84] hover:text-[#223149] transition-colors"
+                className="flex items-center gap-1 text-xs text-[#50676E] hover:text-[#223149] transition-colors"
               >
                 {showAll ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 {showAll ? "Show less" : `Show all ${claims.length} claims`}
@@ -335,7 +335,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
           <header className="flex items-center justify-between gap-3 h-14 px-4 border-b border-[#ECE3DF] flex-shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               <button onClick={closeModal} className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors" aria-label="Close">
-                <X className="w-5 h-5 text-[#5F7C84]" />
+                <X className="w-5 h-5 text-[#50676E]" />
               </button>
               <h2 className="text-base md:text-lg font-bold text-[#223149] truncate">New expense claim</h2>
             </div>
@@ -375,25 +375,25 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     <iframe src={previewUrl} title="Receipt preview" className="flex-1 min-h-0 w-full rounded-lg shadow-sm bg-white" />
                   )}
                   <div className="flex-shrink-0 flex items-center justify-between gap-3">
-                    <p className="text-xs text-[#9BADB7] truncate">{file.name}</p>
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#5F7C84] hover:text-[#223149] flex-shrink-0">Replace receipt</button>
+                    <p className="text-xs text-[#50676E] truncate">{file.name}</p>
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-medium text-[#50676E] hover:text-[#223149] flex-shrink-0">Replace receipt</button>
                   </div>
                 </div>
               ) : (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-14 h-14 mx-auto rounded-xl bg-white border border-[#ECE3DF] flex items-center justify-center mb-3">
-                      <Receipt className="w-7 h-7 text-[#9BADB7]" />
+                      <Receipt className="w-7 h-7 text-[#50676E]" />
                     </div>
                     <p className="font-semibold text-[#223149]">Upload a receipt</p>
-                    <p className="text-sm text-[#9BADB7] mt-1">Drag &amp; drop here, or select your file manually</p>
+                    <p className="text-sm text-[#50676E] mt-1">Drag &amp; drop here, or select your file manually</p>
                     <button
                       type="button" onClick={() => fileInputRef.current?.click()}
                       className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-[#ECE3DF] bg-white text-[#223149] rounded-lg text-sm font-semibold hover:bg-white/60 transition-colors"
                     >
                       <Upload className="w-4 h-4" /> Upload
                     </button>
-                    <p className="text-xs text-[#9BADB7] mt-3">PNG, JPG or PDF · required</p>
+                    <p className="text-xs text-[#50676E] mt-3">PNG, JPG or PDF · required</p>
                   </div>
                 </div>
               )}
@@ -412,11 +412,11 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#9BADB7] font-normal">(optional)</span></label>
+                  <label className="block text-sm font-semibold text-[#223149] mb-1.5">Spent at <span className="text-[#50676E] font-normal">(optional)</span></label>
                   <input
                     type="text" value={spentAt}
                     onChange={(e) => setSpentAt(e.target.value)} placeholder="Where?"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
               </div>
@@ -425,7 +425,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
               <div className="flex items-center justify-between border-t border-[#ECE3DF] pt-4">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-[#223149]">Itemise this claim</p>
-                  <p className="text-xs text-[#9BADB7] mt-0.5">Split the receipt into lines, each with its own account.</p>
+                  <p className="text-xs text-[#50676E] mt-0.5">Split the receipt into lines, each with its own account.</p>
                 </div>
                 <button
                   type="button" role="switch" aria-checked={itemise}
@@ -454,21 +454,21 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                   <div>
                     <label className="block text-sm font-semibold text-[#223149] mb-1.5">Purchase amount</label>
                     <div className="flex items-stretch">
-                      <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-sm text-[#5F7C84] font-medium">AUD</span>
+                      <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[#ECE3DF] bg-[#F8F6F4] text-sm text-[#50676E] font-medium">AUD</span>
                       <input
                         type="text" inputMode="text" required value={amount}
                         onChange={(e) => setAmount(e.target.value)} placeholder="0.00  or  12.50 + 8.30"
-                        className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                        className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                       />
                     </div>
                     {looksLikeExpression(amount) ? (
                       computedAmount !== null ? (
-                        <p className="text-xs text-[#5F7C84] mt-1.5 text-right font-medium">= AUD {computedAmount.toFixed(2)}</p>
+                        <p className="text-xs text-[#50676E] mt-1.5 text-right font-medium">= AUD {computedAmount.toFixed(2)}</p>
                       ) : (
                         <p className="text-xs text-amber-600 mt-1.5 text-right">Can&apos;t calculate that — use numbers with + - * / and ( )</p>
                       )
                     ) : (
-                      <p className="text-xs text-[#9BADB7] mt-1.5">Tip: type a sum like 12.50 + 8.30 — it adds up for you.</p>
+                      <p className="text-xs text-[#50676E] mt-1.5">Tip: type a sum like 12.50 + 8.30 — it adds up for you.</p>
                     )}
                   </div>
 
@@ -478,7 +478,7 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                     <textarea
                       required rows={2} value={description}
                       onChange={(e) => setDescription(e.target.value)} placeholder="What was it for?"
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
                     />
                   </div>
 
@@ -502,11 +502,11 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                       </select>
                     </div>
                     <div className="space-y-1.5 text-sm">
-                      <div className="flex items-center justify-between text-[#5F7C84]">
+                      <div className="flex items-center justify-between text-[#50676E]">
                         <span>Subtotal (excl. GST)</span>
                         <span>AUD {subtotal.toFixed(2)}</span>
                       </div>
-                      <div className="flex items-center justify-between gap-2 text-[#5F7C84]">
+                      <div className="flex items-center justify-between gap-2 text-[#50676E]">
                         <span>{selectedTax ? `${selectedTax.name} (${Math.round(taxRate * 100) / 100}%)` : "GST"}</span>
                         <div className="flex items-center gap-2">
                           <div className="flex items-stretch">
@@ -514,13 +514,13 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                             <input
                               type="text" inputMode="decimal" value={gstOverride}
                               onChange={(e) => setGstOverride(e.target.value)} placeholder={autoGst.toFixed(2)}
-                              className="w-24 px-2 py-1.5 rounded-r-lg border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                              className="w-24 px-2 py-1.5 rounded-r-lg border border-[#ECE3DF] text-[#223149] text-right placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                             />
                           </div>
                           {gstOverridden ? (
-                            <button type="button" onClick={() => setGstOverride("")} className="text-[11px] text-[#5F7C84] hover:text-[#223149] underline">auto</button>
+                            <button type="button" onClick={() => setGstOverride("")} className="text-[11px] text-[#50676E] hover:text-[#223149] underline">auto</button>
                           ) : (
-                            <span className="text-[11px] text-[#9BADB7] w-8">auto</span>
+                            <span className="text-[11px] text-[#50676E] w-8">auto</span>
                           )}
                         </div>
                       </div>

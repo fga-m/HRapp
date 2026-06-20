@@ -181,7 +181,7 @@ export default function MeetingTemplatesPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Meeting Templates</h1>
-          <p className="text-[#5F7C84] mt-1 text-sm">
+          <p className="text-[#50676E] mt-1 text-sm">
             Define reusable note structures for each meeting type
           </p>
         </div>
@@ -203,7 +203,7 @@ export default function MeetingTemplatesPage() {
             className={`flex-1 min-w-max px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
               activeTab === t.value
                 ? "bg-white text-[#223149] shadow-sm"
-                : "text-[#5F7C84] hover:text-[#223149]"
+                : "text-[#50676E] hover:text-[#223149]"
             }`}
           >
             {t.label}
@@ -224,14 +224,14 @@ export default function MeetingTemplatesPage() {
           </div>
           <button
             onClick={fetchTemplates}
-            className="px-4 py-2 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+            className="px-4 py-2 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
           >
             Try again
           </button>
         </div>
       ) : typeTemplates.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-          <p className="text-[#5F7C84] font-medium">No templates yet for this meeting type</p>
+          <p className="text-[#50676E] font-medium">No templates yet for this meeting type</p>
           <button onClick={openNew} className="text-sm text-[#223149] underline mt-2 inline-block">
             Create the first one
           </button>
@@ -242,7 +242,7 @@ export default function MeetingTemplatesPage() {
             <div key={t.id} className="bg-white rounded-2xl shadow-sm p-5 flex items-start gap-4">
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-[#223149]">{t.title}</p>
-                <p className="text-xs text-[#9BADB7] mt-0.5">
+                <p className="text-xs text-[#50676E] mt-0.5">
                   {t.content
                     ? t.content.split("\n").find((l) => l.trim())?.replace(/^#+\s*/, "") ?? ""
                     : "No content"}
@@ -254,7 +254,7 @@ export default function MeetingTemplatesPage() {
                   className="p-2 rounded-lg hover:bg-[#F8F6F4] transition-colors"
                   title="Edit"
                 >
-                  <Pencil className="w-4 h-4 text-[#5F7C84]" />
+                  <Pencil className="w-4 h-4 text-[#50676E]" />
                 </button>
                 <button
                   onClick={() => handleDelete(t.id)}
@@ -292,14 +292,14 @@ export default function MeetingTemplatesPage() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
                     preview
                       ? "bg-[#223149] text-white border-[#223149]"
-                      : "border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4]"
+                      : "border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4]"
                   }`}
                 >
                   {preview ? <Code className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   {preview ? "Edit" : "Preview"}
                 </button>
                 <button onClick={() => setEditor(null)} className="p-1.5 rounded-lg hover:bg-[#F8F6F4]">
-                  <X className="w-5 h-5 text-[#9BADB7]" />
+                  <X className="w-5 h-5 text-[#50676E]" />
                 </button>
               </div>
             </div>
@@ -314,7 +314,7 @@ export default function MeetingTemplatesPage() {
                     value={editor.title}
                     onChange={(e) => setEditor({ ...editor, title: e.target.value })}
                     placeholder="e.g. Standard 1-on-1, Pastoral Check-in..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] text-sm focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                   />
                 </div>
                 <div>
@@ -339,13 +339,13 @@ export default function MeetingTemplatesPage() {
                   {editor.content.trim() ? (
                     <MarkdownContent content={editor.content} />
                   ) : (
-                    <p className="text-[#9BADB7] text-sm italic">Nothing to preview yet.</p>
+                    <p className="text-[#50676E] text-sm italic">Nothing to preview yet.</p>
                   )}
                 </div>
               ) : (
                 <div className="h-full flex flex-col gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-[#9BADB7]">Markdown:</span>
+                    <span className="text-xs text-[#50676E]">Markdown:</span>
                     {[
                       ["## Heading", "## "],
                       ["**Bold**", "**bold**"],
@@ -356,7 +356,7 @@ export default function MeetingTemplatesPage() {
                         key={label}
                         type="button"
                         onClick={() => setEditor((prev) => prev ? { ...prev, content: prev.content + (prev.content.endsWith("\n") ? "" : "\n") + insert } : prev)}
-                        className="px-2 py-0.5 text-xs rounded border border-[#ECE3DF] text-[#5F7C84] hover:bg-[#F8F6F4] font-mono transition-colors"
+                        className="px-2 py-0.5 text-xs rounded border border-[#ECE3DF] text-[#50676E] hover:bg-[#F8F6F4] font-mono transition-colors"
                       >
                         {label}
                       </button>
@@ -366,7 +366,7 @@ export default function MeetingTemplatesPage() {
                     value={editor.content}
                     onChange={(e) => setEditor({ ...editor, content: e.target.value })}
                     placeholder={`Use ## for section headings, - for bullets, - [ ] for action items, **bold** for emphasis...`}
-                    className="flex-1 w-full px-4 py-3 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none leading-relaxed"
+                    className="flex-1 w-full px-4 py-3 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none leading-relaxed"
                   />
                 </div>
               )}
@@ -378,7 +378,7 @@ export default function MeetingTemplatesPage() {
               <div className="flex gap-3 ml-auto">
                 <button
                   onClick={() => setEditor(null)}
-                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                 >
                   Cancel
                 </button>

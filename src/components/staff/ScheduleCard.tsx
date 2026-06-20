@@ -59,11 +59,11 @@ function fmtHours(h: number): string {
 
 function SlotDisplay({ slot }: { slot: Slot }) {
   return (
-    <span className="text-sm text-[#5F7C84]">
+    <span className="text-sm text-[#50676E]">
       {slot.start}
-      <span className="text-[#9BADB7] text-xs mx-1">–</span>
+      <span className="text-[#50676E] text-xs mx-1">–</span>
       {slot.end}
-      <span className="text-xs text-[#9BADB7] ml-1">({fmtHours(slotHours(slot))})</span>
+      <span className="text-xs text-[#50676E] ml-1">({fmtHours(slotHours(slot))})</span>
     </span>
   );
 }
@@ -87,7 +87,7 @@ function SlotEditor({
         onChange={(e) => onChange({ ...slot, start: e.target.value })}
         className="px-2 py-1 text-sm border border-[#ECE3DF] rounded-lg text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
       />
-      <span className="text-xs text-[#9BADB7]">to</span>
+      <span className="text-xs text-[#50676E]">to</span>
       <input
         type="time"
         value={slot.end}
@@ -98,7 +98,7 @@ function SlotEditor({
         <button
           type="button"
           onClick={onRemove}
-          className="p-1 rounded-lg hover:bg-red-50 text-[#9BADB7] hover:text-red-400 transition-colors"
+          className="p-1 rounded-lg hover:bg-red-50 text-[#50676E] hover:text-red-400 transition-colors"
           title="Remove slot"
         >
           <X className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
     return (
       <div className="bg-white rounded-2xl shadow-sm p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-4 h-4 text-[#9BADB7]" />
+          <Clock className="w-4 h-4 text-[#50676E]" />
           <span className="font-semibold text-[#223149]">Regular Work Schedule</span>
         </div>
         <div className="flex justify-center py-4">
@@ -231,10 +231,10 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2 flex-wrap">
-          <Clock className="w-4 h-4 text-[#9BADB7]" />
+          <Clock className="w-4 h-4 text-[#50676E]" />
           <span className="font-semibold text-[#223149]">Regular Work Schedule</span>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-[#9BADB7]">
+            <span className="text-xs text-[#50676E]">
               {workingDays} {workingDays === 1 ? "day" : "days"} · {fmtHours(totalHours)}/week
               {flexHours > 0 && ` (incl. ${fmtHours(flexHours)} flex)`}
             </span>
@@ -249,7 +249,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
         {canEdit && !editing && (
           <button
             onClick={startEditing}
-            className="flex items-center gap-1.5 text-xs font-medium text-[#5F7C84] hover:text-[#223149] transition-colors flex-shrink-0"
+            className="flex items-center gap-1.5 text-xs font-medium text-[#50676E] hover:text-[#223149] transition-colors flex-shrink-0"
           >
             <Edit2 className="w-3.5 h-3.5" />
             Edit
@@ -267,7 +267,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
             </button>
             <button
               onClick={cancelEditing}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#ECE3DF] text-[#5F7C84] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#ECE3DF] text-[#50676E] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors"
             >
               <X className="w-3.5 h-3.5" />
               Cancel
@@ -309,7 +309,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
 
                 {/* Day label */}
                 <span className="w-8 text-sm font-semibold text-[#223149] flex-shrink-0">{day.label}</span>
-                <span className="hidden sm:block text-xs text-[#9BADB7] w-20 flex-shrink-0">{day.full}</span>
+                <span className="hidden sm:block text-xs text-[#50676E] w-20 flex-shrink-0">{day.full}</span>
 
                 {/* Read-only: show slots inline */}
                 {!editing && (
@@ -323,7 +323,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
                         const rawHours = d.slots.reduce((t: number, s: Slot) => t + slotHours(s), 0);
                         if (deduction > 0) {
                           return (
-                            <span className="text-xs text-[#9BADB7]">
+                            <span className="text-xs text-[#50676E]">
                               {fmtHours(rawHours)} − 30 min lunch ={" "}
                               <span className="font-semibold text-[#223149]">{fmtHours(hours)}</span>
                             </span>
@@ -331,7 +331,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
                         }
                         if (hours > 0 && d.slots.length > 1) {
                           return (
-                            <span className="text-xs text-[#9BADB7]">
+                            <span className="text-xs text-[#50676E]">
                               = <span className="font-semibold text-[#223149]">{fmtHours(hours)}</span>
                             </span>
                           );
@@ -340,7 +340,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
                       })()}
                     </div>
                   ) : (
-                    <span className="ml-auto text-xs text-[#9BADB7]">Day off</span>
+                    <span className="ml-auto text-xs text-[#50676E]">Day off</span>
                   )
                 )}
               </div>
@@ -361,7 +361,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
                     <button
                       type="button"
                       onClick={() => addSlot(day.key)}
-                      className="flex items-center gap-1 text-xs text-[#5F7C84] hover:text-[#223149] transition-colors mt-1"
+                      className="flex items-center gap-1 text-xs text-[#50676E] hover:text-[#223149] transition-colors mt-1"
                     >
                       <Plus className="w-3 h-3" />
                       Add second slot
@@ -378,8 +378,8 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
       {(editing || flexHours > 0) && (
         <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mt-1 ${flexHours > 0 ? "bg-[#F8F6F4]" : ""}`}>
           {/* Spacer matching toggle + day-label width */}
-          <span className="w-8 text-sm font-semibold text-[#5F7C84] flex-shrink-0">Flex</span>
-          <span className="hidden sm:block text-xs text-[#9BADB7] w-20 flex-shrink-0">Flexible</span>
+          <span className="w-8 text-sm font-semibold text-[#50676E] flex-shrink-0">Flex</span>
+          <span className="hidden sm:block text-xs text-[#50676E] w-20 flex-shrink-0">Flexible</span>
           {editing ? (
             <div className="ml-auto flex items-center gap-2">
               <input
@@ -392,10 +392,10 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
                 onChange={(e) => setFlexibleHours(parseFloat(e.target.value) || 0)}
                 className="w-20 px-2 py-1 text-sm border border-[#ECE3DF] rounded-lg text-[#223149] text-right focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
               />
-              <span className="text-xs text-[#9BADB7]">hrs/week</span>
+              <span className="text-xs text-[#50676E]">hrs/week</span>
             </div>
           ) : (
-            <span className="ml-auto text-sm text-[#5F7C84]">
+            <span className="ml-auto text-sm text-[#50676E]">
               {fmtHours(flexHours)}/week
             </span>
           )}
@@ -412,16 +412,16 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
         if (!anyDeduction) return null;
         return (
           <div className="mt-4 flex items-start gap-2 p-3 bg-[#F8F6F4] rounded-xl border border-[#ECE3DF]">
-            <Clock className="w-3.5 h-3.5 text-[#9BADB7] flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-[#9BADB7] leading-relaxed">
-              A <span className="font-semibold text-[#5F7C84]">30-minute unpaid lunch break</span> is automatically deducted from any shift of 5 hours or more. To exclude the break from the calculation, enter it as two separate time slots instead.
+            <Clock className="w-3.5 h-3.5 text-[#50676E] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-[#50676E] leading-relaxed">
+              A <span className="font-semibold text-[#50676E]">30-minute unpaid lunch break</span> is automatically deducted from any shift of 5 hours or more. To exclude the break from the calculation, enter it as two separate time slots instead.
             </p>
           </div>
         );
       })()}
 
       {updatedAt && !editing && (
-        <p className="mt-3 text-xs text-[#9BADB7]">
+        <p className="mt-3 text-xs text-[#50676E]">
           Last updated {format(parseISO(updatedAt), "d MMM yyyy")}
         </p>
       )}

@@ -29,7 +29,7 @@ export default function ExpensesPageClient({ callerId, isApprover, pendingCount 
             "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
             tab === "mine"
               ? "bg-[#223149] text-white"
-              : "border border-[#ECE3DF] bg-white text-[#5F7C84] hover:bg-[#F8F6F4]"
+              : "border border-[#ECE3DF] bg-white text-[#50676E] hover:bg-[#F8F6F4]"
           )}
         >
           My claims
@@ -40,7 +40,7 @@ export default function ExpensesPageClient({ callerId, isApprover, pendingCount 
             "px-4 py-2 rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-2",
             tab === "review"
               ? "bg-[#223149] text-white"
-              : "border border-[#ECE3DF] bg-white text-[#5F7C84] hover:bg-[#F8F6F4]"
+              : "border border-[#ECE3DF] bg-white text-[#50676E] hover:bg-[#F8F6F4]"
           )}
         >
           To review
@@ -61,7 +61,7 @@ export default function ExpensesPageClient({ callerId, isApprover, pendingCount 
             "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
             tab === "history"
               ? "bg-[#223149] text-white"
-              : "border border-[#ECE3DF] bg-white text-[#5F7C84] hover:bg-[#F8F6F4]"
+              : "border border-[#ECE3DF] bg-white text-[#50676E] hover:bg-[#F8F6F4]"
           )}
         >
           History

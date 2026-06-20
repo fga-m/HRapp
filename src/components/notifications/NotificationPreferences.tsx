@@ -91,7 +91,7 @@ export default function NotificationPreferences() {
         </div>
         <div className="min-w-0">
           <p className="font-semibold text-[#223149]">Choose what you&apos;re notified about</p>
-          <p className="text-sm text-[#5F7C84] mt-0.5">
+          <p className="text-sm text-[#50676E] mt-0.5">
             Turn a topic off to stop device push alerts for it — these items still appear
             in your list above.
           </p>
@@ -100,16 +100,16 @@ export default function NotificationPreferences() {
 
       {loading && (
         <div className="flex items-center justify-center h-24">
-          <Loader2 className="w-5 h-5 text-[#9BADB7] animate-spin" />
+          <Loader2 className="w-5 h-5 text-[#50676E] animate-spin" />
         </div>
       )}
 
       {!loading && loadError && (
         <div className="mt-4 text-center">
-          <p className="text-sm text-[#5F7C84]">Couldn&apos;t load your preferences.</p>
+          <p className="text-sm text-[#50676E]">Couldn&apos;t load your preferences.</p>
           <button
             onClick={retry}
-            className="mt-2 px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm font-semibold text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors"
+            className="mt-2 px-4 py-2 rounded-xl border border-[#ECE3DF] text-sm font-semibold text-[#50676E] hover:bg-[#F8F6F4] transition-colors"
           >
             Try again
           </button>
@@ -128,13 +128,13 @@ export default function NotificationPreferences() {
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold text-[#223149]">{cat.label}</p>
                       {cat.locked && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#9BADB7] bg-[#F8F6F4] border border-[#ECE3DF] rounded-full px-2 py-0.5">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#50676E] bg-[#F8F6F4] border border-[#ECE3DF] rounded-full px-2 py-0.5">
                           <Lock className="w-3 h-3" />
                           Always on
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#9BADB7] mt-0.5">{cat.description}</p>
+                    <p className="text-xs text-[#50676E] mt-0.5">{cat.description}</p>
                   </div>
 
                   <button

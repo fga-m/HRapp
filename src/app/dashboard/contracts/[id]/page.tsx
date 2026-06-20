@@ -207,7 +207,7 @@ export default function ContractDetailPage() {
   }
 
   if (!data?.contract) {
-    return <div className="text-[#9BADB7]">Contract not found or you do not have access.</div>;
+    return <div className="text-[#50676E]">Contract not found or you do not have access.</div>;
   }
 
   const { contract, assignments, mySignature, role, staffId } = data;
@@ -243,7 +243,7 @@ export default function ContractDetailPage() {
             )}
           </div>
           {contract.description && (
-            <p className="text-[#5F7C84] mt-1 text-sm">{contract.description}</p>
+            <p className="text-[#50676E] mt-1 text-sm">{contract.description}</p>
           )}
         </div>
       </div>
@@ -254,13 +254,13 @@ export default function ContractDetailPage() {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden order-last lg:order-none">
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#ECE3DF]">
             <div className="flex items-center gap-2">
-              <FileSignature className="w-4 h-4 text-[#9BADB7]" />
+              <FileSignature className="w-4 h-4 text-[#50676E]" />
               <span className="text-sm font-semibold text-[#223149]">{contract.file_name}</span>
             </div>
             <button
               onClick={reloadPdf}
               disabled={reloading}
-              className="flex items-center gap-1.5 text-xs text-[#5F7C84] hover:text-[#223149] transition-colors"
+              className="flex items-center gap-1.5 text-xs text-[#50676E] hover:text-[#223149] transition-colors"
               title="Reload PDF"
               aria-label="Reload PDF"
             >
@@ -275,11 +275,11 @@ export default function ContractDetailPage() {
               title={contract.title}
             />
           ) : (
-            <div className="flex items-center justify-center h-[600px] text-[#9BADB7] text-sm">
+            <div className="flex items-center justify-center h-[600px] text-[#50676E] text-sm">
               Unable to load PDF. Try reloading.
             </div>
           )}
-          <div className="px-5 py-3 border-t border-[#ECE3DF] text-xs text-[#9BADB7]">
+          <div className="px-5 py-3 border-t border-[#ECE3DF] text-xs text-[#50676E]">
             Uploaded {format(new Date(contract.created_at), "d MMM yyyy")}
             {contract.created_by_staff?.full_name && ` by ${contract.created_by_staff.full_name}`}
           </div>
@@ -291,7 +291,7 @@ export default function ContractDetailPage() {
           {/* Status / sign card */}
           <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
             <div>
-              <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide mb-1">
+              <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-1">
                 {isAssignedToSign ? "Your status" : "Signatures"}
               </p>
               {isAssignedToSign ? (
@@ -326,7 +326,7 @@ export default function ContractDetailPage() {
                       <p className="text-sm font-semibold text-[#223149]">
                         Signed by {mySignature.name_as_typed}
                       </p>
-                      <p className="text-xs text-[#9BADB7] mt-0.5">
+                      <p className="text-xs text-[#50676E] mt-0.5">
                         {format(new Date(mySignature.signed_at), "d MMM yyyy, h:mm a")}
                       </p>
                     </div>
@@ -341,7 +341,7 @@ export default function ContractDetailPage() {
                         onChange={(e) => setHasRead(e.target.checked)}
                         className="mt-0.5 w-4 h-4 rounded border-[#9BADB7] accent-[#223149] cursor-pointer"
                       />
-                      <label htmlFor="hasRead" className="text-sm text-[#5F7C84] cursor-pointer leading-snug">
+                      <label htmlFor="hasRead" className="text-sm text-[#50676E] cursor-pointer leading-snug">
                         I have read and understood this document
                       </label>
                     </div>
@@ -355,7 +355,7 @@ export default function ContractDetailPage() {
                         value={nameInput}
                         onChange={(e) => setNameInput(e.target.value)}
                         placeholder="Your full name"
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] italic placeholder:text-[#9BADB7] placeholder:not-italic focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors font-serif"
+                        className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] italic placeholder:text-[#6E8189] placeholder:not-italic focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors font-serif"
                       />
                     </div>
 
@@ -369,7 +369,7 @@ export default function ContractDetailPage() {
                       {signing ? "Signing…" : "Sign Contract"}
                     </button>
 
-                    <p className="text-xs text-[#9BADB7] leading-relaxed">
+                    <p className="text-xs text-[#50676E] leading-relaxed">
                       By signing, you agree this constitutes a valid electronic signature under the{" "}
                       <em>Electronic Transactions Act 1999</em>.
                     </p>
@@ -386,7 +386,7 @@ export default function ContractDetailPage() {
                   download={contract.file_name}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
+                  className="flex items-center gap-2 text-sm text-[#50676E] hover:text-[#223149] transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Download PDF
@@ -400,24 +400,24 @@ export default function ContractDetailPage() {
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-5 py-3.5 border-b border-[#ECE3DF] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#9BADB7]" />
+                  <Users className="w-4 h-4 text-[#50676E]" />
                   <span className="font-semibold text-[#223149] text-sm">
                     Assignments
                   </span>
-                  <span className="text-xs text-[#9BADB7]">
+                  <span className="text-xs text-[#50676E]">
                     {signedCount}/{totalAssigned} signed
                   </span>
                 </div>
                 <button
                   onClick={openAssignModal}
-                  className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors"
+                  className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors"
                 >
                   + Assign Staff
                 </button>
               </div>
 
               {(assignments ?? []).length === 0 ? (
-                <div className="px-5 py-6 text-center text-sm text-[#9BADB7]">
+                <div className="px-5 py-6 text-center text-sm text-[#50676E]">
                   No staff assigned yet.
                   <button
                     onClick={openAssignModal}
@@ -442,7 +442,7 @@ export default function ContractDetailPage() {
                               Signed {format(new Date(a.signature.signed_at), "d MMM yyyy")}
                             </p>
                           ) : (
-                            <p className="text-xs text-[#9BADB7]">Pending</p>
+                            <p className="text-xs text-[#50676E]">Pending</p>
                           )}
                         </div>
                         {signed ? (
@@ -454,7 +454,7 @@ export default function ContractDetailPage() {
                             title="Remove assignment"
                             aria-label={`Remove ${a.staff?.full_name ?? "assignment"}`}
                           >
-                            <X className="w-3.5 h-3.5 text-[#9BADB7] hover:text-red-500" />
+                            <X className="w-3.5 h-3.5 text-[#50676E] hover:text-red-500" />
                           </button>
                         )}
                       </div>
@@ -469,7 +469,7 @@ export default function ContractDetailPage() {
           {role === "admin" && contract.group_id && groupVersions.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-5 py-3.5 border-b border-[#ECE3DF] flex items-center gap-2">
-                <GitBranch className="w-4 h-4 text-[#9BADB7]" />
+                <GitBranch className="w-4 h-4 text-[#50676E]" />
                 <span className="font-semibold text-[#223149] text-sm">Version History</span>
               </div>
               <div className="divide-y divide-[#ECE3DF]">
@@ -485,18 +485,18 @@ export default function ContractDetailPage() {
                     >
                       <div className="flex items-center gap-2">
                         <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                          isCurrent ? "bg-[#223149] text-white" : "bg-[#ECE3DF] text-[#5F7C84]"
+                          isCurrent ? "bg-[#223149] text-white" : "bg-[#ECE3DF] text-[#50676E]"
                         }`}>
                           v{v.version}
                         </span>
-                        <span className={`text-xs ${isCurrent ? "font-semibold text-[#223149]" : "text-[#5F7C84] group-hover:underline"}`}>
+                        <span className={`text-xs ${isCurrent ? "font-semibold text-[#223149]" : "text-[#50676E] group-hover:underline"}`}>
                           {format(new Date(v.created_at), "d MMM yyyy")}
                         </span>
                         {isCurrent && (
-                          <span className="text-xs text-[#9BADB7]">(current)</span>
+                          <span className="text-xs text-[#50676E]">(current)</span>
                         )}
                       </div>
-                      <span className="text-xs text-[#9BADB7]">{v.signed_count}/{v.assigned_count}</span>
+                      <span className="text-xs text-[#50676E]">{v.signed_count}/{v.assigned_count}</span>
                     </Link>
                   );
                 })}
@@ -507,13 +507,13 @@ export default function ContractDetailPage() {
           {/* Admin: admin actions */}
           {role === "admin" && (
             <div className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
-              <p className="text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Admin Actions</p>
+              <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide">Admin Actions</p>
 
               {/* Publish New Version button */}
               {contract.group_id && isLatestVersion && (
                 <button
                   onClick={() => setShowNewVersion(true)}
-                  className="flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
+                  className="flex items-center gap-2 text-sm text-[#50676E] hover:text-[#223149] transition-colors"
                 >
                   <Upload className="w-4 h-4" />
                   Publish New Version
@@ -522,11 +522,11 @@ export default function ContractDetailPage() {
 
               <button
                 onClick={handleToggleActive}
-                className="flex items-center gap-2 text-sm text-[#5F7C84] hover:text-[#223149] transition-colors"
+                className="flex items-center gap-2 text-sm text-[#50676E] hover:text-[#223149] transition-colors"
               >
                 {contract.is_active
                   ? <ToggleRight className="w-4 h-4 text-green-500" />
-                  : <ToggleLeft className="w-4 h-4 text-[#9BADB7]" />}
+                  : <ToggleLeft className="w-4 h-4 text-[#50676E]" />}
                 {contract.is_active ? "Deactivate contract" : "Re-activate contract"}
               </button>
               <button
@@ -552,7 +552,7 @@ export default function ContractDetailPage() {
                 onClick={() => setShowAssign(false)}
                 className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
               >
-                <X className="w-5 h-5 text-[#5F7C84]" />
+                <X className="w-5 h-5 text-[#50676E]" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
@@ -574,7 +574,7 @@ export default function ContractDetailPage() {
                     <StaffAvatar name={s.full_name} avatar={s.avatar_url} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[#223149] truncate">{s.full_name}</p>
-                      <p className="text-xs text-[#9BADB7] truncate">{s.email}</p>
+                      <p className="text-xs text-[#50676E] truncate">{s.email}</p>
                     </div>
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
@@ -599,7 +599,7 @@ export default function ContractDetailPage() {
               </button>
               <button
                 onClick={() => setShowAssign(false)}
-                className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
               >
                 Cancel
               </button>
@@ -618,7 +618,7 @@ export default function ContractDetailPage() {
                 onClick={() => { setShowNewVersion(false); setNewVersionError(""); }}
                 className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
               >
-                <X className="w-5 h-5 text-[#5F7C84]" />
+                <X className="w-5 h-5 text-[#50676E]" />
               </button>
             </div>
             <form onSubmit={handlePublishNewVersion} className="p-6 space-y-4">
@@ -632,14 +632,14 @@ export default function ContractDetailPage() {
               <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                   Description
-                  <span className="ml-1 text-xs font-normal text-[#9BADB7]">(optional)</span>
+                  <span className="ml-1 text-xs font-normal text-[#50676E]">(optional)</span>
                 </label>
                 <textarea
                   value={newVersionDesc}
                   onChange={(e) => setNewVersionDesc(e.target.value)}
                   rows={3}
                   placeholder="What changed in this version…"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
                 />
               </div>
 
@@ -651,7 +651,7 @@ export default function ContractDetailPage() {
                   onChange={(e) => setCarryAssignments(e.target.checked)}
                   className="w-4 h-4 rounded border-[#9BADB7] accent-[#223149] cursor-pointer flex-shrink-0"
                 />
-                <label htmlFor="carryAssignments" className="text-sm text-[#5F7C84] cursor-pointer leading-snug">
+                <label htmlFor="carryAssignments" className="text-sm text-[#50676E] cursor-pointer leading-snug">
                   Re-assign all staff from this version (and notify them of the update)
                 </label>
               </div>
@@ -681,7 +681,7 @@ export default function ContractDetailPage() {
                 <button
                   type="button"
                   onClick={() => { setShowNewVersion(false); setNewVersionError(""); }}
-                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                 >
                   Cancel
                 </button>
@@ -712,7 +712,7 @@ function StaffAvatar({ name, avatar }: { name?: string; avatar?: string }) {
   }
   return (
     <div className="w-8 h-8 rounded-full bg-[#ECE3DF] flex items-center justify-center flex-shrink-0">
-      <span className="text-xs font-bold text-[#5F7C84]">{initials}</span>
+      <span className="text-xs font-bold text-[#50676E]">{initials}</span>
     </div>
   );
 }

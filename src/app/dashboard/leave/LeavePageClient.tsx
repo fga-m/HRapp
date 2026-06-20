@@ -100,7 +100,7 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   );
   if (status === "COMPLETED") return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#9BADB7] bg-[#F8F6F4]">
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#50676E] bg-[#F8F6F4]">
       <CheckCircle className="w-3 h-3" /> Complete
     </span>
   );
@@ -110,11 +110,11 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   );
   if (status === "CANCELLED") return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#9BADB7] bg-[#F8F6F4]">
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#ECE3DF] text-[#50676E] bg-[#F8F6F4]">
       <XCircle className="w-3 h-3" /> Cancelled
     </span>
   );
-  return <span className="text-xs text-[#9BADB7]">{status}</span>;
+  return <span className="text-xs text-[#50676E]">{status}</span>;
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -336,9 +336,9 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
         <h1 className="text-3xl font-bold text-[#223149]">Leave Requests</h1>
         <PageSubtitle pageKey="leave" defaultDescription="Submit leave requests, track approvals, and view your available leave balance." />
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center space-y-3">
-          <Palmtree className="w-8 h-8 text-[#9BADB7] mx-auto" />
+          <Palmtree className="w-8 h-8 text-[#50676E] mx-auto" />
           <p className="font-semibold text-[#223149]">Not linked to Xero</p>
-          <p className="text-sm text-[#9BADB7]">An admin needs to link your profile to Xero Payroll before you can view or request leave.</p>
+          <p className="text-sm text-[#50676E]">An admin needs to link your profile to Xero Payroll before you can view or request leave.</p>
         </div>
       </div>
     );
@@ -358,13 +358,13 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               <div className="flex border border-[#ECE3DF] rounded-xl overflow-hidden text-sm font-semibold">
                 <button
                   onClick={() => setActiveTab("my")}
-                  className={`px-4 py-2 transition-colors ${activeTab === "my" ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+                  className={`px-4 py-2 transition-colors ${activeTab === "my" ? "bg-[#223149] text-white" : "text-[#50676E] hover:bg-[#F8F6F4]"}`}
                 >
                   My Leave
                 </button>
                 <button
                   onClick={() => setActiveTab("team")}
-                  className={`px-4 py-2 transition-colors flex items-center gap-1.5 ${activeTab === "team" ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+                  className={`px-4 py-2 transition-colors flex items-center gap-1.5 ${activeTab === "team" ? "bg-[#223149] text-white" : "text-[#50676E] hover:bg-[#F8F6F4]"}`}
                 >
                   Team
                   {pendingRequests.length > 0 && (
@@ -375,7 +375,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 </button>
                 <button
                   onClick={() => setActiveTab("calendar")}
-                  className={`px-4 py-2 transition-colors ${activeTab === "calendar" ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}
+                  className={`px-4 py-2 transition-colors ${activeTab === "calendar" ? "bg-[#223149] text-white" : "text-[#50676E] hover:bg-[#F8F6F4]"}`}
                 >
                   Calendar
                 </button>
@@ -388,7 +388,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
             <button
               onClick={() => { fetchAll(true); fetchPending(); }}
               disabled={refreshing}
-              className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors text-[#9BADB7] hover:text-[#223149]"
+              className="p-2 rounded-xl hover:bg-[#ECE3DF] transition-colors text-[#50676E] hover:text-[#223149]"
               title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -415,7 +415,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors capitalize ${
                     teamStatusFilter === f
                       ? "border-[#223149] text-[#223149]"
-                      : "border-transparent text-[#9BADB7] hover:text-[#5F7C84]"
+                      : "border-transparent text-[#50676E] hover:text-[#50676E]"
                   }`}
                 >
                   {f === "ALL" ? "All" : f === "PENDING" ? "Pending" : f === "APPROVED" ? "Approved" : "Rejected"}
@@ -428,7 +428,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               ))}
               <button
                 onClick={() => fetchTeamRequests(teamStatusFilter)}
-                className="ml-auto p-2 text-[#9BADB7] hover:text-[#223149] transition-colors"
+                className="ml-auto p-2 text-[#50676E] hover:text-[#223149] transition-colors"
                 title="Refresh"
               >
                 <RefreshCw className={`w-4 h-4 ${teamLoading ? "animate-spin" : ""}`} />
@@ -444,7 +444,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               ) : teamRequests.length === 0 ? (
                 <div className="text-center py-12">
                   <CheckCircle className="w-8 h-8 text-[#ECE3DF] mx-auto mb-2" />
-                  <p className="text-sm text-[#9BADB7]">
+                  <p className="text-sm text-[#50676E]">
                     {teamStatusFilter === "PENDING" ? "No pending leave requests" : `No ${teamStatusFilter.toLowerCase()} leave requests`}
                   </p>
                 </div>
@@ -455,12 +455,12 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-[#F8F6F4]">
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Staff</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Type</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Period</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Hours</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Submitted</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Status / Action</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-[#50676E] uppercase tracking-wide">Staff</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#50676E] uppercase tracking-wide">Type</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#50676E] uppercase tracking-wide">Period</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#50676E] uppercase tracking-wide">Hours</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[#50676E] uppercase tracking-wide">Submitted</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-[#50676E] uppercase tracking-wide">Status / Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#ECE3DF]">
@@ -468,14 +468,14 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                           <tr key={req.id} className="hover:bg-[#F8F6F4] transition-colors">
                             <td className="px-6 py-4">
                               <p className="font-semibold text-[#223149]">{req.staff?.full_name ?? "—"}</p>
-                              <p className="text-xs text-[#9BADB7]">{req.staff?.email}</p>
+                              <p className="text-xs text-[#50676E]">{req.staff?.email}</p>
                             </td>
-                            <td className="px-4 py-4 text-[#5F7C84]">{req.leave_type_name}</td>
-                            <td className="px-4 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(req.start_date, req.end_date)}</td>
-                            <td className="px-4 py-4 text-[#5F7C84] tabular-nums">
+                            <td className="px-4 py-4 text-[#50676E]">{req.leave_type_name}</td>
+                            <td className="px-4 py-4 text-[#50676E] tabular-nums">{formatLeavePeriod(req.start_date, req.end_date)}</td>
+                            <td className="px-4 py-4 text-[#50676E] tabular-nums">
                               {req.hours != null ? `${req.hours}h` : "—"}
                             </td>
-                            <td className="px-4 py-4 text-[#9BADB7] tabular-nums text-xs">
+                            <td className="px-4 py-4 text-[#50676E] tabular-nums text-xs">
                               {format(parseISO(req.submitted_at), "d MMM yyyy")}
                             </td>
                             <td className="px-4 py-4 text-right">
@@ -498,7 +498,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                                       setSubmitError("");
                                       setShowModal(true);
                                     }}
-                                    className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline"
+                                    className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline"
                                   >
                                     Edit
                                   </button>
@@ -536,7 +536,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <p className="font-semibold text-[#223149] text-sm">{req.staff?.full_name}</p>
-                            <p className="text-xs text-[#9BADB7]">{req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{req.hours != null ? ` · ${req.hours}h` : ""}</p>
+                            <p className="text-xs text-[#50676E]">{req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{req.hours != null ? ` · ${req.hours}h` : ""}</p>
                           </div>
                           <StatusBadge status={req.status} />
                         </div>
@@ -546,7 +546,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                               setEditingReqId(req.id);
                               setForm({ leaveTypeId: req.leave_type_id, startDate: req.start_date, endDate: req.end_date, hours: req.hours != null ? String(req.hours) : "", description: req.description || "" });
                               setApproverId(""); setSubmitError(""); setShowModal(true);
-                            }} className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline">
+                            }} className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline">
                               Edit
                             </button>
                             <button onClick={() => handleReview(req.id, "APPROVE")} disabled={reviewingId === req.id}
@@ -612,7 +612,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                     <ChevronRight className="w-4 h-4 text-[#223149]" />
                   </button>
                   <button onClick={() => setCalMonth(startOfMonth(new Date()))}
-                    className="px-3 py-1.5 text-xs font-semibold border border-[#ECE3DF] rounded-xl text-[#5F7C84] hover:bg-[#F8F6F4] transition-colors">
+                    className="px-3 py-1.5 text-xs font-semibold border border-[#ECE3DF] rounded-xl text-[#50676E] hover:bg-[#F8F6F4] transition-colors">
                     Today
                   </button>
                 </div>
@@ -621,7 +621,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 <div className="flex border border-[#ECE3DF] rounded-xl overflow-hidden text-xs font-semibold">
                   {(["ALL", "PENDING", "APPROVED", "REJECTED"] as const).map(f => (
                     <button key={f} onClick={() => setCalFilter(f)}
-                      className={`px-3 py-1.5 transition-colors ${calFilter === f ? "bg-[#223149] text-white" : "text-[#5F7C84] hover:bg-[#F8F6F4]"}`}>
+                      className={`px-3 py-1.5 transition-colors ${calFilter === f ? "bg-[#223149] text-white" : "text-[#50676E] hover:bg-[#F8F6F4]"}`}>
                       {f === "ALL" ? "All" : f === "PENDING" ? "Pending" : f === "APPROVED" ? "Approved" : "Rejected"}
                     </button>
                   ))}
@@ -639,7 +639,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   {/* Day headers */}
                   <div className="grid grid-cols-7 border-b border-[#ECE3DF]">
                     {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => (
-                      <div key={d} className="py-2 text-center text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">
+                      <div key={d} className="py-2 text-center text-xs font-semibold text-[#50676E] uppercase tracking-wide">
                         {d}
                       </div>
                     ))}
@@ -656,7 +656,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                           className={`min-h-[90px] p-1.5 ${!inMonth ? "bg-[#F8F6F4]/60" : ""}`}>
                           {/* Day number */}
                           <div className={`w-6 h-6 flex items-center justify-center text-xs font-semibold rounded-full mb-1 ${
-                            todayDay ? "bg-[#223149] text-white" : inMonth ? "text-[#223149]" : "text-[#9BADB7]"
+                            todayDay ? "bg-[#223149] text-white" : inMonth ? "text-[#223149]" : "text-[#50676E]"
                           }`}>
                             {format(day, "d")}
                           </div>
@@ -670,7 +670,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                               </div>
                             ))}
                             {dayReqs.length > 3 && (
-                              <div className="text-[10px] text-[#9BADB7] px-1">+{dayReqs.length - 3} more</div>
+                              <div className="text-[10px] text-[#50676E] px-1">+{dayReqs.length - 3} more</div>
                             )}
                           </div>
                         </div>
@@ -682,7 +682,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 {/* Mobile agenda list */}
                 <div className="sm:hidden space-y-2">
                   {visible.length === 0 ? (
-                    <p className="text-sm text-[#9BADB7] text-center py-8 bg-white rounded-2xl shadow-sm">No leave in {format(calMonth, "MMMM")}.</p>
+                    <p className="text-sm text-[#50676E] text-center py-8 bg-white rounded-2xl shadow-sm">No leave in {format(calMonth, "MMMM")}.</p>
                   ) : (
                     [...visible]
                       .sort((a, b) => a.start_date.localeCompare(b.start_date))
@@ -690,7 +690,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         <div key={req.id} className="bg-white rounded-2xl shadow-sm p-4 flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-[#223149] truncate">{req.staff?.full_name ?? "Unknown"}</p>
-                            <p className="text-xs text-[#5F7C84] mt-0.5">
+                            <p className="text-xs text-[#50676E] mt-0.5">
                               {req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{req.hours != null ? ` · ${req.hours}h` : ""}
                             </p>
                           </div>
@@ -705,7 +705,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               )}
 
               {/* Legend */}
-              <div className="flex items-center gap-4 text-xs text-[#5F7C84]">
+              <div className="flex items-center gap-4 text-xs text-[#50676E]">
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-100 border border-amber-200" />Pending</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-green-100 border border-green-200" />Approved</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-200" />Rejected</span>
@@ -744,17 +744,17 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                     <div key={app.id} className="px-6 py-4 flex items-center justify-between gap-4">
                       <div className="min-w-0">
                         <p className="font-semibold text-sm text-[#223149]">{typeName}</p>
-                        <p className="text-xs text-[#5F7C84] mt-0.5">
+                        <p className="text-xs text-[#50676E] mt-0.5">
                           {formatLeavePeriod(app.startDate, app.endDate)}
                           {app.hours != null && <span className="ml-1.5 font-medium">· {app.hours}h</span>}
-                          {app.title && <span className="ml-1.5 text-[#9BADB7]">· {app.title}</span>}
+                          {app.title && <span className="ml-1.5 text-[#50676E]">· {app.title}</span>}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <StatusBadge status="PENDING" />
                         <button
                           onClick={() => openEditModal(app)}
-                          className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline"
+                          className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline"
                         >
                           Edit
                         </button>
@@ -780,7 +780,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 <div className="w-5 h-5 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : balances.length === 0 ? (
-              <p className="text-sm text-[#9BADB7]">No leave balances found in Xero.</p>
+              <p className="text-sm text-[#50676E]">No leave balances found in Xero.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
                 {balances.map(b => (
@@ -822,7 +822,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               </div>
             ) : applications.length === 0 ? (
               <div className="text-center py-10">
-                <p className="text-sm text-[#9BADB7]">No leave requests yet.</p>
+                <p className="text-sm text-[#50676E]">No leave requests yet.</p>
               </div>
             ) : (
               <>
@@ -831,11 +831,11 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-[#F8F6F4] text-left">
-                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Leave Type</th>
-                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Description</th>
-                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Period</th>
-                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide">Hours</th>
-                        <th className="px-6 py-3 text-xs font-semibold text-[#9BADB7] uppercase tracking-wide text-right">Status</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#50676E] uppercase tracking-wide">Leave Type</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#50676E] uppercase tracking-wide">Description</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#50676E] uppercase tracking-wide">Period</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#50676E] uppercase tracking-wide">Hours</th>
+                        <th className="px-6 py-3 text-xs font-semibold text-[#50676E] uppercase tracking-wide text-right">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#ECE3DF]">
@@ -844,15 +844,15 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         return (
                           <tr key={app.id} className="hover:bg-[#F8F6F4] transition-colors">
                             <td className="px-6 py-4 font-medium text-[#223149]">{typeName}</td>
-                            <td className="px-6 py-4 text-[#5F7C84]">{app.title || "—"}</td>
-                            <td className="px-6 py-4 text-[#5F7C84] tabular-nums">{formatLeavePeriod(app.startDate, app.endDate)}</td>
-                            <td className="px-6 py-4 text-[#5F7C84] tabular-nums">{app.hours != null ? `${app.hours}h` : "—"}</td>
+                            <td className="px-6 py-4 text-[#50676E]">{app.title || "—"}</td>
+                            <td className="px-6 py-4 text-[#50676E] tabular-nums">{formatLeavePeriod(app.startDate, app.endDate)}</td>
+                            <td className="px-6 py-4 text-[#50676E] tabular-nums">{app.hours != null ? `${app.hours}h` : "—"}</td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 {app.status === "PENDING" && app.source === "local" && (
                                   <button
                                     onClick={() => openEditModal(app)}
-                                    className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline"
+                                    className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline"
                                   >
                                     Edit
                                   </button>
@@ -876,8 +876,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-[#223149]">{typeName}</p>
-                            {app.title && <p className="text-xs text-[#5F7C84] mt-0.5">{app.title}</p>}
-                            <p className="text-xs text-[#9BADB7] mt-1">
+                            {app.title && <p className="text-xs text-[#50676E] mt-0.5">{app.title}</p>}
+                            <p className="text-xs text-[#50676E] mt-1">
                               {formatLeavePeriod(app.startDate, app.endDate)}
                               {app.hours != null && <span className="ml-2 font-medium">{app.hours}h</span>}
                             </p>
@@ -887,7 +887,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         {app.status === "PENDING" && app.source === "local" && (
                           <button
                             onClick={() => openEditModal(app)}
-                            className="text-xs font-semibold text-[#5F7C84] hover:text-[#223149] transition-colors underline"
+                            className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline"
                           >
                             Edit request
                           </button>
@@ -914,7 +914,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 onClick={() => { setShowModal(false); setSubmitError(""); setApproverId(""); }}
                 className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
               >
-                <X className="w-5 h-5 text-[#5F7C84]" />
+                <X className="w-5 h-5 text-[#50676E]" />
               </button>
             </div>
 
@@ -938,14 +938,14 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               {/* Description */}
               <div>
                 <label className="block text-sm font-semibold text-[#223149] mb-1.5">
-                  Description <span className="font-normal text-[#9BADB7]">(optional)</span>
+                  Description <span className="font-normal text-[#50676E]">(optional)</span>
                 </label>
                 <textarea
                   rows={2}
                   value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
                   placeholder="Any additional context…"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
                 />
               </div>
 
@@ -962,7 +962,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                     <option key={a.id} value={a.id}>{a.full_name}</option>
                   ))}
                 </select>
-                <p className="text-xs text-[#9BADB7] mt-1">Your request will be sent for approval before going to Xero.</p>
+                <p className="text-xs text-[#50676E] mt-1">Your request will be sent for approval before going to Xero.</p>
               </div>
 
               {/* Dates */}
@@ -1000,7 +1000,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 <div>
                   <label className="block text-sm font-semibold text-[#223149] mb-1.5">
                     Hours
-                    <span className="ml-1.5 text-xs font-normal text-[#9BADB7]">(optional — auto-calculated)</span>
+                    <span className="ml-1.5 text-xs font-normal text-[#50676E]">(optional — auto-calculated)</span>
                   </label>
                   <div className="flex items-center gap-3">
                     <input
@@ -1010,16 +1010,16 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                       value={form.hours}
                       placeholder={autoHours > 0 ? String(autoHours) : ""}
                       onChange={e => setForm({ ...form, hours: e.target.value })}
-                      className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#9BADB7] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+                      className="w-32 px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
                     />
-                    <span className="text-sm text-[#5F7C84]">hours</span>
+                    <span className="text-sm text-[#50676E]">hours</span>
                     {form.hours === "" && autoHours > 0 && (
-                      <span className="text-xs text-[#9BADB7]">
+                      <span className="text-xs text-[#50676E]">
                         {businessDays} {businessDays === 1 ? "day" : "days"} × {dailyHours}h = {autoHours}h
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#9BADB7] mt-1">
+                  <p className="text-xs text-[#50676E] mt-1">
                     For a half day, enter {Math.round(dailyHours / 2 * 4) / 4}h. Leave blank to use the auto-calculated total.
                   </p>
                 </div>
@@ -1030,19 +1030,19 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 <div className="border border-[#ECE3DF] rounded-xl divide-y divide-[#ECE3DF]">
                   <div className="flex items-center justify-between px-4 py-3 text-sm">
                     <span className="font-semibold text-[#223149]">Current Leave Balance</span>
-                    <span className="text-xs text-[#9BADB7] font-medium uppercase tracking-wide">
+                    <span className="text-xs text-[#50676E] font-medium uppercase tracking-wide">
                       {selectedBalance.units.toLowerCase() === "days" ? "Days" : "Hours"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 text-sm">
-                    <span className="text-[#5F7C84]">{selectedBalance.name}</span>
+                    <span className="text-[#50676E]">{selectedBalance.name}</span>
                     <span className="font-bold text-[#223149] tabular-nums">
                       {Math.round(selectedBalance.balance * 100) / 100}
                     </span>
                   </div>
                   {form.startDate && form.endDate && businessDays > 0 && (
                     <div className="flex items-center justify-between px-4 py-3 text-sm">
-                      <span className="text-[#5F7C84]">
+                      <span className="text-[#50676E]">
                         {format(parseISO(form.startDate), "MMMM yyyy")}
                         {form.startDate.slice(0, 7) !== form.endDate.slice(0, 7) &&
                           ` – ${format(parseISO(form.endDate), "MMMM yyyy")}`}
@@ -1075,7 +1075,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 <button
                   type="button"
                   onClick={() => { setShowModal(false); setSubmitError(""); setApproverId(""); }}
-                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#5F7C84] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
                 >
                   Cancel
                 </button>
