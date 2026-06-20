@@ -459,7 +459,7 @@ export default function GenerateContractsPage() {
 
   if (forbidden) {
     return (
-      <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+      <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
         <p className="text-[#50676E] font-medium">Contract generation is available to admins only.</p>
       </div>
     );
@@ -489,7 +489,7 @@ export default function GenerateContractsPage() {
       </div>
 
       {templates.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+        <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
           <FileText className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
           <p className="text-[#50676E] font-medium">No templates yet</p>
           <Link href="/dashboard/contracts/templates" className="text-sm text-[#223149] underline mt-1 inline-block">
@@ -497,7 +497,7 @@ export default function GenerateContractsPage() {
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-4">
           {/* Template + batch label */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -735,7 +735,7 @@ export default function GenerateContractsPage() {
           <h2 className="text-sm font-semibold text-[#50676E] uppercase tracking-wide mb-3">Recent batches</h2>
           <div className="space-y-3">
             {batches.map((b) => (
-              <div key={b.batch_id} className="bg-white rounded-2xl shadow-sm p-5">
+              <div key={b.batch_id} className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
                 <p className="font-semibold text-[#223149]">{b.batch_label ?? "Batch"}</p>
                 <div className="divide-y divide-[#ECE3DF] mt-2">
                   {b.items.map((row) => (

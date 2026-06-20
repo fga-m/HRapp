@@ -172,7 +172,7 @@ export default function NotificationsPage() {
 
       {/* Error state */}
       {error && (
-        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-12 text-center">
           <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
             <Bell className="w-6 h-6 text-red-400" />
           </div>
@@ -188,7 +188,7 @@ export default function NotificationsPage() {
 
       {/* Empty state */}
       {!loading && !error && notifications.length === 0 && (
-        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-12 text-center">
           <div className="w-14 h-14 rounded-full bg-[#ECE3DF] flex items-center justify-center mx-auto mb-4">
             <Bell className="w-6 h-6 text-[#50676E]" />
           </div>
@@ -203,7 +203,7 @@ export default function NotificationsPage() {
           <p className="text-xs font-semibold text-[#50676E] uppercase tracking-wide mb-2 px-1">
             {group.label}
           </p>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
+          <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
             {group.items.map((n) => {
               const href = targetHref(n);
               return (

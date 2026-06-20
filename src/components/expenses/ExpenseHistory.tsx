@@ -81,7 +81,7 @@ export default function ExpenseHistory() {
   return (
     <div className="space-y-4">
       {/* Date range filter */}
-      <div className="flex flex-wrap items-end gap-3 bg-white rounded-2xl shadow-sm p-4">
+      <div className="flex flex-wrap items-end gap-3 bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-4">
         <div>
           <label htmlFor="from" className="block text-xs font-semibold text-[#50676E] mb-1">From</label>
           <input id="from" type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)}
@@ -126,7 +126,7 @@ export default function ExpenseHistory() {
             const reviewed = !!claim.reviewed_at;
             const declined = claim.status === "rejected";
             return (
-              <div key={claim.id} className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
+              <div key={claim.id} className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     {claim.staff?.avatar_url ? (

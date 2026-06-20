@@ -456,7 +456,7 @@ export default function ChecklistDetailPage() {
       </div>
 
       {/* Staff card + progress */}
-      <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-4">
         {/* Staff info */}
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full bg-[#223149] flex items-center justify-center flex-shrink-0">
@@ -512,7 +512,7 @@ export default function ChecklistDetailPage() {
       )}
 
       {/* Checklist items */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
         {allItems.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <ClipboardList className="w-12 h-12 text-[#ECE3DF] mx-auto" />

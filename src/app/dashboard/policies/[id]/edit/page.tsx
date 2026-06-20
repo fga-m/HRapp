@@ -89,7 +89,7 @@ export default function EditPolicyPage() {
 
       <div className={`grid gap-6 items-start ${form.requires_signoff ? "grid-cols-1 lg:grid-cols-[1fr_360px]" : "grid-cols-1 max-w-2xl"}`}>
         {/* Left — main form fields */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 space-y-5">
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">{error}</div>
           )}
@@ -196,7 +196,7 @@ export default function EditPolicyPage() {
 
         {/* Right — staff selector panel (desktop only) */}
         {form.requires_signoff && (
-          <div className="hidden lg:block bg-white rounded-2xl shadow-sm p-6 sticky top-6">
+          <div className="hidden lg:block bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 sticky top-6">
             <h2 className="text-sm font-semibold text-[#223149] mb-3">Who needs to sign?</h2>
             <StaffSignoffSelector value={requiredSignatories} onChange={setRequiredSignatories} tall />
           </div>

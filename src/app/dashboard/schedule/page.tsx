@@ -281,7 +281,7 @@ export default function SchedulePage() {
       {/* Summary bar — admin only */}
       {isAdmin && data && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
+          <div className="bg-white rounded-2xl p-4 border border-[#ECE3DF] shadow-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#ECE3DF] flex items-center justify-center flex-shrink-0">
               <Clock className="w-5 h-5 text-[#223149]" />
             </div>
@@ -290,7 +290,7 @@ export default function SchedulePage() {
               <p className="text-xs text-[#50676E]">Total contracted this week</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
+          <div className="bg-white rounded-2xl p-4 border border-[#ECE3DF] shadow-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#ECE3DF] flex items-center justify-center flex-shrink-0">
               <TrendingUp className="w-5 h-5 text-[#223149]" />
             </div>
@@ -301,7 +301,7 @@ export default function SchedulePage() {
               <p className="text-xs text-[#50676E]">Total scheduled this week</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
+          <div className="bg-white rounded-2xl p-4 border border-[#ECE3DF] shadow-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
               <Users className="w-5 h-5 text-green-700" />
             </div>
@@ -315,7 +315,7 @@ export default function SchedulePage() {
 
       {/* TOIL rolling-window control */}
       {data && (
-        <div className="flex items-center justify-between gap-3 bg-white rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3 bg-white rounded-2xl p-4 border border-[#ECE3DF] shadow-sm">
           <div>
             <p className="text-sm font-semibold text-[#223149]">Time Off in Lieu (TOIL) rolling window</p>
             <p className="text-xs text-[#50676E]">
@@ -387,7 +387,7 @@ export default function SchedulePage() {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="hidden md:block bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#ECE3DF]">
@@ -469,7 +469,7 @@ export default function SchedulePage() {
             {data.staff.map((member) => (
               <div
                 key={member.id}
-                className="bg-white rounded-2xl shadow-sm p-4 space-y-3"
+                className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-4 space-y-3"
               >
                 <div className="flex items-center justify-between">
                   <Link href={`/dashboard/staff/${member.id}`} className="flex items-center gap-3 group">

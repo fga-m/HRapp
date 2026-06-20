@@ -203,7 +203,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
 
   if (!current) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-4 h-4 text-[#50676E]" />
           <span className="font-semibold text-[#223149]">Regular Work Schedule</span>
@@ -227,7 +227,7 @@ export default function ScheduleCard({ staffId, canEdit, contractedHours }: Sche
     && Math.abs(totalHours - contractedHours) > 0.1;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2 flex-wrap">

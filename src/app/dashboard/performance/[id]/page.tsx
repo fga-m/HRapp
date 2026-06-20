@@ -440,7 +440,7 @@ export default function PerformanceDetailPage() {
       {/* Two-column evaluation section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {/* Self Evaluation */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
           <div className="flex items-center gap-2 mb-5">
             <TrendingUp className="w-4 h-4 text-[#50676E]" />
             <h2 className="text-base font-bold text-[#223149]">Self Evaluation</h2>
@@ -471,7 +471,7 @@ export default function PerformanceDetailPage() {
 
         {/* Manager Evaluation */}
         {showManagerCard && (
-          <div className="bg-white rounded-2xl shadow-sm p-6">
+          <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
             <div className="flex items-center gap-2 mb-5">
               <TrendingUp className="w-4 h-4 text-[#50676E]" />
               <h2 className="text-base font-bold text-[#223149]">Manager Evaluation</h2>
@@ -504,7 +504,7 @@ export default function PerformanceDetailPage() {
 
       {/* Manager controls */}
       {isManagerOrAdmin && (
-        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 space-y-4">
           <h2 className="text-base font-bold text-[#223149]">Manager Controls</h2>
           <div className="flex items-center justify-between">
             <div>
@@ -536,7 +536,7 @@ export default function PerformanceDetailPage() {
 
       {/* Side-by-side comparison */}
       {showSideBySide && (
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
           <h2 className="text-base font-bold text-[#223149] mb-5">Side-by-Side Comparison</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -621,7 +621,7 @@ export default function PerformanceDetailPage() {
 
       {/* Year-on-year comparison */}
       {hasMultiplePeriods && (
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
           <h2 className="text-base font-bold text-[#223149] mb-1">Year-on-Year Comparison</h2>
           <p className="text-xs text-[#50676E] mb-5">
             Large number is the self-evaluation score.

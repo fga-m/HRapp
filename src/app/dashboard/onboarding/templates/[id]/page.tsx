@@ -554,7 +554,7 @@ export default function TemplateEditorPage() {
       </div>
 
       {/* Items list */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
         {items.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <Plus className="w-12 h-12 text-[#ECE3DF] mx-auto" />

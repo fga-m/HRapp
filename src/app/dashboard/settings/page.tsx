@@ -90,7 +90,7 @@ export default function SettingsPage() {
       )}
 
       {/* Xero Integration Card */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             {/* Xero logo placeholder */}

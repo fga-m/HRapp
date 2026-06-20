@@ -1359,7 +1359,7 @@ export default function CalendarPage() {
       )}
 
       {/* ── Calendar grid (desktop) ──────────────────────────────────── */}
-      <div className="hidden md:flex flex-1 min-h-0 bg-white rounded-2xl shadow-sm overflow-x-auto flex-col">
+      <div className="hidden md:flex flex-1 min-h-0 bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-x-auto flex-col">
         <div className="flex flex-col flex-1 min-h-0 min-w-[560px]">
         {/* Day headers — paddingRight compensates for the scrollbar width in the grid below */}
         <div
@@ -1755,7 +1755,7 @@ export default function CalendarPage() {
       </div>
 
       {/* ── Calendar single-day view (mobile) ───────────────────────── */}
-      <div className="md:hidden flex-1 min-h-0 bg-white rounded-2xl shadow-sm flex flex-col">
+      <div className="md:hidden flex-1 min-h-0 bg-white rounded-2xl border border-[#ECE3DF] shadow-sm flex flex-col">
         {/* Day-picker strip */}
         <div className="flex-shrink-0 grid grid-cols-7 gap-1 p-1 border-b border-[#ECE3DF]">
           {days.map((day, i) => {

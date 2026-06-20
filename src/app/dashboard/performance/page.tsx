@@ -193,7 +193,7 @@ export default function PerformancePage() {
 
       {/* Reviews list */}
       {reviews.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+        <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
           <TrendingUp className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
           <p className="text-[#50676E] font-medium">No performance reviews yet</p>
           {isManagerOrAdmin && (
@@ -206,7 +206,7 @@ export default function PerformancePage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
           {reviews.map((review) => (
             <Link
               key={review.id}

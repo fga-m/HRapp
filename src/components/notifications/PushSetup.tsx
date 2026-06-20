@@ -127,7 +127,7 @@ export default function PushSetup() {
   // "Add to Home Screen" first; the toggle appears once they open it from there.
   if (isIOS && !isStandalone) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-5">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#223149]/5 flex items-center justify-center flex-shrink-0">
             <Smartphone className="w-5 h-5 text-[#223149]" />
@@ -148,7 +148,7 @@ export default function PushSetup() {
 
   if (!supported) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-5">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#9BADB7]/10 flex items-center justify-center flex-shrink-0">
             <Bell className="w-5 h-5 text-[#50676E]" />
@@ -165,7 +165,7 @@ export default function PushSetup() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5">
+    <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <div

@@ -105,7 +105,7 @@ export default function NewMeetingPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6 space-y-5">
           {/* Meeting Type */}
           <div>
             <label className="block text-sm font-semibold text-[#223149] mb-2">Meeting Type</label>

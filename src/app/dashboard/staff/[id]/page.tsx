@@ -202,7 +202,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-[#223149] flex items-center justify-center flex-shrink-0">
@@ -334,7 +334,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
 
       {/* Contracts Card */}
       {canSeeContracts && (
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <FileSignature className="w-4 h-4 text-[#50676E]" />
@@ -413,7 +413,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       <div className="grid grid-cols-2 gap-4">
         <Link
           href={`/dashboard/calendar?staff=${encodeURIComponent(member.email)}`}
-          className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-3 group"
+          className="bg-white rounded-2xl p-4 border border-[#ECE3DF] shadow-sm hover:shadow-md transition-shadow flex items-center gap-3 group"
         >
           <div className="w-9 h-9 rounded-xl bg-[#ECE3DF] flex items-center justify-center group-hover:bg-[#223149] transition-colors">
             <Calendar className="w-4 h-4 text-[#223149] group-hover:text-white transition-colors" />
@@ -422,7 +422,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
         </Link>
         <Link
           href={`/dashboard/meetings?staff=${member.id}`}
-          className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-3 group"
+          className="bg-white rounded-2xl p-4 border border-[#ECE3DF] shadow-sm hover:shadow-md transition-shadow flex items-center gap-3 group"
         >
           <div className="w-9 h-9 rounded-xl bg-[#ECE3DF] flex items-center justify-center group-hover:bg-[#223149] transition-colors">
             <User className="w-4 h-4 text-[#223149] group-hover:text-white transition-colors" />

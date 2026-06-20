@@ -80,7 +80,7 @@ export default function MeetingsPage() {
       )}
 
       {notes.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+        <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
           <FileText className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
           <p className="text-[#50676E] font-medium">
             {canManage ? "No meeting notes yet" : "No notes have been shared with you yet"}
@@ -92,7 +92,7 @@ export default function MeetingsPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden divide-y divide-[#ECE3DF]">
           {notes.map((note) => (
             <Link
               key={note.id}
