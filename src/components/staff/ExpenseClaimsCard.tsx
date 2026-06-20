@@ -77,6 +77,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
   const [lineTotalsState, setLineTotalsState] = useState<ExpenseTotals>({ subtotal: 0, gst: 0, total: 0 });
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Xero dropdown data
@@ -132,6 +134,31 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
     setAccountCode(""); setTaxType(""); setGstOverride(""); setFile(null); setSubmitError("");
     setItemise(false); setLines([]); setLineTotalsState({ subtotal: 0, gst: 0, total: 0 });
     setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
+    setScanning(false); setScanned(false);
+  };
+
+  // Read the receipt with OCR and pre-fill ONLY blank fields so we never clobber
+  // anything the user has already typed. Everything stays fully editable.
+  const scanReceipt = async (f: File) => {
+    if (!(f.type.startsWith("image/") || f.type === "application/pdf")) return;
+    setScanning(true);
+    setScanned(false);
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      const res = await fetch("/api/expenses/ocr", { method: "POST", body: fd });
+      if (!res.ok) return;
+      const d = await res.json();
+      if (d.amount != null) setAmount((prev) => (prev.trim() ? prev : String(d.amount)));
+      if (d.date) setSpentOn((prev) => (prev ? prev : d.date));
+      if (d.vendor) setSpentAt((prev) => (prev.trim() ? prev : d.vendor));
+      if (d.gst != null) setGstOverride((prev) => (prev.trim() ? prev : String(d.gst)));
+      if (d.amount != null || d.date || d.vendor || d.gst != null) setScanned(true);
+    } catch {
+      /* OCR is best-effort — manual entry still works */
+    } finally {
+      setScanning(false);
+    }
   };
 
   // Set the receipt file and an object-URL preview (images and PDFs both render).
@@ -141,6 +168,8 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
       return f ? URL.createObjectURL(f) : null;
     });
     setFile(f);
+    if (f) scanReceipt(f);
+    else { setScanning(false); setScanned(false); }
   };
 
   const closeModal = () => { resetForm(); setShowModal(false); };
@@ -401,6 +430,19 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
 
             {/* RIGHT — form fields */}
             <form id="expense-claim-form" onSubmit={handleSubmit} className="order-1 md:order-2 md:w-1/2 md:h-full md:overflow-y-auto p-6 space-y-5">
+              {/* Receipt scan status — OCR prefill is best-effort and fully editable */}
+              {scanning && (
+                <div className="flex items-center gap-2 text-sm text-[#50676E] bg-[#F8F6F4] border border-[#ECE3DF] rounded-xl px-3 py-2">
+                  <span className="w-4 h-4 border-2 border-[#223149] border-t-transparent rounded-full animate-spin" />
+                  Reading your receipt…
+                </div>
+              )}
+              {scanned && !scanning && (
+                <div className="flex items-start gap-2 text-sm text-[#223149] bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+                  <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <span>Prefilled from your receipt — please check the values before submitting.</span>
+                </div>
+              )}
               {/* Spent on + Spent at — apply to the whole receipt */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
