@@ -1174,7 +1174,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                       <span className="font-bold text-[#223149] tabular-nums">
                         {selectedBalance.units.toLowerCase() === "days"
                           ? businessDays
-                          : Math.round(businessDays * 7.5 * 10) / 10}
+                          : Math.round((form.hours !== "" ? Number(form.hours) : autoHours) * 100) / 100}
                       </span>
                     </div>
                   )}
