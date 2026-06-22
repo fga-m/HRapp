@@ -330,7 +330,14 @@ export async function createAccpayBill(args: {
   contactId: string;
   date: string; // yyyy-mm-dd
   dueDate?: string; // yyyy-mm-dd; ACCPAY bills REQUIRE a due date — defaults to the bill date
-  reference?: string;
+  // NOTE on Xero's two "reference" fields for ACCPAY (bills):
+  //   • InvoiceNumber — what Xero SHOWS as "Reference" in the bill UI.
+  //   • Reference     — a separate hidden "additional reference number".
+  // So a human label (e.g. "Expense Claims") goes in `invoiceNumber`, while we
+  // keep the unique claim id in `reference` purely for findBillByReference()
+  // de-dup (it's queryable but not shown as the UI Reference).
+  invoiceNumber?: string; // shows as "Reference" in the Xero bill UI
+  reference?: string; // hidden additional reference — used for idempotency lookups
   lineItems: {
     Description: string;
     UnitAmount: number;
@@ -352,6 +359,7 @@ export async function createAccpayBill(args: {
         Date: args.date,
         DueDate: args.dueDate ?? args.date, // required for ACCPAY (bills)
         LineAmountTypes: args.lineAmountTypes ?? "Inclusive",
+        ...(args.invoiceNumber ? { InvoiceNumber: args.invoiceNumber } : {}),
         ...(args.reference ? { Reference: args.reference } : {}),
         LineItems: args.lineItems.map((li) => ({
           Description: li.Description,

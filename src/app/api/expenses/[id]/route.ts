@@ -334,7 +334,8 @@ export async function PATCH(
     const bill = await createAccpayBill({
       contactId,
       date: claim.date, // spent_on, yyyy-mm-dd
-      reference: claim.id,
+      invoiceNumber: "Expense Claims", // shows as "Reference" in the Xero bill UI
+      reference: claim.id, // hidden additional ref — powers findBillByReference de-dup
       lineItems: billLineItems,
       lineAmountTypes: (claim.line_amount_type as "Inclusive" | "Exclusive" | "NoTax") || "Inclusive",
     });
