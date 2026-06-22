@@ -454,6 +454,13 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
         {/* ── Team Leave view ── */}
         {isReviewer && activeTab === "team" && (
           <div className="space-y-4">
+            {/* Approve/decline error — persists so the reason is actually visible */}
+            {reviewError && (
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-700">{reviewError}</p>
+              </div>
+            )}
             {/* Status filter tabs */}
             <div className="flex gap-1 border-b border-[#ECE3DF]">
               {(["PENDING", "APPROVED", "REJECTED", "ALL"] as const).map(f => (

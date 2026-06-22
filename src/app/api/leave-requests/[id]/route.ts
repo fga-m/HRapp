@@ -146,6 +146,10 @@ export async function PATCH(
         {
           EmployeeID: member.xero_employee_id,
           LeaveTypeID: leaveReq.leave_type_id,
+          // Title is REQUIRED by Xero's AU Payroll API (max 50 chars). Omitting
+          // it made every leave approval fail. Units are left out so Xero
+          // auto-calculates them from the employee's pay calendar.
+          Title: (leaveReq.leave_type_name || "Leave").slice(0, 50),
           StartDate: toXeroDate(leaveReq.start_date),
           EndDate: toXeroDate(leaveReq.end_date),
           ...(leaveReq.description ? { Description: leaveReq.description } : {}),
