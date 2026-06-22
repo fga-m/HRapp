@@ -30,6 +30,28 @@ function initials(name?: string) {
   return (name ?? "?").split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
 }
 
+// GST portion of a (tax-inclusive) claim. Uses the explicit tax_amount when set,
+// otherwise infers it: GST-free → 0, else the 10% inclusive portion (amount/11).
+// For itemised claims it sums the per-line GST the same way.
+function round2(n: number) {
+  return Math.round(n * 100) / 100;
+}
+function gstFor(claim: Claim): number {
+  const lines = claim.line_items;
+  if (Array.isArray(lines) && lines.length > 0) {
+    return round2(
+      lines.reduce((sum, l) => {
+        if (l.tax_amount != null) return sum + Number(l.tax_amount);
+        const free = /free/i.test(l.tax_rate_name ?? "");
+        return sum + (free ? 0 : Number(l.amount) / 11);
+      }, 0)
+    );
+  }
+  if (claim.tax_amount != null) return Number(claim.tax_amount);
+  const free = /free/i.test(claim.tax_rate_name ?? "");
+  return free ? 0 : round2(Number(claim.amount) / 11);
+}
+
 export default function ExpenseApproverQueue() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,7 +153,10 @@ export default function ExpenseApproverQueue() {
                   </p>
                 </div>
               </div>
-              <span className="text-lg font-bold text-[#223149] flex-shrink-0">${Number(claim.amount).toFixed(2)}</span>
+              <div className="flex flex-col items-end flex-shrink-0 leading-tight">
+                <span className="text-lg font-bold text-[#223149]">${Number(claim.amount).toFixed(2)}</span>
+                <span className="text-[11px] text-[#50676E]">incl. GST ${gstFor(claim).toFixed(2)}</span>
+              </div>
             </div>
 
             <p className="text-sm text-[#223149]">{claim.description}</p>

@@ -25,6 +25,7 @@ interface Claim {
   status: "submitted" | "approved" | "rejected" | "pushed" | "push_failed";
   reviewer_notes?: string | null;
   receipt_signed_url?: string | null;
+  bill_reference?: string | null;
   created_at: string;
 }
 
@@ -340,6 +341,9 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                       {format(parseISO(claim.date), "d MMM yyyy")}
                       {claim.spent_at ? ` · ${claim.spent_at}` : ""}
                     </p>
+                    {claim.bill_reference && (
+                      <p className="text-xs text-[#50676E] mt-0.5">Ref: <span className="font-medium text-[#223149]">{claim.bill_reference}</span></p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <StatusBadge status={claim.status} />

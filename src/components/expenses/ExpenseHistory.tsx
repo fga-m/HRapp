@@ -19,6 +19,7 @@ interface Claim {
   status: "submitted" | "approved" | "rejected" | "pushed" | "push_failed";
   reviewer_notes?: string | null;
   reviewed_at?: string | null;
+  bill_reference?: string | null;
   created_at: string;
   receipt_signed_url?: string | null;
   receipt_mime?: string | null;
@@ -202,6 +203,9 @@ export default function ExpenseHistory() {
 
                 {/* Audit trail: submitted + reviewed */}
                 <div className="border-t border-[#ECE3DF] pt-2 space-y-0.5 text-xs text-[#50676E]">
+                  {claim.bill_reference && (
+                    <p>Xero reference: <span className="font-semibold text-[#223149]">{claim.bill_reference}</span></p>
+                  )}
                   <p>Submitted by {claim.staff?.full_name ?? "Unknown"} · {fmtTs(claim.created_at)}</p>
                   {reviewed && (
                     <p>

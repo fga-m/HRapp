@@ -331,14 +331,28 @@ export async function PATCH(
           },
         ];
 
+    // (3b) Allocate a clean, org-wide, per-year bill number: "Expense Claims
+    //      #YYYY-NNNN", resetting each year. This becomes the Xero InvoiceNumber
+    //      (shown as the bill "Reference"), so it MUST be globally unique — Xero
+    //      resolves bills by this number. We take the highest existing number
+    //      for the year and add one (max, not count, so deleted claims never
+    //      cause a number to be reused).
+    const billYear = new Date(claim.date).getFullYear();
+    const { data: existingRefs } = await supabaseAdmin
+      .from("expense_claims")
+      .select("bill_reference")
+      .like("bill_reference", `Expense Claims #${billYear}-%`);
+    let maxSeq = 0;
+    for (const r of (existingRefs ?? []) as { bill_reference: string | null }[]) {
+      const m = /#\d{4}-(\d+)$/.exec(r.bill_reference ?? "");
+      if (m) maxSeq = Math.max(maxSeq, parseInt(m[1], 10));
+    }
+    const billReference = `Expense Claims #${billYear}-${String(maxSeq + 1).padStart(4, "0")}`;
+
     const bill = await createAccpayBill({
       contactId,
       date: claim.date, // spent_on, yyyy-mm-dd
-      // Shows as "Reference" in the Xero bill UI. MUST be unique per claim — a
-      // constant value makes Xero match/update an existing invoice (incl. its
-      // own Xero Expenses entries) instead of creating a new bill, which fails
-      // on paid/locked invoices. The short claim tag keeps it readable + unique.
-      invoiceNumber: `Expense Claims ${claim.id.slice(0, 8)}`,
+      invoiceNumber: billReference, // shows as "Reference" in the Xero bill UI; globally unique
       reference: claim.id, // hidden additional ref — powers findBillByReference de-dup
       lineItems: billLineItems,
       lineAmountTypes: (claim.line_amount_type as "Inclusive" | "Exclusive" | "NoTax") || "Inclusive",
@@ -391,6 +405,7 @@ export async function PATCH(
         xero_total: bill.total,
         xero_pushed_at: new Date().toISOString(),
         xero_error: attachError,
+        bill_reference: billReference,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
