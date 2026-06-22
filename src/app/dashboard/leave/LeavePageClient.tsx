@@ -355,6 +355,15 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   // Auto-calculated hours (business days × daily contracted hours)
   const autoHours = businessDays > 0 ? Math.round(businessDays * dailyHours * 10) / 10 : 0;
 
+  // Default the Hours field to the auto-calculated value so it's a real,
+  // editable, saved figure (not just a greyed-out suggestion). The date inputs
+  // reset hours to "" when changed, which lets this refill the new total; a
+  // value the user has typed stays put.
+  useEffect(() => {
+    if (!showModal || autoHours <= 0) return;
+    setForm((f) => (f.hours === "" ? { ...f, hours: String(autoHours) } : f));
+  }, [autoHours, showModal]);
+
   const openNewModal = () => {
     setEditingReqId(null);
     setForm({ leaveTypeId: "", startDate: "", endDate: "", hours: "", description: "" });
@@ -1118,7 +1127,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                     )}
                   </div>
                   <p className="text-xs text-[#50676E] mt-1">
-                    For a half day, enter {Math.round(dailyHours / 2 * 4) / 4}h. Leave blank to use the auto-calculated total.
+                    Auto-filled from the dates — change it if it should differ (e.g. {Math.round(dailyHours / 2 * 4) / 4}h for a half day).
                   </p>
                 </div>
               )}
@@ -1141,9 +1150,12 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   {form.startDate && form.endDate && businessDays > 0 && (
                     <div className="flex items-center justify-between px-4 py-3 text-sm">
                       <span className="text-[#50676E]">
-                        {format(parseISO(form.startDate), "MMMM yyyy")}
-                        {form.startDate.slice(0, 7) !== form.endDate.slice(0, 7) &&
-                          ` – ${format(parseISO(form.endDate), "MMMM yyyy")}`}
+                        This request{" "}
+                        <span className="text-xs">
+                          ({format(parseISO(form.startDate), "MMM yyyy")}
+                          {form.startDate.slice(0, 7) !== form.endDate.slice(0, 7) &&
+                            ` – ${format(parseISO(form.endDate), "MMM yyyy")}`})
+                        </span>
                       </span>
                       <span className="font-bold text-[#223149] tabular-nums">
                         {selectedBalance.units.toLowerCase() === "days"
