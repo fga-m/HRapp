@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2, Link2, Link2Off, RefreshCw } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
-import LeaveEmailTemplateEditor from "@/components/settings/LeaveEmailTemplateEditor";
 
 interface XeroStatus {
   connected: boolean;
@@ -454,17 +453,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Leave email templates */}
-      <LeaveEmailTemplateEditor
-        kind="approve"
-        title="Leave approval email"
-        description="The email sent to a staff member when their leave is approved."
-      />
-      <LeaveEmailTemplateEditor
-        kind="decline"
-        title="Leave decline email"
-        description="The email sent to a staff member when their leave is declined."
-      />
     </div>
   );
 }

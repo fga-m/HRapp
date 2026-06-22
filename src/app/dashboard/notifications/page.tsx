@@ -7,6 +7,8 @@ import { formatDistanceToNow, isToday, isYesterday, format } from "date-fns";
 import PageSubtitle from "@/components/PageSubtitle";
 import PushSetup from "@/components/notifications/PushSetup";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
+import { useAppContext } from "@/context/AppContext";
+import LeaveEmailTemplateEditor from "@/components/settings/LeaveEmailTemplateEditor";
 
 type Notification = {
   id: string;
@@ -83,6 +85,12 @@ export default function NotificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
 
+  const { isAdmin, role } = useAppContext();
+  // Who can manage email templates: admins, or the people in charge of the
+  // relevant section (currently leave → leave approvers).
+  const canManageEmail = isAdmin || role === "leave_approver";
+  const [tab, setTab] = useState<"alerts" | "templates">("alerts");
+
   const fetchNotifications = () => {
     setError(null);
     fetch("/api/notifications")
@@ -145,7 +153,7 @@ export default function NotificationsPage() {
             <p className="text-sm text-[#50676E] mt-1">{unreadCount} unread</p>
           )}
         </div>
-        {unreadCount > 0 && (
+        {tab === "alerts" && unreadCount > 0 && (
           <button
             onClick={markAllRead}
             disabled={markingAll}
@@ -157,6 +165,42 @@ export default function NotificationsPage() {
         )}
       </div>
 
+      {/* Tabs (Email templates only for admins / leave approvers) */}
+      {canManageEmail && (
+        <div className="flex border-b border-[#ECE3DF] gap-6">
+          {([["alerts", "My alerts"], ["templates", "Email templates"]] as const).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`pb-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+                tab === key ? "border-[#223149] text-[#223149]" : "border-transparent text-[#50676E] hover:text-[#223149]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {tab === "templates" && canManageEmail ? (
+        <div className="space-y-6">
+          <p className="text-sm text-[#50676E]">
+            These emails are sent automatically when leave is approved or declined. Edit the wording, sender name and
+            reply-to address below. They send from the connected Gmail account (set up under Settings).
+          </p>
+          <LeaveEmailTemplateEditor
+            kind="approve"
+            title="Leave approval email"
+            description="Sent to a staff member when their leave is approved."
+          />
+          <LeaveEmailTemplateEditor
+            kind="decline"
+            title="Leave decline email"
+            description="Sent to a staff member when their leave is declined (includes the reason)."
+          />
+        </div>
+      ) : (
+      <>
       {/* Per-device push opt-in */}
       <PushSetup />
 
@@ -247,6 +291,8 @@ export default function NotificationsPage() {
           </div>
         </div>
       ))}
+      </>
+      )}
     </div>
   );
 }

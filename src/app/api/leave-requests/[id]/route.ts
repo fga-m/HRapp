@@ -56,6 +56,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Request not found or already reviewed" }, { status: 404 });
   }
 
+  // A person can't review their own leave request — same rule as expense claims.
+  if (caller.id === leaveReq.staff_id) {
+    return NextResponse.json(
+      { error: "You can't approve or decline your own leave request." },
+      { status: 403 }
+    );
+  }
+
   if (action === "REJECT") {
     const { error } = await supabaseAdmin
       .from("leave_requests")

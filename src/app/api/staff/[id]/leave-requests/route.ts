@@ -129,7 +129,10 @@ export async function POST(
 
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const canSubmit = caller.id === id || caller.role === "admin";
+  // The staff member themselves, admins, and leave approvers can submit a
+  // request (approvers/admins can create on behalf of any staff member).
+  const canSubmit =
+    caller.id === id || caller.role === "admin" || caller.role === "leave_approver";
   if (!canSubmit) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { data: member } = await supabaseAdmin

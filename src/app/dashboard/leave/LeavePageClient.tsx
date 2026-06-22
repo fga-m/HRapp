@@ -154,6 +154,10 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   const [form, setForm] = useState({ leaveTypeId: "", startDate: "", endDate: "", hours: "", description: "" });
   const [approvers, setApprovers] = useState<Approver[]>([]);
   const [approverId, setApproverId] = useState("");
+  // Create-on-behalf (reviewers only): who the request is being created FOR.
+  const [staffList, setStaffList] = useState<{ id: string; full_name: string; is_active?: boolean }[]>([]);
+  const [targetStaffId, setTargetStaffId] = useState(staffId);
+  const [targetBalances, setTargetBalances] = useState<LeaveBalance[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -231,20 +235,34 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
     fetchPending();
   }, [fetchAll, fetchPending]);
 
-  // Load approvers when modal opens
+  // Load approvers (+ full staff list for the on-behalf picker) when modal opens
   useEffect(() => {
     if (!showModal || approvers.length > 0) return;
     fetch("/api/staff")
       .then(r => r.json())
       .then(d => {
-        const list: Approver[] = (Array.isArray(d) ? d : []).filter(
+        const all = Array.isArray(d) ? d : [];
+        const list: Approver[] = all.filter(
           (s: Approver) => s.role === "admin" || s.role === "manager"
         );
         setApprovers(list);
         if (list.length === 1) setApproverId(list[0].id);
+        setStaffList(all.filter((s: { is_active?: boolean }) => s.is_active !== false));
       })
       .catch(() => {});
   }, [showModal]);
+
+  // When creating for another staff member, load THEIR Xero leave balances.
+  useEffect(() => {
+    if (!showModal || !isReviewer || !targetStaffId || targetStaffId === staffId) {
+      setTargetBalances([]);
+      return;
+    }
+    fetch(`/api/staff/${targetStaffId}/leave-balances`)
+      .then(r => r.json())
+      .then(d => setTargetBalances(d.balances ?? []))
+      .catch(() => setTargetBalances([]));
+  }, [showModal, isReviewer, targetStaffId, staffId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,7 +274,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       const isEdit = editingReqId !== null;
       const url = isEdit
         ? `/api/staff/${staffId}/leave-requests/${editingReqId}`
-        : `/api/staff/${staffId}/leave-requests`;
+        : `/api/staff/${targetStaffId}/leave-requests`;
       const res = await fetch(url, {
         method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -278,7 +296,9 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       setApproverId("");
       setSuccessMsg(isEdit
         ? "Your leave request has been updated."
-        : "Your leave request has been submitted and is awaiting approval.");
+        : creatingForOther
+          ? `Leave request created for ${staffList.find(s => s.id === targetStaffId)?.full_name ?? "the staff member"}.`
+          : "Your leave request has been submitted and is awaiting approval.");
       setTimeout(() => setSuccessMsg(""), 6000);
       fetchAll(true);
     } catch (err: any) {
@@ -327,7 +347,10 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
     }
   };
 
-  const selectedBalance = balances.find(b => b.leaveTypeId === form.leaveTypeId);
+  // When a reviewer is creating for another staff member, use that person's balances.
+  const creatingForOther = isReviewer && targetStaffId !== staffId;
+  const effectiveBalances = creatingForOther ? targetBalances : balances;
+  const selectedBalance = effectiveBalances.find(b => b.leaveTypeId === form.leaveTypeId);
   const businessDays = form.startDate && form.endDate ? businessDayCount(form.startDate, form.endDate) : 0;
   // Auto-calculated hours (business days × daily contracted hours)
   const autoHours = businessDays > 0 ? Math.round(businessDays * dailyHours * 10) / 10 : 0;
@@ -336,6 +359,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
     setEditingReqId(null);
     setForm({ leaveTypeId: "", startDate: "", endDate: "", hours: "", description: "" });
     setApproverId("");
+    setTargetStaffId(staffId);
     setSubmitError("");
     setShowModal(true);
   };
@@ -526,22 +550,28 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                                   >
                                     Edit
                                   </button>
-                                  <button
-                                    onClick={() => handleReview(req.id, "APPROVE")}
-                                    disabled={reviewingId === req.id}
-                                    className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                                  >
-                                    <CheckCircle className="w-3.5 h-3.5" />
-                                    {reviewingId === req.id ? "…" : "Approve"}
-                                  </button>
-                                  <button
-                                    onClick={() => { setReviewNote(""); setReviewError(""); setDecliningReq(req); }}
-                                    disabled={reviewingId === req.id}
-                                    className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-                                  >
-                                    <XCircle className="w-3.5 h-3.5" />
-                                    {reviewingId === req.id ? "…" : "Reject"}
-                                  </button>
+                                  {req.staff_id !== staffId ? (
+                                    <>
+                                      <button
+                                        onClick={() => handleReview(req.id, "APPROVE")}
+                                        disabled={reviewingId === req.id}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                                      >
+                                        <CheckCircle className="w-3.5 h-3.5" />
+                                        {reviewingId === req.id ? "…" : "Approve"}
+                                      </button>
+                                      <button
+                                        onClick={() => { setReviewNote(""); setReviewError(""); setDecliningReq(req); }}
+                                        disabled={reviewingId === req.id}
+                                        className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                                      >
+                                        <XCircle className="w-3.5 h-3.5" />
+                                        {reviewingId === req.id ? "…" : "Reject"}
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <span className="text-xs text-[#50676E] italic">Your request</span>
+                                  )}
                                 </div>
                               ) : (
                                 <StatusBadge status={req.status} />
@@ -573,14 +603,20 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                             }} className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline">
                               Edit
                             </button>
-                            <button onClick={() => handleReview(req.id, "APPROVE")} disabled={reviewingId === req.id}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50">
-                              <CheckCircle className="w-3 h-3" /> Approve
-                            </button>
-                            <button onClick={() => { setReviewNote(""); setReviewError(""); setDecliningReq(req); }} disabled={reviewingId === req.id}
-                              className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 disabled:opacity-50">
-                              <XCircle className="w-3 h-3" /> Reject
-                            </button>
+                            {req.staff_id !== staffId ? (
+                              <>
+                                <button onClick={() => handleReview(req.id, "APPROVE")} disabled={reviewingId === req.id}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50">
+                                  <CheckCircle className="w-3 h-3" /> Approve
+                                </button>
+                                <button onClick={() => { setReviewNote(""); setReviewError(""); setDecliningReq(req); }} disabled={reviewingId === req.id}
+                                  className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 disabled:opacity-50">
+                                  <XCircle className="w-3 h-3" /> Reject
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-xs text-[#50676E] italic self-center">Your request</span>
+                            )}
                           </div>
                         )}
                       </div>
@@ -954,6 +990,26 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* For (staff member) — reviewers can create on behalf of staff */}
+              {isReviewer && !editingReqId && (
+                <div>
+                  <label htmlFor="for-staff" className="block text-sm font-semibold text-[#223149] mb-1.5">For</label>
+                  <select id="for-staff"
+                    value={targetStaffId}
+                    onChange={e => { setTargetStaffId(e.target.value); setForm({ ...form, leaveTypeId: "" }); }}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
+                  >
+                    <option value={staffId}>Myself ({staffName})</option>
+                    {staffList.filter(s => s.id !== staffId).map(s => (
+                      <option key={s.id} value={s.id}>{s.full_name}</option>
+                    ))}
+                  </select>
+                  {creatingForOther && effectiveBalances.length === 0 && (
+                    <p className="text-xs text-amber-600 mt-1">No Xero leave balances for this person — they may not be linked to Xero Payroll.</p>
+                  )}
+                </div>
+              )}
+
               {/* Type of Request */}
               <div>
                 <label htmlFor="type-of-request" className="block text-sm font-semibold text-[#223149] mb-1.5">Type of Request</label>
@@ -964,7 +1020,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
                 >
                   <option value="">Select request…</option>
-                  {balances.map(b => (
+                  {effectiveBalances.map(b => (
                     <option key={b.leaveTypeId} value={b.leaveTypeId}>{b.name}</option>
                   ))}
                 </select>

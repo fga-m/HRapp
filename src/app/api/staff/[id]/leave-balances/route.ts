@@ -22,11 +22,13 @@ export async function GET(
 
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Only the staff member themselves, admins, or managers can view leave balances
+  // Only the staff member themselves, admins, managers, or leave approvers can
+  // view leave balances (approvers need it to create requests on staff's behalf).
   const canView =
     caller.id === id ||
     caller.role === "admin" ||
-    caller.role === "manager";
+    caller.role === "manager" ||
+    caller.role === "leave_approver";
 
   if (!canView) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

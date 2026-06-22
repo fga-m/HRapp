@@ -12,6 +12,21 @@ interface Template {
 
 const PLACEHOLDERS = ["{{name}}", "{{leave_type}}", "{{period}}", "{{reason}}", "{{app_url}}"];
 
+// Fill placeholders with realistic sample values for the live preview.
+function renderSample(text: string, kind: "decline" | "approve"): string {
+  const sample: Record<string, string> = {
+    name: "Megan",
+    leave_type: "Annual Leave",
+    period: "1 Jun 2026 to 5 Jun 2026",
+    reason:
+      kind === "decline"
+        ? "We're short-staffed that week — happy to look at other dates."
+        : "",
+    app_url: typeof window !== "undefined" ? window.location.origin : "",
+  };
+  return text.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_m, k: string) => sample[k] ?? "");
+}
+
 interface Props {
   kind: "decline" | "approve";
   title: string;
@@ -25,6 +40,7 @@ export default function LeaveEmailTemplateEditor({ kind, title, description }: P
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [error, setError] = useState("");
+  const [showPreview, setShowPreview] = useState(true);
 
   useEffect(() => {
     fetch(`/api/settings/email-template?kind=${kind}`)
@@ -118,6 +134,34 @@ export default function LeaveEmailTemplateEditor({ kind, title, description }: P
                 <code key={p} className="mx-0.5 px-1 py-0.5 bg-[#F8F6F4] rounded border border-[#ECE3DF]">{p}</code>
               ))}
             </p>
+          </div>
+
+          {/* Live preview */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-semibold text-[#223149]">Preview</label>
+              <button
+                type="button"
+                onClick={() => setShowPreview((v) => !v)}
+                className="text-xs font-semibold text-[#50676E] hover:text-[#223149] underline"
+              >
+                {showPreview ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showPreview && (
+              <div className="rounded-xl border border-[#ECE3DF] overflow-hidden">
+                <div className="px-4 py-2 bg-[#F8F6F4] border-b border-[#ECE3DF] text-xs text-[#50676E]">
+                  <span className="font-semibold text-[#223149]">Subject:</span> {renderSample(tpl.subject, kind)}
+                </div>
+                <iframe
+                  title="Email preview"
+                  sandbox=""
+                  className="w-full h-96 bg-white"
+                  srcDoc={renderSample(tpl.html, kind)}
+                />
+              </div>
+            )}
+            <p className="text-xs text-[#50676E] mt-1.5">Preview fills the placeholders with sample values.</p>
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}

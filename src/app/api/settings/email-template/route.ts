@@ -7,28 +7,44 @@ import {
   defaultTemplate,
   isTemplateKind,
   type EmailTemplate,
+  type TemplateKind,
 } from "@/lib/email-templates";
 
 export const dynamic = "force-dynamic";
 
-async function requireAdmin(email: string) {
-  const { data: caller } = await supabaseAdmin
+// Who can edit each email template. Admins can edit everything; otherwise only
+// the people "in charge" of that section. Extend this map as more template
+// kinds (for other parts of the app) are added.
+const KIND_ROLES: Record<TemplateKind, string[]> = {
+  decline: ["admin", "leave_approver"],
+  approve: ["admin", "leave_approver"],
+};
+
+async function callerRole(email: string): Promise<{ id: string; role: string } | null> {
+  const { data } = await supabaseAdmin
     .from("staff")
     .select("id, role")
     .eq("email", email)
     .single();
-  return caller?.role === "admin" ? caller : null;
+  return data ?? null;
+}
+
+function canEdit(role: string, kind: TemplateKind): boolean {
+  return role === "admin" || (KIND_ROLES[kind] ?? []).includes(role);
 }
 
 // GET ?kind=decline|approve — the template (merged over the default draft).
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const caller = await requireAdmin(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const kind = new URL(req.url).searchParams.get("kind") ?? "decline";
   if (!isTemplateKind(kind)) return NextResponse.json({ error: "Invalid kind" }, { status: 400 });
+
+  const caller = await callerRole(session.user?.email ?? "");
+  if (!caller || !canEdit(caller.role, kind)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   return NextResponse.json({
     template: await getEmailTemplate(kind),
@@ -40,12 +56,15 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const caller = await requireAdmin(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
   const kind = body.kind;
   if (!isTemplateKind(kind)) return NextResponse.json({ error: "Invalid kind" }, { status: 400 });
+
+  const caller = await callerRole(session.user?.email ?? "");
+  if (!caller || !canEdit(caller.role, kind)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const def = defaultTemplate(kind);
   const tpl: EmailTemplate = {
