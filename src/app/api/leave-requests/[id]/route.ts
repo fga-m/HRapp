@@ -106,7 +106,9 @@ export async function PATCH(
         const vars: Record<string, string> = {
           name: requester.first_name || requester.full_name || "there",
           leave_type: leaveReq.leave_type_name ?? "Leave",
+          description: leaveReq.description?.trim() || period,
           period,
+          hours: leaveReq.hours != null ? `${leaveReq.hours} hours` : "Auto-calculated in Xero",
           reason: note?.trim() || "No reason was provided.",
           app_url: process.env.NEXTAUTH_URL ?? "",
         };
@@ -229,10 +231,35 @@ export async function PATCH(
           leaveReq.start_date === leaveReq.end_date
             ? fmt(leaveReq.start_date)
             : `${fmt(leaveReq.start_date)} to ${fmt(leaveReq.end_date)}`;
+
+        // Best-effort: read the up-to-date balance for this leave type from Xero
+        // so the email can show what they have left. Never blocks the email.
+        let balanceStr = "";
+        try {
+          const balRes = await xeroRequest(
+            `/payroll.xro/1.0/Employees/${member.xero_employee_id}`
+          );
+          if (balRes.ok) {
+            const balJson = await balRes.json();
+            const bal = (balJson.Employees?.[0]?.LeaveBalances ?? []).find(
+              (b: any) => b.LeaveTypeID === leaveReq.leave_type_id
+            );
+            if (bal && bal.NumberOfUnits != null) {
+              const units = Math.round(Number(bal.NumberOfUnits) * 100) / 100;
+              balanceStr = `${units} ${bal.TypeOfUnits || "hours"}`;
+            }
+          }
+        } catch {
+          /* balance is best-effort */
+        }
+
         const vars: Record<string, string> = {
           name: requester.first_name || requester.full_name || "there",
           leave_type: leaveReq.leave_type_name ?? "Leave",
+          description: leaveReq.description?.trim() || period,
           period,
+          hours: leaveReq.hours != null ? `${leaveReq.hours} hours` : "Auto-calculated in Xero",
+          balance: balanceStr || "see the HR Portal",
           reason: note?.trim() || "",
           app_url: process.env.NEXTAUTH_URL ?? "",
         };

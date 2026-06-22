@@ -17,14 +17,20 @@ export type EmailTemplate = {
 
 export type TemplateKind = "decline" | "approve";
 
-// Placeholders available to both leave templates:
+// Placeholders available to the leave templates:
 //   {{name}}        - recipient's full name (or first name)
 //   {{leave_type}}  - e.g. "Annual Leave"
+//   {{description}} - the request's own label/description (falls back to the dates)
 //   {{period}}      - e.g. "1 Jun 2026 to 5 Jun 2026"
+//   {{hours}}       - approved / requested hours (e.g. "7.5 hours")
+//   {{balance}}     - remaining balance for that leave type (approval emails only)
 //   {{reason}}      - decline reason / approver note (or a fallback line)
 //   {{app_url}}     - base URL of the HR app
 
-const SHELL = (heading: string, intro: string, showReason: boolean) => `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#223149;">
+const SHELL = (
+  intro: string,
+  opts: { reason?: boolean; hours?: boolean; balance?: boolean }
+) => `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#223149;">
   <div style="background:#223149;color:#ffffff;padding:20px 24px;border-radius:12px 12px 0 0;">
     <h1 style="margin:0;font-size:18px;font-weight:700;">FGA Melbourne — HR Portal</h1>
   </div>
@@ -34,11 +40,19 @@ const SHELL = (heading: string, intro: string, showReason: boolean) => `<div sty
     <table style="width:100%;border-collapse:collapse;margin:0 0 16px;">
       <tr><td style="padding:6px 0;color:#50676E;width:120px;">Leave type</td><td style="padding:6px 0;font-weight:600;">{{leave_type}}</td></tr>
       <tr><td style="padding:6px 0;color:#50676E;">Dates</td><td style="padding:6px 0;font-weight:600;">{{period}}</td></tr>${
-        showReason
+        opts.hours
+          ? `\n      <tr><td style="padding:6px 0;color:#50676E;">Hours</td><td style="padding:6px 0;font-weight:600;">{{hours}}</td></tr>`
+          : ""
+      }${
+        opts.reason
           ? `\n      <tr><td style="padding:6px 0;color:#50676E;vertical-align:top;">Reason</td><td style="padding:6px 0;">{{reason}}</td></tr>`
           : ""
       }
-    </table>
+    </table>${
+      opts.balance
+        ? `\n    <p style="margin:0 0 16px;padding:12px 14px;background:#F8F6F4;border-radius:10px;font-size:14px;">Remaining <strong>{{leave_type}}</strong> balance: <strong>{{balance}}</strong></p>`
+        : ""
+    }
     <a href="{{app_url}}/dashboard/leave" style="display:inline-block;background:#223149;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:10px;font-weight:600;font-size:14px;">View in the HR Portal</a>
     <p style="margin:20px 0 0;font-size:12px;color:#50676E;border-top:1px solid #ECE3DF;padding-top:14px;">
       This is an automated message — <strong>please do not reply</strong> to this email. If you have questions, please speak with your manager.
@@ -51,13 +65,19 @@ const DEFAULTS: Record<TemplateKind, EmailTemplate> = {
     fromName: "FGA Melbourne HR (no-reply)",
     replyTo: "",
     subject: "Your leave request has been declined",
-    html: SHELL("declined", "Your leave request has unfortunately been <strong>declined</strong>.", true),
+    html: SHELL(
+      "Unfortunately, your <strong>{{leave_type}}</strong> request for <em>{{description}}</em> has been <strong>declined</strong>.",
+      { reason: true, hours: true }
+    ),
   },
   approve: {
     fromName: "FGA Melbourne HR (no-reply)",
     replyTo: "",
     subject: "Your leave request has been approved",
-    html: SHELL("approved", "Good news — your leave request has been <strong>approved</strong>.", false),
+    html: SHELL(
+      "Good news — your <strong>{{leave_type}}</strong> request for <em>{{description}}</em> has been <strong>approved</strong>.",
+      { hours: true, balance: true }
+    ),
   },
 };
 

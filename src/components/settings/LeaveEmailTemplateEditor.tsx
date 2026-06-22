@@ -10,14 +10,23 @@ interface Template {
   replyTo: string;
 }
 
-const PLACEHOLDERS = ["{{name}}", "{{leave_type}}", "{{period}}", "{{reason}}", "{{app_url}}"];
+function placeholdersFor(kind: "decline" | "approve"): string[] {
+  const list = ["{{name}}", "{{leave_type}}", "{{description}}", "{{period}}", "{{hours}}"];
+  if (kind === "approve") list.push("{{balance}}");
+  if (kind === "decline") list.push("{{reason}}");
+  list.push("{{app_url}}");
+  return list;
+}
 
 // Fill placeholders with realistic sample values for the live preview.
 function renderSample(text: string, kind: "decline" | "approve"): string {
   const sample: Record<string, string> = {
     name: "Megan",
     leave_type: "Annual Leave",
+    description: "Family holiday",
     period: "1 Jun 2026 to 5 Jun 2026",
+    hours: "37.5 hours",
+    balance: "112.5 hours",
     reason:
       kind === "decline"
         ? "We're short-staffed that week — happy to look at other dates."
@@ -130,7 +139,7 @@ export default function LeaveEmailTemplateEditor({ kind, title, description }: P
             />
             <p className="text-xs text-[#50676E] mt-1.5">
               Placeholders you can use:{" "}
-              {PLACEHOLDERS.map((p) => (
+              {placeholdersFor(kind).map((p) => (
                 <code key={p} className="mx-0.5 px-1 py-0.5 bg-[#F8F6F4] rounded border border-[#ECE3DF]">{p}</code>
               ))}
             </p>
