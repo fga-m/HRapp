@@ -141,21 +141,21 @@ export async function PATCH(
   }
 
   try {
-    const body = {
-      LeaveApplications: [
-        {
-          EmployeeID: member.xero_employee_id,
-          LeaveTypeID: leaveReq.leave_type_id,
-          // Title is REQUIRED by Xero's AU Payroll API (max 50 chars). Omitting
-          // it made every leave approval fail. Units are left out so Xero
-          // auto-calculates them from the employee's pay calendar.
-          Title: (leaveReq.leave_type_name || "Leave").slice(0, 50),
-          StartDate: toXeroDate(leaveReq.start_date),
-          EndDate: toXeroDate(leaveReq.end_date),
-          ...(leaveReq.description ? { Description: leaveReq.description } : {}),
-        },
-      ],
-    };
+    // Xero's AU Payroll LeaveApplications POST expects a bare JSON ARRAY of
+    // applications — NOT an object wrapped in { LeaveApplications: [...] }
+    // (that returns "Cannot deserialize the current JSON object ... into type
+    // ... because [it expects an array]"). Title is REQUIRED (max 50 chars);
+    // units are omitted so Xero auto-calculates them from the pay calendar.
+    const body = [
+      {
+        EmployeeID: member.xero_employee_id,
+        LeaveTypeID: leaveReq.leave_type_id,
+        Title: (leaveReq.leave_type_name || "Leave").slice(0, 50),
+        StartDate: toXeroDate(leaveReq.start_date),
+        EndDate: toXeroDate(leaveReq.end_date),
+        ...(leaveReq.description ? { Description: leaveReq.description } : {}),
+      },
+    ];
 
     const res = await xeroRequest("/payroll.xro/1.0/LeaveApplications", {
       method: "POST",
