@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
@@ -87,8 +87,9 @@ export async function PATCH(
       is_read: false,
     });
 
-    // Best-effort: email the requester using the (editable) decline template.
-    // Never blocks the decline if email isn't connected or sending fails.
+    // Email the requester AFTER responding (via `after`) so declining is instant
+    // for the approver. Best-effort — never blocks if Gmail isn't connected.
+    after(async () => {
     try {
       const { data: requester } = await supabaseAdmin
         .from("staff")
@@ -124,6 +125,7 @@ export async function PATCH(
     } catch (err) {
       console.error("[leave-decline] email send failed (non-fatal):", err);
     }
+    });
 
     return NextResponse.json({ status: "REJECTED" });
   }
@@ -215,6 +217,10 @@ export async function PATCH(
       is_read: false,
     });
 
+    // Email + calendar run AFTER the response is sent (via `after`) so the
+    // approver isn't waiting on Gmail/Calendar round-trips (~30s). The Xero
+    // approval and DB update already succeeded above; these are follow-ups.
+    after(async () => {
     // Best-effort: email the requester that their leave was approved (uses the
     // editable approval template). Never blocks the approval.
     try {
@@ -345,6 +351,7 @@ export async function PATCH(
     } catch {
       // Calendar event creation is best-effort — never blocks the approval
     }
+    });
 
     return NextResponse.json({ status: "APPROVED", xeroId });
   } catch (err: any) {
