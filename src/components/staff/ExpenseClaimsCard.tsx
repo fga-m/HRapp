@@ -118,9 +118,6 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
         setAccounts(Array.isArray(accs) ? accs : accs?.accounts ?? []);
         const taxList: XeroTaxRate[] = Array.isArray(taxes) ? taxes : taxes?.taxRates ?? [];
         setTaxRates(taxList);
-        // Default the tax rate to "GST on Expenses".
-        const def = taxList.find((t) => /gst on expenses/i.test(t.name));
-        if (def) setTaxType((prev) => prev || def.taxType);
       })
       .catch(async (r) => {
         const body = r?.json ? await r.json().catch(() => ({})) : {};
@@ -128,6 +125,17 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
       })
       .finally(() => setMetaLoading(false));
   }, [showModal, accounts.length]);
+
+  // Default the tax rate to "GST on Expenses" each time the form opens. This
+  // can't live in the loader above because the Xero dropdown data is cached
+  // across opens (so the loader early-returns on the 2nd+ claim) — but the form
+  // is reset between claims, so the default must be re-applied on every open.
+  // Only fills a blank selection, so it never overrides a manual choice.
+  useEffect(() => {
+    if (!showModal || taxRates.length === 0) return;
+    const def = taxRates.find((t) => /gst on expenses/i.test(t.name));
+    if (def) setTaxType((prev) => prev || def.taxType);
+  }, [showModal, taxRates]);
 
   if (!canView) return null;
 
@@ -182,7 +190,14 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
       return f ? URL.createObjectURL(f) : null;
     });
     setFile(f);
-    if (f) scanReceipt(f);
+    if (f) {
+      // Default the description to the receipt's file name (without its
+      // extension), only when the user hasn't typed one. Stays fully editable,
+      // and OCR/scan below won't touch the description.
+      const base = f.name.replace(/\.[^./\\]+$/, "").trim();
+      if (base) setDescription((prev) => (prev.trim() ? prev : base));
+      scanReceipt(f);
+    }
     else { setScanning(false); setScanned(false); setScanError(null); setOcrItems([]); }
   };
 
