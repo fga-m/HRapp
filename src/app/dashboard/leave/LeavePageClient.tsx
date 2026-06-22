@@ -335,6 +335,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       setReviewNote("");
       setDecliningReq(null); // close the decline modal if it was open
       await fetchPending();
+      await fetchTeamRequests(teamStatusFilter); // refresh the team table itself
       await fetchAll(true);
     } catch (err: any) {
       setReviewError(err.message);
@@ -513,6 +514,14 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
               </button>
             </div>
 
+            {/* Review error (e.g. Xero rejected the approval) — shown regardless of which row */}
+            {reviewError && (
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-700">{reviewError}</p>
+              </div>
+            )}
+
             {/* Table */}
             <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm overflow-hidden">
               {teamLoading ? (
@@ -585,10 +594,13 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                                       <button
                                         onClick={() => handleReview(req.id, "APPROVE")}
                                         disabled={reviewingId === req.id}
-                                        className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-70"
                                       >
-                                        <CheckCircle className="w-3.5 h-3.5" />
-                                        {reviewingId === req.id ? "…" : "Approve"}
+                                        {reviewingId === req.id ? (
+                                          <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Approving…</>
+                                        ) : (
+                                          <><CheckCircle className="w-3.5 h-3.5" /> Approve</>
+                                        )}
                                       </button>
                                       <button
                                         onClick={() => { setReviewNote(""); setReviewError(""); setDecliningReq(req); }}
@@ -636,8 +648,12 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                             {req.staff_id !== staffId ? (
                               <>
                                 <button onClick={() => handleReview(req.id, "APPROVE")} disabled={reviewingId === req.id}
-                                  className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50">
-                                  <CheckCircle className="w-3 h-3" /> Approve
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-70">
+                                  {reviewingId === req.id ? (
+                                    <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Approving…</>
+                                  ) : (
+                                    <><CheckCircle className="w-3 h-3" /> Approve</>
+                                  )}
                                 </button>
                                 <button onClick={() => { setReviewNote(""); setReviewError(""); setDecliningReq(req); }} disabled={reviewingId === req.id}
                                   className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 disabled:opacity-50">
