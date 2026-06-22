@@ -14,14 +14,14 @@ export default async function ExpensesPage() {
 
   const { data: caller } = await supabaseAdmin
     .from("staff")
-    .select("id, role")
+    .select("id, role, roles")
     .eq("email", session.user?.email ?? "")
     .single();
 
   if (!caller) redirect("/dashboard");
 
-  // Approver = admin OR the caller's role has approve_expenses enabled.
-  const isApprover = await isExpenseApprover(caller.role);
+  // Approver = admin OR any of the caller's roles has approve_expenses enabled.
+  const isApprover = await isExpenseApprover(caller.roles ?? caller.role);
 
   // Pending count for the review tab badge (claims needing attention).
   let pendingCount = 0;

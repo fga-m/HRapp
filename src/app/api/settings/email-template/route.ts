@@ -1,36 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabase";
+import { getAccessByEmail, can } from "@/lib/access";
 import {
   getEmailTemplate,
   setEmailTemplate,
   defaultTemplate,
   isTemplateKind,
   type EmailTemplate,
-  type TemplateKind,
 } from "@/lib/email-templates";
 
 export const dynamic = "force-dynamic";
 
-// Who can edit each email template. Admins can edit everything; otherwise only
-// the people "in charge" of that section. Extend this map as more template
-// kinds (for other parts of the app) are added.
-const KIND_ROLES: Record<TemplateKind, string[]> = {
-  decline: ["admin", "leave_approver"],
-  approve: ["admin", "leave_approver"],
-};
-
-async function callerRole(email: string): Promise<{ id: string; role: string } | null> {
-  const { data } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", email)
-    .single();
-  return data ?? null;
-}
-
-function canEdit(role: string, kind: TemplateKind): boolean {
-  return role === "admin" || (KIND_ROLES[kind] ?? []).includes(role);
+// The leave templates are editable by admins and anyone who can approve leave.
+async function canEditTemplates(email: string): Promise<{ id: string } | null> {
+  const access = await getAccessByEmail(email);
+  if (!access) return null;
+  return can(access, "approve_leave") ? { id: access.id } : null;
 }
 
 // GET ?kind=decline|approve — the template (merged over the default draft).
@@ -41,8 +26,8 @@ export async function GET(req: NextRequest) {
   const kind = new URL(req.url).searchParams.get("kind") ?? "decline";
   if (!isTemplateKind(kind)) return NextResponse.json({ error: "Invalid kind" }, { status: 400 });
 
-  const caller = await callerRole(session.user?.email ?? "");
-  if (!caller || !canEdit(caller.role, kind)) {
+  const caller = await canEditTemplates(session.user?.email ?? "");
+  if (!caller) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -61,8 +46,8 @@ export async function PUT(req: NextRequest) {
   const kind = body.kind;
   if (!isTemplateKind(kind)) return NextResponse.json({ error: "Invalid kind" }, { status: 400 });
 
-  const caller = await callerRole(session.user?.email ?? "");
-  if (!caller || !canEdit(caller.role, kind)) {
+  const caller = await canEditTemplates(session.user?.email ?? "");
+  if (!caller) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

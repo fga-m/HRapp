@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
+import { getAccessByEmail, can, getApproverStaffIds } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +16,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
+  const caller = await getAccessByEmail(session.user?.email ?? "");
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { id } = await params;
@@ -31,8 +28,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .single();
   if (!lr) return NextResponse.json({ error: "Leave request not found" }, { status: 404 });
 
-  const isReviewer = caller.role === "admin" || caller.role === "leave_approver";
-  if (caller.id !== lr.staff_id && !isReviewer) {
+  if (caller.id !== lr.staff_id && !can(caller, "approve_leave")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -56,18 +52,15 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .eq("id", lr.staff_id)
     .single();
 
-  // Notify the approvers (admins + leave approvers), excluding the requester.
-  const { data: approvers } = await supabaseAdmin
-    .from("staff")
-    .select("id")
-    .in("role", ["admin", "leave_approver"])
-    .neq("id", lr.staff_id)
-    .eq("is_active", true);
+  // Notify everyone who can approve leave, excluding the requester.
+  const approverIds = (await getApproverStaffIds("approve_leave")).filter(
+    (aid) => aid !== lr.staff_id
+  );
 
-  if (approvers && approvers.length > 0) {
+  if (approverIds.length > 0) {
     await createNotification(
-      approvers.map((a: { id: string }) => ({
-        staff_id: a.id,
+      approverIds.map((aid) => ({
+        staff_id: aid,
         title: "Leave request reminder",
         message: `Reminder: ${requester?.full_name ?? "a staff member"}'s ${lr.leave_type_name} request (${lr.start_date} to ${lr.end_date}) is still awaiting your approval.`,
         type: "leave",
@@ -82,5 +75,5 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .update({ last_reminded_at: new Date().toISOString() })
     .eq("id", id);
 
-  return NextResponse.json({ ok: true, reminded: approvers?.length ?? 0 });
+  return NextResponse.json({ ok: true, reminded: approverIds.length });
 }

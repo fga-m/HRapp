@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Shield, Search, X, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Shield, Search, X, Loader2, AlertTriangle, Check } from "lucide-react";
 
 interface XeroEmployee {
   id: string;
@@ -31,10 +31,12 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [availableRoles, setAvailableRoles] = useState<{ key: string; label: string; is_admin: boolean }[]>([]);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
     role: "staff",
+    roles: ["staff"] as string[],
     position: "",
     department: "",
     google_calendar_id: "",
@@ -71,6 +73,7 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           first_name: d.first_name || "",
           last_name: d.last_name || "",
           role: d.role || "staff",
+          roles: Array.isArray(d.roles) && d.roles.length > 0 ? d.roles : [d.role || "staff"],
           position: d.position || "",
           department: d.department || "",
           google_calendar_id: d.google_calendar_id || "",
@@ -94,6 +97,23 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
   }, [id]);
 
   useEffect(() => { loadStaff(); }, [loadStaff]);
+
+  // Available roles for the multi-select.
+  useEffect(() => {
+    fetch("/api/permissions")
+      .then((r) => r.json())
+      .then((d) => setAvailableRoles(d.roles ?? []))
+      .catch(() => {});
+  }, []);
+
+  const toggleRole = (key: string) => {
+    setForm((f) => {
+      const has = f.roles.includes(key);
+      let next = has ? f.roles.filter((r) => r !== key) : [...f.roles, key];
+      if (next.length === 0) next = ["staff"]; // never leave someone with no role
+      return { ...f, roles: next };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,105 +298,45 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
             <p className="text-xs text-[#50676E] mt-1">1 FTE = 37.5 hrs/week (7.5 hrs/day × 5 days, excl. 30 min lunch). Every block over 5 hours excludes a 30 min lunch.</p>
           </div>
 
-          {/* Role — highlighted section */}
+          {/* Roles — multi-select (a person can hold more than one) */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-semibold text-[#223149] mb-2">Role</label>
+            <label className="block text-sm font-semibold text-[#223149] mb-2">Roles</label>
+            <p className="text-xs text-[#50676E] mb-3">
+              Choose one or more — access is combined across all selected roles. Set what each role can do on the{" "}
+              <a href="/dashboard/access" className="underline hover:text-[#223149]">Roles &amp; Permissions</a> page.
+            </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, role: "staff" })}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
-                  form.role === "staff" ? "border-[#223149] bg-[#223149]/5" : "border-[#ECE3DF] hover:border-[#9BADB7]"
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "staff" ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
-                  <span className={`text-xs font-bold ${form.role === "staff" ? "text-white" : "text-[#50676E]"}`}>S</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-[#223149]">Staff</p>
-                  <p className="text-xs text-[#50676E]">Standard access</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, role: "manager" })}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
-                  form.role === "manager" ? "border-[#5F7C84] bg-[#5F7C84]/5" : "border-[#ECE3DF] hover:border-[#9BADB7]"
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "manager" ? "bg-[#5F7C84]" : "bg-[#ECE3DF]"}`}>
-                  <span className={`text-xs font-bold ${form.role === "manager" ? "text-white" : "text-[#50676E]"}`}>M</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-[#223149]">Manager</p>
-                  <p className="text-xs text-[#50676E]">Configurable access</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, role: "leave_approver" })}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
-                  form.role === "leave_approver" ? "border-[#7C5C8A] bg-[#7C5C8A]/5" : "border-[#ECE3DF] hover:border-[#9BADB7]"
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "leave_approver" ? "bg-[#7C5C8A]" : "bg-[#ECE3DF]"}`}>
-                  <span className={`text-xs font-bold ${form.role === "leave_approver" ? "text-white" : "text-[#50676E]"}`}>LA</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-[#223149]">Leave Approver</p>
-                  <p className="text-xs text-[#50676E]">Approves leave requests</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, role: "finance" })}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
-                  form.role === "finance" ? "border-[#2E7D52] bg-[#2E7D52]/5" : "border-[#ECE3DF] hover:border-[#9BADB7]"
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "finance" ? "bg-[#2E7D52]" : "bg-[#ECE3DF]"}`}>
-                  <span className={`text-xs font-bold ${form.role === "finance" ? "text-white" : "text-[#50676E]"}`}>F</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-[#223149]">Finance</p>
-                  <p className="text-xs text-[#50676E]">Payroll &amp; hours</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, role: "admin" })}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
-                  form.role === "admin" ? "border-[#223149] bg-[#223149]/5" : "border-[#ECE3DF] hover:border-[#9BADB7]"
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.role === "admin" ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
-                  <Shield className={`w-4 h-4 ${form.role === "admin" ? "text-white" : "text-[#50676E]"}`} />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-[#223149]">Admin</p>
-                  <p className="text-xs text-[#50676E]">Full access</p>
-                </div>
-              </button>
+              {availableRoles.map((r) => {
+                const selected = form.roles.includes(r.key);
+                return (
+                  <button
+                    key={r.key}
+                    type="button"
+                    onClick={() => toggleRole(r.key)}
+                    className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors text-left ${
+                      selected ? "border-[#223149] bg-[#223149]/5" : "border-[#ECE3DF] hover:border-[#9BADB7]"
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${selected ? "bg-[#223149]" : "bg-[#ECE3DF]"}`}>
+                      {r.is_admin ? (
+                        <Shield className={`w-4 h-4 ${selected ? "text-white" : "text-[#50676E]"}`} />
+                      ) : (
+                        <span className={`text-xs font-bold ${selected ? "text-white" : "text-[#50676E]"}`}>
+                          {r.label.slice(0, 2).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm text-[#223149] truncate">{r.label}</p>
+                      <p className="text-xs text-[#50676E]">{selected ? "Selected" : "Tap to add"}</p>
+                    </div>
+                    {selected && <Check className="w-4 h-4 text-[#223149] flex-shrink-0" />}
+                  </button>
+                );
+              })}
             </div>
-            {form.role === "admin" && (
-              <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                ⚠️ Admins can manage all staff, policies, meeting notes and onboarding.
-              </p>
-            )}
-            {form.role === "manager" && (
-              <p className="text-xs text-[#50676E] mt-2">
-                Managers get the permissions configured on the Access Levels page.
-              </p>
-            )}
-            {form.role === "leave_approver" && (
-              <p className="text-xs text-[#7C5C8A] mt-2">
-                Leave Approvers can review, approve and reject leave requests in the app before they go to Xero.
-              </p>
-            )}
-            {form.role === "finance" && (
-              <p className="text-xs text-[#2E7D52] mt-2">
-                Finance gets the permissions configured on the Access Levels page.
-              </p>
+            {form.roles.includes("admin") && (
+              <p className="text-xs text-amber-600 mt-2">⚠️ Admins have full access to everything and can&apos;t be restricted.</p>
             )}
           </div>
 

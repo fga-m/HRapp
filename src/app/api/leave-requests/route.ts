@@ -1,25 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { getAccessByEmail, can } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/leave-requests?status=PENDING|APPROVED|REJECTED|ALL
-// admin/leave_approver only
+// Anyone who can approve leave (admins always; otherwise the approve_leave perm)
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
+  const access = await getAccessByEmail(session.user?.email ?? "");
+  if (!access) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const isReviewer = caller.role === "admin" || caller.role === "leave_approver";
-  if (!isReviewer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!can(access, "approve_leave")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const statusParam = (searchParams.get("status") ?? "PENDING").toUpperCase();

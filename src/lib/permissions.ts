@@ -9,7 +9,11 @@ export const FEATURES = [
   { key: "view_team_schedule",           label: "View Team Schedule",          description: "Access the team schedule and TOIL tracker" },
   { key: "manage_toil",                  label: "Manage TOIL (time off in lieu)", description: "Log and adjust time off in lieu for staff" },
   { key: "approve_expenses",             label: "Approve Expense Claims",      description: "Review and approve staff expense claims (and send them to Xero)" },
+  { key: "approve_leave",                label: "Approve Leave Requests",      description: "Review, approve and decline staff leave requests (and send them to Xero)" },
 ] as const;
+
+// Feature keys as a plain array (handy for the access helper and admin grants).
+export const FEATURE_KEYS = FEATURES.map((f) => f.key) as FeatureKey[];
 
 export type FeatureKey = typeof FEATURES[number]["key"];
 

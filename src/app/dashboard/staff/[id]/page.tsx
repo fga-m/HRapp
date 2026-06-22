@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { auth } from "@/lib/auth";
 import { isExpenseApprover } from "@/lib/expenses";
+import { resolveRoles } from "@/lib/access";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink, FileSignature, CheckCircle, Clock, Clock3, Cake } from "lucide-react";
@@ -45,13 +46,15 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
   const session = await auth();
   const { data: caller } = await supabaseAdmin
     .from("staff")
-    .select("id, role")
+    .select("id, role, roles")
     .eq("email", session?.user?.email ?? "")
     .single();
 
+  const callerRoles = caller ? resolveRoles(caller) : [];
+
   // Check manager's manage_staff permission (used for schedule editing, performance notes, etc.)
-  let isManager = caller?.role === "admin";
-  if (caller?.role === "manager") {
+  let isManager = callerRoles.includes("admin");
+  if (callerRoles.includes("manager")) {
     const { data: perm } = await supabaseAdmin
       .from("role_permissions")
       .select("enabled")
@@ -64,7 +67,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
   // Expense-claim viewing is gated by approve_expenses on the API, so mirror that
   // here (admin OR a role with approve_expenses) — otherwise the card 403s and
   // silently shows empty for a manager who only has manage_staff.
-  const canApproveExpenses = await isExpenseApprover(caller?.role);
+  const canApproveExpenses = await isExpenseApprover(callerRoles);
 
   // Only admins and managers with manage_staff permission can edit the regular work schedule
   const canEditSchedule = caller?.role === "admin" || isManager;

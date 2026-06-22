@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { xeroRequest } from "@/lib/xero";
+import { getAccessByEmail, can, getApproverStaffIds } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -24,15 +25,10 @@ export async function GET(
 
   const { id } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
+  const caller = await getAccessByEmail(session.user?.email ?? "");
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const canView = caller.id === id || caller.role === "admin" || caller.role === "leave_approver";
+  const canView = caller.id === id || can(caller, "approve_leave");
   if (!canView) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { data: member } = await supabaseAdmin
@@ -124,18 +120,12 @@ export async function POST(
 
   const { id } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
+  const caller = await getAccessByEmail(session.user?.email ?? "");
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // The staff member themselves, admins, and leave approvers can submit a
-  // request (approvers/admins can create on behalf of any staff member).
-  const canSubmit =
-    caller.id === id || caller.role === "admin" || caller.role === "leave_approver";
+  // The staff member themselves, plus anyone who can approve leave, can submit a
+  // request (approvers can create on behalf of any staff member).
+  const canSubmit = caller.id === id || can(caller, "approve_leave");
   if (!canSubmit) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { data: member } = await supabaseAdmin
@@ -186,15 +176,11 @@ export async function POST(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Notify leave approvers and admins (excluding the requester themselves)
-  const { data: approvers } = await supabaseAdmin
-    .from("staff")
-    .select("id")
-    .in("role", ["admin", "leave_approver"])
-    .eq("is_active", true)
-    .neq("id", id);
+  // Notify everyone who can approve leave (admins + roles with approve_leave),
+  // excluding the requester themselves.
+  const approverIds = (await getApproverStaffIds("approve_leave")).filter((aid) => aid !== id);
 
-  if (approvers && approvers.length > 0) {
+  if (approverIds.length > 0) {
     const { data: requester } = await supabaseAdmin
       .from("staff")
       .select("full_name")
@@ -202,8 +188,8 @@ export async function POST(
       .single();
 
     await createNotification(
-      approvers.map((a: any) => ({
-        staff_id: a.id,
+      approverIds.map((aid) => ({
+        staff_id: aid,
         title: `Leave request from ${requester?.full_name ?? "a staff member"}`,
         message: `${requester?.full_name ?? "A staff member"} has submitted a ${leaveTypeName} request from ${startDate} to ${endDate} — awaiting your approval.`,
         type: "leave",

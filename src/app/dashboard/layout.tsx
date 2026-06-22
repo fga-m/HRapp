@@ -8,6 +8,7 @@ import TopBar from "@/components/layout/TopBar";
 import BottomNav from "@/components/layout/BottomNav";
 import { AppContextProvider } from "@/context/AppContext";
 import { ConfirmProvider } from "@/components/ui/ConfirmDialog";
+import { resolveRoles, rolesAreAdmin, permissionsForRoles } from "@/lib/access";
 import { Eye, EyeOff } from "lucide-react";
 
 export default async function DashboardLayout({
@@ -20,11 +21,12 @@ export default async function DashboardLayout({
 
   const { data: caller } = await supabaseAdmin
     .from("staff")
-    .select("id, full_name, email, role, avatar_url")
+    .select("id, full_name, email, role, roles, avatar_url")
     .eq("email", session.user?.email ?? "")
     .single();
 
-  const isAdmin = caller?.role === "admin";
+  const callerRoles = resolveRoles({ role: caller?.role, roles: caller?.roles });
+  const isAdmin = rolesAreAdmin(callerRoles);
   const userName = caller?.full_name || session.user?.name || "";
   const userEmail = caller?.email || session.user?.email || "";
   const userAvatar = caller?.avatar_url || session.user?.image || "";
@@ -35,15 +37,8 @@ export default async function DashboardLayout({
   const viewAsStaff = isAdmin && cookieStore.get("fga_view_as_staff")?.value === "1";
   const effectiveIsAdmin = isAdmin && !viewAsStaff;
 
-  // Fetch effective permissions for this user
-  const { data: dbPerms } = await supabaseAdmin
-    .from("role_permissions")
-    .select("feature, enabled")
-    .eq("role", caller?.role ?? "staff");
-
-  const permissions: string[] = (dbPerms ?? [])
-    .filter((p: any) => p.enabled)
-    .map((p: any) => p.feature as string);
+  // Effective permissions = union across all of this user's roles (admins get all).
+  const permissions: string[] = await permissionsForRoles(callerRoles);
 
   // Unread notification count
   const { count: unreadCount } = await supabaseAdmin
@@ -54,7 +49,7 @@ export default async function DashboardLayout({
 
   // Checklist nav visibility — always show for admin/manager; for staff only show when
   // they have at least one assigned checklist with incomplete required items.
-  const isManager = caller?.role === "manager";
+  const isManager = callerRoles.includes("manager");
   let hasActiveChecklists = isAdmin || isManager;
 
   if (!hasActiveChecklists && caller?.id) {
@@ -142,7 +137,12 @@ export default async function DashboardLayout({
         )}
 
         <main className="flex-1 p-4 md:p-8 pt-[72px] md:pt-8 pb-24 md:pb-8">
-          <AppContextProvider isAdmin={effectiveIsAdmin} role={caller?.role ?? "staff"}>
+          <AppContextProvider
+            isAdmin={effectiveIsAdmin}
+            role={caller?.role ?? "staff"}
+            roles={viewAsStaff ? ["staff"] : callerRoles}
+            permissions={viewAsStaff ? [] : permissions}
+          >
             <ConfirmProvider>
               {children}
             </ConfirmProvider>

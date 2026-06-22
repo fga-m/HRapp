@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { primaryRoleFor } from "@/lib/access";
 
 async function getCallerAndPermission(email: string) {
   const { data: caller } = await supabaseAdmin
@@ -43,7 +44,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { data, error } = await supabaseAdmin
     .from("staff")
     .select(
-      "id, full_name, first_name, last_name, email, recovery_email, mobile_phone, role, position, department, avatar_url, is_active, google_calendar_id, contracted_hours, xero_employee_id, google_account_created_at, birthdate, start_date, address_line1, address_line2, suburb, state, postcode, country, created_at, updated_at"
+      "id, full_name, first_name, last_name, email, recovery_email, mobile_phone, role, roles, position, department, avatar_url, is_active, google_calendar_id, contracted_hours, xero_employee_id, google_account_created_at, birthdate, start_date, address_line1, address_line2, suburb, state, postcode, country, created_at, updated_at"
     )
     .eq("id", id)
     .single();
@@ -63,7 +64,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const body = await req.json();
   const {
-    full_name, role, position, department, google_calendar_id, is_active, contracted_hours,
+    full_name, role, roles, position, department, google_calendar_id, is_active, contracted_hours,
     xero_employee_id, birthdate,
     first_name, last_name, recovery_email, mobile_phone, start_date,
     address_line1, address_line2, suburb, state, postcode, country,
@@ -84,7 +85,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .from("staff")
     .update({
       ...(fullNamePatch !== undefined && { full_name: fullNamePatch }),
-      ...(role !== undefined && { role }),
+      // Roles: when an array is sent, store it and keep `role` as the primary.
+      ...(Array.isArray(roles)
+        ? { roles, role: primaryRoleFor(roles) }
+        : role !== undefined
+          ? { role }
+          : {}),
       ...(position !== undefined && { position }),
       ...(department !== undefined && { department }),
       ...(google_calendar_id !== undefined && { google_calendar_id }),

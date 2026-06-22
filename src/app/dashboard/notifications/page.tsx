@@ -85,10 +85,10 @@ export default function NotificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
 
-  const { isAdmin, role } = useAppContext();
-  // Who can manage email templates: admins, or the people in charge of the
-  // relevant section (currently leave → leave approvers).
-  const canManageEmail = isAdmin || role === "leave_approver";
+  const { isAdmin, can } = useAppContext();
+  // Who can manage email templates: admins, or anyone who can approve leave
+  // (the email templates are the leave approve/decline messages).
+  const canManageEmail = isAdmin || can("approve_leave");
   const [tab, setTab] = useState<"alerts" | "templates">("alerts");
 
   const fetchNotifications = () => {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
+import { getAccessByEmail, can, getApproverStaffIds } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -16,18 +17,12 @@ export async function PATCH(
 
   const { id, reqId } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
+  const caller = await getAccessByEmail(session.user?.email ?? "");
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // The staff member themselves, admins, and leave approvers can edit a pending
-  // request (reviewers can fix up a team member's request before approving).
-  const canEdit =
-    caller.id === id || caller.role === "admin" || caller.role === "leave_approver";
+  // The staff member themselves, plus anyone who can approve leave, can edit a
+  // pending request (reviewers can fix up a team member's request first).
+  const canEdit = caller.id === id || can(caller, "approve_leave");
   if (!canEdit) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Only PENDING requests can be edited
@@ -88,17 +83,14 @@ export async function PATCH(
     .eq("id", id)
     .single();
 
-  const { data: approvers } = await supabaseAdmin
-    .from("staff")
-    .select("id")
-    .in("role", ["admin", "leave_approver"])
-    .eq("is_active", true)
-    .neq("id", caller.id); // don't notify the editor if they're also an approver
+  const approverIds = (await getApproverStaffIds("approve_leave")).filter(
+    (aid) => aid !== caller.id // don't notify the editor if they're also an approver
+  );
 
-  if (approvers && approvers.length > 0) {
+  if (approverIds.length > 0) {
     await createNotification(
-      approvers.map((a: any) => ({
-        staff_id: a.id,
+      approverIds.map((aid) => ({
+        staff_id: aid,
         title: `Leave request updated by ${requester?.full_name ?? "a staff member"}`,
         message: `${requester?.full_name ?? "A staff member"} has updated their ${leaveTypeName} request (${startDate} to ${endDate}).`,
         type: "leave",

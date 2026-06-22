@@ -6,6 +6,7 @@ import { xeroRequest } from "@/lib/xero";
 import { getGoogleTokensByStaffId, saveGoogleTokensByStaffId } from "@/lib/google-tokens";
 import { sendEmail } from "@/lib/google-mail";
 import { getEmailTemplate, renderTemplate } from "@/lib/email-templates";
+import { getAccessByEmail, can } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -24,16 +25,10 @@ export async function PATCH(
 
   const { id } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
+  const caller = await getAccessByEmail(session.user?.email ?? "");
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isReviewer = caller.role === "admin" || caller.role === "leave_approver";
-  if (!isReviewer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!can(caller, "approve_leave")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { action, note } = await req.json() as {
     action: "APPROVE" | "REJECT";

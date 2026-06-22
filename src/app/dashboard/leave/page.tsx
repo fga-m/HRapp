@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { redirect } from "next/navigation";
+import { getAccessByEmail, can } from "@/lib/access";
 import LeavePageClient from "./LeavePageClient";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,8 @@ export default async function LeavePage() {
 
   if (!staff) redirect("/");
 
-  const isReviewer = staff.role === "admin" || staff.role === "leave_approver";
+  const access = await getAccessByEmail(session.user?.email ?? "");
+  const isReviewer = access ? can(access, "approve_leave") : false;
 
   return (
     <LeavePageClient

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { primaryRoleFor } from "@/lib/access";
 
 export async function GET() {
   const session = await auth();
@@ -34,11 +35,16 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const {
-    full_name, email, role, position, department, google_calendar_id, contracted_hours, birthdate,
+    full_name, email, role, roles, position, department, google_calendar_id, contracted_hours, birthdate,
     // Canonical provisioning fields (source of truth for Google / Xero / contracts)
     first_name, last_name, recovery_email, mobile_phone, start_date,
     address_line1, address_line2, suburb, state, postcode, country,
   } = body;
+
+  // A staff member can hold several roles. Keep `role` as the primary (= admin
+  // if they're an admin, else the first) for backward compatibility.
+  const roleList: string[] =
+    Array.isArray(roles) && roles.length > 0 ? roles : role ? [role] : ["staff"];
 
   // Derive a full_name from first/last if not supplied directly.
   const derivedFullName =
@@ -55,7 +61,8 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabaseAdmin.from("staff").insert({
     full_name: derivedFullName,
     email,
-    role: role || "staff",
+    role: primaryRoleFor(roleList),
+    roles: roleList,
     position: position || null,
     department: department || null,
     google_calendar_id: google_calendar_id || email,

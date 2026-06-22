@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
+import { getApproverStaffIds } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -46,18 +47,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, reminded: 0, approvers: 0 });
   }
 
-  // One aggregated notification per active approver.
-  const { data: approvers } = await supabaseAdmin
-    .from("staff")
-    .select("id")
-    .in("role", ["admin", "leave_approver"])
-    .eq("is_active", true);
+  // One aggregated notification per person who can approve leave.
+  const approverIds = await getApproverStaffIds("approve_leave");
 
   const count = due.length;
-  if (approvers && approvers.length > 0) {
+  if (approverIds.length > 0) {
     await createNotification(
-      approvers.map((a: { id: string }) => ({
-        staff_id: a.id,
+      approverIds.map((aid) => ({
+        staff_id: aid,
         title: "Leave requests awaiting approval",
         message: `${count} leave request${count === 1 ? "" : "s"} ${count === 1 ? "has" : "have"} been waiting more than ${STALE_DAYS} days for approval.`,
         type: "leave",
@@ -74,5 +71,5 @@ export async function GET(req: NextRequest) {
     .update({ last_reminded_at: new Date().toISOString() })
     .in("id", ids);
 
-  return NextResponse.json({ ok: true, reminded: count, approvers: approvers?.length ?? 0 });
+  return NextResponse.json({ ok: true, reminded: count, approvers: approverIds.length });
 }

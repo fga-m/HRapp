@@ -28,11 +28,13 @@ export default function NewStaffPage() {
   const [googleConnected, setGoogleConnected] = useState(false);
   const [xeroConnected, setXeroConnected] = useState(false);
 
+  const [availableRoles, setAvailableRoles] = useState<{ key: string; label: string; is_admin: boolean }[]>([]);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
     email: "",
     role: "staff",
+    roles: ["staff"] as string[],
     position: "",
     department: "",
     google_calendar_id: "",
@@ -60,9 +62,19 @@ export default function NewStaffPage() {
   useEffect(() => {
     fetch("/api/google-workspace/status").then((r) => r.json()).then((d) => setGoogleConnected(!!d.connected)).catch(() => {});
     fetch("/api/xero/status").then((r) => r.json()).then((d) => setXeroConnected(!!d.connected)).catch(() => {});
+    fetch("/api/permissions").then((r) => r.json()).then((d) => setAvailableRoles(d.roles ?? [])).catch(() => {});
   }, []);
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  const toggleRole = (key: string) => {
+    setForm((f) => {
+      const has = f.roles.includes(key);
+      let next = has ? f.roles.filter((r) => r !== key) : [...f.roles, key];
+      if (next.length === 0) next = ["staff"];
+      return { ...f, roles: next };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,14 +227,25 @@ export default function NewStaffPage() {
           </div>
 
           <div>
-            <label htmlFor="role" className={labelCls}>Role</label>
-            <select id="role" value={form.role} onChange={(e) => set("role", e.target.value)} className={inputCls + " bg-white"}>
-              <option value="staff">Staff</option>
-              <option value="manager">Manager</option>
-              <option value="leave_approver">Leave Approver</option>
-              <option value="finance">Finance</option>
-              <option value="admin">Admin</option>
-            </select>
+            <label className={labelCls}>Roles</label>
+            <div className="flex flex-wrap gap-2">
+              {availableRoles.map((r) => {
+                const selected = form.roles.includes(r.key);
+                return (
+                  <button
+                    key={r.key}
+                    type="button"
+                    onClick={() => toggleRole(r.key)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-semibold border-2 transition-colors ${
+                      selected ? "border-[#223149] bg-[#223149] text-white" : "border-[#ECE3DF] text-[#50676E] hover:border-[#9BADB7]"
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-[#50676E] mt-1">Pick one or more — access is combined across roles.</p>
           </div>
           <div>
             <label htmlFor="contracted-hours" className={labelCls}>Contracted hours / week</label>

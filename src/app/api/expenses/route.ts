@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   const { data: caller } = await supabaseAdmin
     .from("staff")
-    .select("id, role")
+    .select("id, role, roles")
     .eq("email", session.user?.email ?? "")
     .single();
 
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
   const from = searchParams.get("from"); // YYYY-MM-DD (inclusive), filters created_at
   const to = searchParams.get("to");     // YYYY-MM-DD (inclusive)
 
-  const approver = (queue || all || staffId) ? await isExpenseApprover(caller.role) : false;
+  const approver = (queue || all || staffId) ? await isExpenseApprover(caller.roles ?? caller.role) : false;
 
   let query = supabaseAdmin
     .from("expense_claims")

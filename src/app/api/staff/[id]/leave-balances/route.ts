@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { xeroRequest } from "@/lib/xero";
+import { getAccessByEmail, can } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -14,22 +15,12 @@ export async function GET(
 
   const { id } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
+  const caller = await getAccessByEmail(session.user?.email ?? "");
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Only the staff member themselves, admins, managers, or leave approvers can
-  // view leave balances (approvers need it to create requests on staff's behalf).
-  const canView =
-    caller.id === id ||
-    caller.role === "admin" ||
-    caller.role === "manager" ||
-    caller.role === "leave_approver";
-
+  // The staff member themselves, plus anyone who can approve leave (they need
+  // balances to create/approve requests on a staff member's behalf).
+  const canView = caller.id === id || can(caller, "approve_leave");
   if (!canView) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Get the target staff member's Xero employee ID

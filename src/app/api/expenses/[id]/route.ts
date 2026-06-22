@@ -42,7 +42,7 @@ export async function PATCH(
 
   const { data: caller } = await supabaseAdmin
     .from("staff")
-    .select("id, role")
+    .select("id, role, roles")
     .eq("email", session.user?.email ?? "")
     .single();
 
@@ -66,7 +66,7 @@ export async function PATCH(
 
   if (!claim) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const approver = await isExpenseApprover(caller.role);
+  const approver = await isExpenseApprover(caller.roles ?? caller.role);
   const isOwner = claim.staff_id === caller.id;
 
   // ---- UPDATE (approver edits any submission; owner edits their own while submitted) ----
