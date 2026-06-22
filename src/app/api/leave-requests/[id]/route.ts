@@ -4,6 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { xeroRequest } from "@/lib/xero";
 import { getGoogleTokensByStaffId, saveGoogleTokensByStaffId } from "@/lib/google-tokens";
+import { sendEmail } from "@/lib/google-mail";
+import { getEmailTemplate, renderTemplate } from "@/lib/email-templates";
 
 export const dynamic = "force-dynamic";
 
@@ -77,6 +79,42 @@ export async function PATCH(
       is_read: false,
     });
 
+    // Best-effort: email the requester using the (editable) decline template.
+    // Never blocks the decline if email isn't connected or sending fails.
+    try {
+      const { data: requester } = await supabaseAdmin
+        .from("staff")
+        .select("email, full_name, first_name")
+        .eq("id", leaveReq.staff_id)
+        .single();
+
+      if (requester?.email) {
+        const fmt = (d: string) =>
+          new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+        const period =
+          leaveReq.start_date === leaveReq.end_date
+            ? fmt(leaveReq.start_date)
+            : `${fmt(leaveReq.start_date)} to ${fmt(leaveReq.end_date)}`;
+        const vars: Record<string, string> = {
+          name: requester.first_name || requester.full_name || "there",
+          leave_type: leaveReq.leave_type_name ?? "Leave",
+          period,
+          reason: note?.trim() || "No reason was provided.",
+          app_url: process.env.NEXTAUTH_URL ?? "",
+        };
+        const tpl = await getEmailTemplate("decline");
+        await sendEmail({
+          to: requester.email,
+          subject: renderTemplate(tpl.subject, vars),
+          html: renderTemplate(tpl.html, vars),
+          fromName: tpl.fromName,
+          replyTo: tpl.replyTo || undefined,
+        });
+      }
+    } catch (err) {
+      console.error("[leave-decline] email send failed (non-fatal):", err);
+    }
+
     return NextResponse.json({ status: "REJECTED" });
   }
 
@@ -146,6 +184,42 @@ export async function PATCH(
       link: "/dashboard/leave",
       is_read: false,
     });
+
+    // Best-effort: email the requester that their leave was approved (uses the
+    // editable approval template). Never blocks the approval.
+    try {
+      const { data: requester } = await supabaseAdmin
+        .from("staff")
+        .select("email, full_name, first_name")
+        .eq("id", leaveReq.staff_id)
+        .single();
+
+      if (requester?.email) {
+        const fmt = (d: string) =>
+          new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+        const period =
+          leaveReq.start_date === leaveReq.end_date
+            ? fmt(leaveReq.start_date)
+            : `${fmt(leaveReq.start_date)} to ${fmt(leaveReq.end_date)}`;
+        const vars: Record<string, string> = {
+          name: requester.first_name || requester.full_name || "there",
+          leave_type: leaveReq.leave_type_name ?? "Leave",
+          period,
+          reason: note?.trim() || "",
+          app_url: process.env.NEXTAUTH_URL ?? "",
+        };
+        const tpl = await getEmailTemplate("approve");
+        await sendEmail({
+          to: requester.email,
+          subject: renderTemplate(tpl.subject, vars),
+          html: renderTemplate(tpl.html, vars),
+          fromName: tpl.fromName,
+          replyTo: tpl.replyTo || undefined,
+        });
+      }
+    } catch (err) {
+      console.error("[leave-approve] email send failed (non-fatal):", err);
+    }
 
     // Auto-create an all-day calendar event using the staff member's own Google account.
     // All-day events are excluded from TOIL hour calculations (TOIL only sums timed events).

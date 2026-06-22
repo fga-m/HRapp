@@ -145,6 +145,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState("");
   const [reviewError, setReviewError] = useState("");
+  // The request currently being declined (drives the "reason for declining" modal).
+  const [decliningReq, setDecliningReq] = useState<PendingRequest | null>(null);
 
   // New / edit request form
   const [showModal, setShowModal] = useState(false);
@@ -298,6 +300,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       const d = await res.json();
       if (!res.ok) throw new Error(d.error ?? "Failed to review");
       setReviewNote("");
+      setDecliningReq(null); // close the decline modal if it was open
       await fetchPending();
       await fetchAll(true);
     } catch (err: any) {
@@ -532,7 +535,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                                     {reviewingId === req.id ? "…" : "Approve"}
                                   </button>
                                   <button
-                                    onClick={() => handleReview(req.id, "REJECT")}
+                                    onClick={() => { setReviewNote(""); setReviewError(""); setDecliningReq(req); }}
                                     disabled={reviewingId === req.id}
                                     className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
                                   >
@@ -574,7 +577,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                               className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50">
                               <CheckCircle className="w-3 h-3" /> Approve
                             </button>
-                            <button onClick={() => handleReview(req.id, "REJECT")} disabled={reviewingId === req.id}
+                            <button onClick={() => { setReviewNote(""); setReviewError(""); setDecliningReq(req); }} disabled={reviewingId === req.id}
                               className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 disabled:opacity-50">
                               <XCircle className="w-3 h-3" /> Reject
                             </button>
@@ -1113,6 +1116,64 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ── Decline reason modal ── */}
+      {decliningReq && (
+        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
+          <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl w-full md:max-w-md">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECE3DF]">
+              <h2 className="text-lg font-bold text-[#223149]">Decline leave request</h2>
+              <button
+                onClick={() => { setDecliningReq(null); setReviewError(""); }}
+                className="p-2 rounded-xl hover:bg-[#F8F6F4] transition-colors"
+              >
+                <X className="w-5 h-5 text-[#50676E]" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-[#50676E]">
+                {decliningReq.staff?.full_name ?? "The staff member"} will be notified of the reason.
+                <span className="block mt-1 text-[#223149] font-medium">
+                  {decliningReq.leave_type_name} · {formatLeavePeriod(decliningReq.start_date, decliningReq.end_date)}
+                </span>
+              </p>
+              <div>
+                <label htmlFor="decline-reason" className="block text-sm font-semibold text-[#223149] mb-1.5">
+                  Reason for declining <span className="font-normal text-[#50676E]">(optional)</span>
+                </label>
+                <textarea id="decline-reason"
+                  rows={3}
+                  autoFocus
+                  value={reviewNote}
+                  onChange={(e) => setReviewNote(e.target.value)}
+                  placeholder="Add a note so they understand why…"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors resize-none"
+                />
+              </div>
+              {reviewError && (
+                <div className="flex items-start gap-2 text-sm text-red-500">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  {reviewError}
+                </div>
+              )}
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => handleReview(decliningReq.id, "REJECT")}
+                  disabled={reviewingId === decliningReq.id}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {reviewingId === decliningReq.id ? "Declining…" : "Decline request"}
+                </button>
+                <button
+                  onClick={() => { setDecliningReq(null); setReviewError(""); }}
+                  className="px-4 py-2.5 border border-[#ECE3DF] text-[#50676E] rounded-xl text-sm font-semibold hover:bg-[#F8F6F4] transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

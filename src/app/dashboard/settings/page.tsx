@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2, Link2, Link2Off, RefreshCw } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
+import LeaveEmailTemplateEditor from "@/components/settings/LeaveEmailTemplateEditor";
 
 interface XeroStatus {
   connected: boolean;
@@ -33,10 +34,17 @@ export default function SettingsPage() {
   const [disconnectingGws, setDisconnectingGws] = useState(false);
   const [gwsDisconnectError, setGwsDisconnectError] = useState("");
 
+  const [gmail, setGmail] = useState<GwsStatus | null>(null);
+  const [loadingGmail, setLoadingGmail] = useState(true);
+  const [disconnectingGmail, setDisconnectingGmail] = useState(false);
+  const [gmailDisconnectError, setGmailDisconnectError] = useState("");
+
   const xeroConnected = searchParams.get("xero_connected") === "1";
   const xeroError = searchParams.get("xero_error");
   const gwsConnected = searchParams.get("gws_connected") === "1";
   const gwsError = searchParams.get("gws_error");
+  const gmailConnected = searchParams.get("gmail_connected") === "1";
+  const gmailError = searchParams.get("gmail_error");
 
   const fetchStatus = () => {
     setLoadingStatus(true);
@@ -60,9 +68,21 @@ export default function SettingsPage() {
       .catch(() => setLoadingGws(false));
   };
 
+  const fetchGmailStatus = () => {
+    setLoadingGmail(true);
+    fetch("/api/google-mail/status")
+      .then((r) => r.json())
+      .then((d) => {
+        setGmail(d);
+        setLoadingGmail(false);
+      })
+      .catch(() => setLoadingGmail(false));
+  };
+
   useEffect(() => {
     fetchStatus();
     fetchGwsStatus();
+    fetchGmailStatus();
   }, []);
 
   const handleDisconnect = async () => {
@@ -94,6 +114,22 @@ export default function SettingsPage() {
       setGwsDisconnectError("Couldn't disconnect Google Workspace. Please try again.");
     } finally {
       setDisconnectingGws(false);
+    }
+  };
+
+  const handleDisconnectGmail = async () => {
+    if (!(await confirm({ title: "Disconnect Email (Gmail)?", message: "The app will stop sending emails (e.g. leave-decline notices) until you reconnect.", confirmLabel: "Disconnect", danger: true }))) return;
+    setDisconnectingGmail(true);
+    setGmailDisconnectError("");
+    try {
+      const res = await fetch("/api/google-mail/disconnect", { method: "POST" });
+      if (!res.ok) throw new Error("Request failed");
+      setGmail({ connected: false });
+      window.history.replaceState({}, "", "/dashboard/settings");
+    } catch {
+      setGmailDisconnectError("Couldn't disconnect Email. Please try again.");
+    } finally {
+      setDisconnectingGmail(false);
     }
   };
 
@@ -151,6 +187,27 @@ export default function SettingsPage() {
               : gwsError === "access_denied"
               ? "Access was denied. Please try again and accept the permissions."
               : gwsError}
+          </p>
+        </div>
+      )}
+      {gmailConnected && (
+        <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700">
+          <CheckCircle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm font-medium">Email (Gmail) connected successfully!</p>
+        </div>
+      )}
+      {gmailError && (
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+          <XCircle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm font-medium">
+            Email connection failed:{" "}
+            {gmailError === "no_refresh_token"
+              ? "Google didn't return offline access. Try again and accept all permissions."
+              : gmailError === "invalid_state"
+              ? "Security check failed. Please try again."
+              : gmailError === "access_denied"
+              ? "Access was denied. Please try again and accept the permissions."
+              : gmailError}
           </p>
         </div>
       )}
@@ -315,6 +372,99 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Email (Gmail) Card */}
+      <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#EA4335]/10 flex items-center justify-center flex-shrink-0">
+              <span className="text-[#EA4335] font-bold text-sm">@</span>
+            </div>
+            <div>
+              <h2 className="font-semibold text-[#223149]">Email (Gmail)</h2>
+              <p className="text-sm text-[#50676E]">Send app emails (e.g. leave-decline notices) from an @fgam.org.au address</p>
+              <p className="text-xs text-amber-600 mt-1">
+                Connect the sending account (e.g. <code>hrapp@fgam.org.au</code>). The Google Cloud project needs the
+                Gmail API enabled and the <code>gmail.send</code> scope on its consent screen.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={fetchGmailStatus}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-[#F8F6F4] transition-colors text-[#50676E] hover:text-[#223149] flex-shrink-0 text-sm font-medium"
+            title="Refresh email connection status"
+            aria-label="Refresh email connection status"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+        </div>
+
+        <div className="mt-5">
+          {loadingGmail ? (
+            <div className="flex items-center gap-2 text-sm text-[#50676E]">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Checking connection…
+            </div>
+          ) : gmail?.connected ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                <span className="text-sm font-medium text-green-700">Connected</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 bg-[#F8F6F4] rounded-xl">
+                  <p className="text-xs text-[#50676E] font-medium">Sending from</p>
+                  <p className="text-sm text-[#223149] font-semibold mt-0.5 truncate">{gmail.email ?? "—"}</p>
+                </div>
+                <div className="p-3 bg-[#F8F6F4] rounded-xl">
+                  <p className="text-xs text-[#50676E] font-medium">Connected</p>
+                  <p className="text-sm text-[#223149] font-semibold mt-0.5">{formatDate(gmail.connectedAt)}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleDisconnectGmail}
+                disabled={disconnectingGmail}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+              >
+                {disconnectingGmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2Off className="w-4 h-4" />}
+                Disconnect Email
+              </button>
+              {gmailDisconnectError && <p className="text-sm text-red-500">{gmailDisconnectError}</p>}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#9BADB7] flex-shrink-0" />
+                <span className="text-sm text-[#50676E]">Not connected</span>
+              </div>
+              <p className="text-sm text-[#50676E]">
+                Connect the account the app sends from. Emails show a no-reply display name; stray replies route to the
+                Reply-To address you set in the template below.
+              </p>
+              <a
+                href="/api/google-mail/connect"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#EA4335] text-white rounded-xl text-sm font-semibold hover:bg-[#d33b2c] transition-colors"
+              >
+                <Link2 className="w-4 h-4" />
+                Connect Email
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Leave email templates */}
+      <LeaveEmailTemplateEditor
+        kind="approve"
+        title="Leave approval email"
+        description="The email sent to a staff member when their leave is approved."
+      />
+      <LeaveEmailTemplateEditor
+        kind="decline"
+        title="Leave decline email"
+        description="The email sent to a staff member when their leave is declined."
+      />
     </div>
   );
 }
