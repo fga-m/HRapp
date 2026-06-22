@@ -163,9 +163,25 @@ export async function PATCH(
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ Message: "Unknown error" }));
+      // Read Xero's error robustly — Payroll AU nests validation messages and
+      // sometimes returns non-JSON, so fall back through several shapes rather
+      // than reporting a useless "Unknown error".
+      const raw = await res.text().catch(() => "");
+      let msg = "";
+      try {
+        const j = JSON.parse(raw);
+        const vErrs: string[] = [];
+        const collect = (arr: unknown) => {
+          if (Array.isArray(arr)) for (const v of arr) if (v?.Message) vErrs.push(v.Message);
+        };
+        collect(j?.ValidationErrors);
+        if (Array.isArray(j?.Elements)) for (const el of j.Elements) collect(el?.ValidationErrors);
+        msg = vErrs.join("; ") || j?.Message || j?.Detail || j?.message || "";
+      } catch {
+        /* response body wasn't JSON */
+      }
       return NextResponse.json(
-        { error: err.Message ?? err.Detail ?? "Xero rejected the leave application" },
+        { error: msg || raw.slice(0, 300) || `Xero rejected the leave application (HTTP ${res.status})` },
         { status: res.status }
       );
     }
