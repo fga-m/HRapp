@@ -61,7 +61,7 @@ export default async function Home() {
                 fill="#EA4335"
               />
             </svg>
-            Sign in with Google
+            Sign in with your FGAM Account
           </button>
         </form>
 

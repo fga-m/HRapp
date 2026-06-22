@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -104,6 +105,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Let the staff member know their schedule was changed (skip self-edits).
+  if (caller.id !== id) {
+    await createNotification({
+      staff_id: id,
+      title: "Work schedule updated",
+      message: "Your regular work schedule has been updated. Tap to review it.",
+      type: "schedule",
+      link: "/dashboard/schedule",
+      is_read: false,
+    });
+  }
 
   return NextResponse.json(data);
 }

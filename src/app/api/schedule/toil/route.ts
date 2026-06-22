@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createNotification } from "@/lib/notifications";
 
 async function callerCanDo(callerRole: string, feature: string): Promise<boolean> {
   if (callerRole === "admin") return true;
@@ -84,6 +85,20 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Notify the staff member their TOIL balance changed (skip self-adjustments).
+  if (staff_id !== caller.id) {
+    const h = Number(hours);
+    const verb = h >= 0 ? "added to" : "deducted from";
+    await createNotification({
+      staff_id,
+      title: "TOIL balance updated",
+      message: `${Math.abs(h)} hour${Math.abs(h) === 1 ? "" : "s"} of TOIL ${verb} your balance${reason ? `: "${String(reason).trim()}"` : "."}`,
+      type: "schedule",
+      link: "/dashboard/schedule",
+      is_read: false,
+    });
+  }
 
   return NextResponse.json(newTx, { status: 201 });
 }

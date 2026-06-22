@@ -156,6 +156,10 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   const [submitError, setSubmitError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  // Manual "remind approver" on a pending request
+  const [remindingId, setRemindingId] = useState<string | null>(null);
+  const [remindError, setRemindError] = useState("");
+
   const fetchAll = useCallback(async (silent = false) => {
     if (!silent) { setBalanceLoading(true); setAppLoading(true); }
     else setRefreshing(true);
@@ -300,6 +304,23 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
       setReviewError(err.message);
     } finally {
       setReviewingId(null);
+    }
+  };
+
+  const handleRemind = async (reqId: string) => {
+    setRemindingId(reqId);
+    setRemindError("");
+    try {
+      const res = await fetch(`/api/leave-requests/${reqId}/remind`, { method: "POST" });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error ?? "Couldn't send the reminder.");
+      setSuccessMsg("Reminder sent — your approver has been notified.");
+      setTimeout(() => setSuccessMsg(""), 6000);
+    } catch (err: any) {
+      setRemindError(err.message);
+      setTimeout(() => setRemindError(""), 6000);
+    } finally {
+      setRemindingId(null);
     }
   };
 
@@ -737,6 +758,9 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   {myPending.length}
                 </span>
               </div>
+              {remindError && (
+                <div className="px-6 py-2 text-xs text-red-500 border-b border-[#ECE3DF]">{remindError}</div>
+              )}
               <div className="divide-y divide-[#ECE3DF]">
                 {myPending.map(app => {
                   const typeName = app.leaveName || balances.find(b => b.leaveTypeId === app.leaveTypeId)?.name || "Leave";
@@ -752,6 +776,14 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <StatusBadge status="PENDING" />
+                        <button
+                          onClick={() => handleRemind(app.id)}
+                          disabled={remindingId === app.id}
+                          className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline disabled:opacity-50"
+                          title="Send your approver a reminder that this is still waiting"
+                        >
+                          {remindingId === app.id ? "Reminding…" : "Remind"}
+                        </button>
                         <button
                           onClick={() => openEditModal(app)}
                           className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline"

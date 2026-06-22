@@ -1,0 +1,24 @@
+-- ============================================================
+-- Migration: fix notifications.type check constraint (UP)
+-- Run this in the Supabase SQL Editor.
+--
+-- The original schema restricted notifications.type to
+--   ('policy','meeting','checklist','general')
+-- but the app has since started emitting more category values:
+--   'leave'        — leave approved / declined
+--   'contract'     — contract assigned / signed / new version / sent
+--   'performance'  — performance-note acknowledgements
+--
+-- Inserts with those types violated notifications_type_check and were silently
+-- rejected (createNotification's error wasn't surfaced), so none of those
+-- notifications were ever delivered.
+--
+-- `type` is an app-controlled category string used only for the icon/routing on
+-- the notifications page — it doesn't need DB-level enum enforcement. Dropping
+-- the check makes the column resilient to new categories and prevents this class
+-- of silent data loss from recurring.
+--
+-- This migration is IDEMPOTENT: safe to re-run.
+-- ============================================================
+
+alter table notifications drop constraint if exists notifications_type_check;

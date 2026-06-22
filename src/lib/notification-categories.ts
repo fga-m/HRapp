@@ -74,6 +74,12 @@ export const NOTIFICATION_CATEGORIES: NotificationCategory[] = [
     locked: false,
   },
   {
+    key: "schedule",
+    label: "Schedule & TOIL",
+    description: "Changes to your work schedule and TOIL (time-off-in-lieu) balance.",
+    locked: false,
+  },
+  {
     key: "general",
     label: "General",
     description: "Anything that doesn't fall under the topics above.",
@@ -100,6 +106,8 @@ const TYPE_TO_CATEGORY: Record<string, string> = {
   note: "performance",
   document: "document",
   position_description: "position_description",
+  schedule: "schedule",
+  toil: "schedule",
   general: "general",
 };
 
