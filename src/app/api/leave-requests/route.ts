@@ -28,9 +28,9 @@ export async function GET(req: NextRequest) {
     .from("leave_requests")
     .select(`
       id, staff_id, leave_type_id, leave_type_name,
-      start_date, end_date, description, status,
+      start_date, end_date, description, hours, status,
       approver_id, approver_note, submitted_at, reviewed_at,
-      staff:staff_id ( full_name, email )
+      staff:staff_id ( full_name, email, contracted_hours )
     `);
 
   if (statusParam !== "ALL") {

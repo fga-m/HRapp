@@ -58,6 +58,7 @@ export async function GET(
     endDate: r.end_date,
     status: r.status as string,
     units: 0,
+    hours: r.hours ?? null,
     source: "local" as const,
   }));
 
@@ -81,6 +82,10 @@ export async function GET(
               leavePeriods.every((p: any) => p.LeavePeriodStatus === "PROCESSED");
             const effectiveStatus =
               appStatus === "SCHEDULED" && allProcessed ? "COMPLETED" : appStatus;
+            const units = leavePeriods.reduce(
+              (sum: number, p: any) => sum + (p.NumberOfUnits ?? 0),
+              0
+            );
             return {
               id: a.LeaveApplicationID,
               leaveTypeId: a.LeaveTypeID,
@@ -89,10 +94,8 @@ export async function GET(
               startDate: fromXeroDate(a.StartDate),
               endDate: fromXeroDate(a.EndDate),
               status: effectiveStatus,
-              units: leavePeriods.reduce(
-                (sum: number, p: any) => sum + (p.NumberOfUnits ?? 0),
-                0
-              ),
+              units,
+              hours: units,
               source: "xero" as const,
             };
           });

@@ -43,7 +43,7 @@ interface TeamLeaveRequest {
   submitted_at: string;
   reviewed_at: string | null;
   approver_note: string | null;
-  staff: { full_name: string; email: string } | null;
+  staff: { full_name: string; email: string; contracted_hours?: number | null } | null;
 }
 
 // Keep PendingRequest as alias for backwards compat with the approval panel
@@ -84,6 +84,17 @@ function formatLeavePeriod(start: string, end: string) {
 
 function businessDayCount(start: string, end: string) {
   return differenceInBusinessDays(addDays(parseISO(end), 1), parseISO(start));
+}
+
+// Hours to display for a team request: the saved value when present, otherwise
+// an estimate from the dates (business days × the member's daily contracted
+// hours). Estimates are prefixed with "~". Returns "—" only if it can't compute.
+function teamRequestHours(req: TeamLeaveRequest): string {
+  if (req.hours != null) return `${req.hours}h`;
+  const days = businessDayCount(req.start_date, req.end_date);
+  const daily = (req.staff?.contracted_hours ?? 37.5) / 5;
+  const est = Math.round(days * daily * 10) / 10;
+  return est > 0 ? `~${est}h` : "—";
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -539,8 +550,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                             </td>
                             <td className="px-4 py-4 text-[#50676E]">{req.leave_type_name}</td>
                             <td className="px-4 py-4 text-[#50676E] tabular-nums">{formatLeavePeriod(req.start_date, req.end_date)}</td>
-                            <td className="px-4 py-4 text-[#50676E] tabular-nums">
-                              {req.hours != null ? `${req.hours}h` : "—"}
+                            <td className="px-4 py-4 text-[#50676E] tabular-nums" title={req.hours == null ? "Estimated from the dates — edit to set exact hours" : undefined}>
+                              {teamRequestHours(req)}
                             </td>
                             <td className="px-4 py-4 text-[#50676E] tabular-nums text-xs">
                               {format(parseISO(req.submitted_at), "d MMM yyyy")}
@@ -609,7 +620,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <p className="font-semibold text-[#223149] text-sm">{req.staff?.full_name}</p>
-                            <p className="text-xs text-[#50676E]">{req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{req.hours != null ? ` · ${req.hours}h` : ""}</p>
+                            <p className="text-xs text-[#50676E]">{req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{` · ${teamRequestHours(req)}`}</p>
                           </div>
                           <StatusBadge status={req.status} />
                         </div>
@@ -770,7 +781,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-[#223149] truncate">{req.staff?.full_name ?? "Unknown"}</p>
                             <p className="text-xs text-[#50676E] mt-0.5">
-                              {req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{req.hours != null ? ` · ${req.hours}h` : ""}
+                              {req.leave_type_name} · {formatLeavePeriod(req.start_date, req.end_date)}{` · ${teamRequestHours(req)}`}
                             </p>
                           </div>
                           <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColour(req.status)}`}>
