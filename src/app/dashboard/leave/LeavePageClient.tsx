@@ -272,8 +272,10 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
     const effectiveHours = form.hours !== "" ? Number(form.hours) : autoHours || null;
     try {
       const isEdit = editingReqId !== null;
+      // Both create and edit act on the target staff member (the request owner),
+      // not necessarily the logged-in user — reviewers manage others' requests.
       const url = isEdit
-        ? `/api/staff/${staffId}/leave-requests/${editingReqId}`
+        ? `/api/staff/${targetStaffId}/leave-requests/${editingReqId}`
         : `/api/staff/${targetStaffId}/leave-requests`;
       const res = await fetch(url, {
         method: isEdit ? "PATCH" : "POST",
@@ -375,6 +377,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
 
   const openEditModal = (app: LeaveApplication) => {
     setEditingReqId(app.id);
+    setTargetStaffId(staffId); // editing own request (My Leave tab)
     setForm({
       leaveTypeId: app.leaveTypeId,
       startDate: app.startDate,
@@ -550,7 +553,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                                   )}
                                   <button
                                     onClick={() => {
-                                      setEditingReqId(req.id);
+                                      setEditingReqId(req.id); setTargetStaffId(req.staff_id);
                                       setForm({
                                         leaveTypeId: req.leave_type_id,
                                         startDate: req.start_date,
@@ -613,7 +616,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                         {req.status === "PENDING" && (
                           <div className="flex gap-2 flex-wrap">
                             <button onClick={() => {
-                              setEditingReqId(req.id);
+                              setEditingReqId(req.id); setTargetStaffId(req.staff_id);
                               setForm({ leaveTypeId: req.leave_type_id, startDate: req.start_date, endDate: req.end_date, hours: req.hours != null ? String(req.hours) : "", description: req.description || "" });
                               setApproverId(""); setSubmitError(""); setShowModal(true);
                             }} className="text-xs font-semibold text-[#50676E] hover:text-[#223149] transition-colors underline">

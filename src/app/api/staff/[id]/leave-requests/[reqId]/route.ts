@@ -24,8 +24,10 @@ export async function PATCH(
 
   if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Only the staff member themselves (or an admin) can edit their own request
-  const canEdit = caller.id === id || caller.role === "admin";
+  // The staff member themselves, admins, and leave approvers can edit a pending
+  // request (reviewers can fix up a team member's request before approving).
+  const canEdit =
+    caller.id === id || caller.role === "admin" || caller.role === "leave_approver";
   if (!canEdit) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Only PENDING requests can be edited
