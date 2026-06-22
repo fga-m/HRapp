@@ -18,6 +18,8 @@ const DEPARTMENTS = [
   "Media & Communications", "Outreach", "Finance", "Operations",
 ];
 
+const AU_STATES = ["VIC", "NSW", "QLD", "SA", "WA", "TAS", "ACT", "NT"];
+
 interface Props {
   id: string;
   isAdmin: boolean;
@@ -30,7 +32,8 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
   const [form, setForm] = useState({
-    full_name: "",
+    first_name: "",
+    last_name: "",
     role: "staff",
     position: "",
     department: "",
@@ -39,6 +42,15 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
     is_active: true,
     xero_employee_id: "",
     birthdate: "",
+    recovery_email: "",
+    mobile_phone: "",
+    start_date: "",
+    address_line1: "",
+    address_line2: "",
+    suburb: "",
+    state: "",
+    postcode: "",
+    country: "AU",
   });
 
   // Xero employee lookup
@@ -56,7 +68,8 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
       .then((r) => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then((d) => {
         setForm({
-          full_name: d.full_name || "",
+          first_name: d.first_name || "",
+          last_name: d.last_name || "",
           role: d.role || "staff",
           position: d.position || "",
           department: d.department || "",
@@ -65,6 +78,15 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
           is_active: d.is_active ?? true,
           xero_employee_id: d.xero_employee_id || "",
           birthdate: d.birthdate || "",
+          recovery_email: d.recovery_email || "",
+          mobile_phone: d.mobile_phone || "",
+          start_date: d.start_date || "",
+          address_line1: d.address_line1 || "",
+          address_line2: d.address_line2 || "",
+          suburb: d.suburb || "",
+          state: d.state || "",
+          postcode: d.postcode || "",
+          country: d.country || "AU",
         });
         setLoading(false);
       })
@@ -172,13 +194,23 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="sm:col-span-2">
-            <label htmlFor="full-name" className="block text-sm font-semibold text-[#223149] mb-1.5">Full Name</label>
-            <input id="full-name"
+          <div>
+            <label htmlFor="first-name" className="block text-sm font-semibold text-[#223149] mb-1.5">First Name</label>
+            <input id="first-name"
               type="text"
               required
-              value={form.full_name}
-              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              value={form.first_name}
+              onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+            />
+          </div>
+          <div>
+            <label htmlFor="last-name" className="block text-sm font-semibold text-[#223149] mb-1.5">Last Name</label>
+            <input id="last-name"
+              type="text"
+              required
+              value={form.last_name}
+              onChange={(e) => setForm({ ...form, last_name: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
@@ -457,6 +489,65 @@ export default function EditStaffForm({ id, isAdmin }: Props) {
               <p className="text-xs text-[#50676E] mt-1.5">Links this staff member to their Xero Payroll record for leave requests.</p>
             </div>
           )}
+
+          {/* Contact & address — canonical source for Google / Xero / contracts */}
+          <div className="sm:col-span-2 pt-2 border-t border-[#ECE3DF]">
+            <p className="text-sm font-semibold text-[#223149] mt-3">Contact &amp; address</p>
+            <p className="text-xs text-[#50676E] mb-1">Used when provisioning Google &amp; Xero and when generating contracts.</p>
+          </div>
+          <div>
+            <label htmlFor="recovery-email" className="block text-sm font-semibold text-[#223149] mb-1.5">Personal / recovery email</label>
+            <input id="recovery-email" type="email" value={form.recovery_email}
+              onChange={(e) => setForm({ ...form, recovery_email: e.target.value })}
+              placeholder="personal@example.com"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+          </div>
+          <div>
+            <label htmlFor="mobile" className="block text-sm font-semibold text-[#223149] mb-1.5">Mobile</label>
+            <input id="mobile" type="text" value={form.mobile_phone}
+              onChange={(e) => setForm({ ...form, mobile_phone: e.target.value })}
+              placeholder="+61 4xx xxx xxx"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+          </div>
+          <div>
+            <label htmlFor="start-date" className="block text-sm font-semibold text-[#223149] mb-1.5">Start date</label>
+            <input id="start-date" type="date" value={form.start_date}
+              onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+          </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="addr1" className="block text-sm font-semibold text-[#223149] mb-1.5">Address line 1</label>
+            <input id="addr1" type="text" value={form.address_line1}
+              onChange={(e) => setForm({ ...form, address_line1: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+          </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="addr2" className="block text-sm font-semibold text-[#223149] mb-1.5">Address line 2</label>
+            <input id="addr2" type="text" value={form.address_line2}
+              onChange={(e) => setForm({ ...form, address_line2: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+          </div>
+          <div>
+            <label htmlFor="suburb" className="block text-sm font-semibold text-[#223149] mb-1.5">Suburb / city</label>
+            <input id="suburb" type="text" value={form.suburb}
+              onChange={(e) => setForm({ ...form, suburb: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+          </div>
+          <div>
+            <label htmlFor="state" className="block text-sm font-semibold text-[#223149] mb-1.5">State</label>
+            <select id="state" value={form.state}
+              onChange={(e) => setForm({ ...form, state: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] bg-white focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors">
+              <option value="">Select…</option>
+              {AU_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="postcode" className="block text-sm font-semibold text-[#223149] mb-1.5">Postcode</label>
+            <input id="postcode" type="text" value={form.postcode}
+              onChange={(e) => setForm({ ...form, postcode: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors" />
+          </div>
 
           {/* Active status */}
           <div className="sm:col-span-2 flex items-center justify-between p-4 bg-[#F8F6F4] rounded-xl">

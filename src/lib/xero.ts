@@ -411,3 +411,163 @@ export async function attachReceipt(
   );
   if (!res.ok) throw new Error(await xeroErrorMessage(res, "Failed to attach receipt to Xero bill"));
 }
+
+// ---------------------------------------------------------------------------
+// Payroll (AU) employee helpers
+// ---------------------------------------------------------------------------
+
+const PAYROLL_AU = "/payroll.xro/1.0";
+
+/** Pull a useful message out of a failed Payroll API response. The Payroll AU
+ *  API nests validation errors differently from the accounting API. */
+async function payrollErrorMessage(res: Response, fallback: string): Promise<string> {
+  const body = await res.json().catch(() => null as any);
+  if (body) {
+    const messages: string[] = [];
+    // Employee-level validation errors
+    const emp = body.Employees?.[0];
+    if (Array.isArray(emp?.ValidationErrors)) {
+      for (const v of emp.ValidationErrors) if (v?.Message) messages.push(v.Message);
+    }
+    // Top-level validation errors
+    if (Array.isArray(body.ValidationErrors)) {
+      for (const v of body.ValidationErrors) if (v?.Message) messages.push(v.Message);
+    }
+    if (messages.length) return messages.join("; ");
+    if (body.Message) return body.Message;
+    if (body.Detail) return body.Detail;
+    if (body.ProblemDetails?.Detail) return body.ProblemDetails.Detail;
+  }
+  const text = await res.text().catch(() => "");
+  return text || `${fallback} (${res.status})`;
+}
+
+/** Xero Payroll AU wants ISO-ish datetimes; send midnight for date-only values. */
+function payrollDate(yyyyMmDd: string): string {
+  return `${yyyyMmDd}T00:00:00`;
+}
+
+export type PayrollEmployee = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: string;
+};
+
+/** List all payroll employees (simplified). */
+export async function listPayrollEmployees(): Promise<PayrollEmployee[]> {
+  const res = await xeroRequest(`${PAYROLL_AU}/Employees`);
+  if (!res.ok) throw new Error(await payrollErrorMessage(res, "Failed to load Xero employees"));
+  const data = await res.json();
+  return (data.Employees ?? []).map((e: any) => ({
+    id: String(e.EmployeeID),
+    firstName: String(e.FirstName ?? ""),
+    lastName: String(e.LastName ?? ""),
+    email: String(e.Email ?? ""),
+    status: String(e.Status ?? ""),
+  }));
+}
+
+/**
+ * Find an existing payroll employee by email (case-insensitive), else by exact
+ * first+last name. Used for idempotency so provisioning never creates a second
+ * employee. Returns the EmployeeID or null. The AU Payroll Employees endpoint
+ * doesn't support a reliable email filter, so we scan the (small) list.
+ */
+export async function findPayrollEmployee(args: {
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}): Promise<string | null> {
+  const all = await listPayrollEmployees();
+  const email = args.email?.trim().toLowerCase();
+  if (email) {
+    const byEmail = all.find((e) => e.email.trim().toLowerCase() === email);
+    if (byEmail) return byEmail.id;
+  }
+  const fn = args.firstName?.trim().toLowerCase();
+  const ln = args.lastName?.trim().toLowerCase();
+  if (fn && ln) {
+    const byName = all.find(
+      (e) => e.firstName.trim().toLowerCase() === fn && e.lastName.trim().toLowerCase() === ln
+    );
+    if (byName) return byName.id;
+  }
+  return null;
+}
+
+export type CreatePayrollEmployeeArgs = {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string; // yyyy-mm-dd (required by Xero AU)
+  email?: string | null;
+  mobile?: string | null;
+  phone?: string | null;
+  startDate?: string | null; // yyyy-mm-dd
+  title?: string | null; // JobTitle
+  homeAddress: {
+    addressLine1: string;
+    addressLine2?: string | null;
+    city: string; // suburb
+    region: string; // AU state, e.g. VIC
+    postalCode: string;
+    country?: string | null; // defaults to AUSTRALIA
+  };
+};
+
+/** Create a Xero Payroll (AU) employee. Returns the new EmployeeID. */
+export async function createPayrollEmployee(
+  args: CreatePayrollEmployeeArgs
+): Promise<string> {
+  const countryRaw = (args.homeAddress.country ?? "AU").trim().toUpperCase();
+  const country = countryRaw === "AU" || countryRaw === "AUS" ? "AUSTRALIA" : countryRaw;
+
+  const employee: Record<string, unknown> = {
+    FirstName: args.firstName,
+    LastName: args.lastName,
+    DateOfBirth: payrollDate(args.dateOfBirth),
+    ...(args.email ? { Email: args.email } : {}),
+    ...(args.mobile ? { Mobile: args.mobile } : {}),
+    ...(args.phone ? { Phone: args.phone } : {}),
+    ...(args.startDate ? { StartDate: payrollDate(args.startDate) } : {}),
+    ...(args.title ? { Title: args.title } : {}),
+    HomeAddress: {
+      AddressLine1: args.homeAddress.addressLine1,
+      ...(args.homeAddress.addressLine2 ? { AddressLine2: args.homeAddress.addressLine2 } : {}),
+      City: args.homeAddress.city,
+      Region: args.homeAddress.region,
+      PostalCode: args.homeAddress.postalCode,
+      Country: country,
+    },
+  };
+
+  const res = await xeroRequest(`${PAYROLL_AU}/Employees`, {
+    method: "POST",
+    body: JSON.stringify({ Employees: [employee] }),
+  });
+  if (!res.ok) throw new Error(await payrollErrorMessage(res, "Failed to create Xero employee"));
+
+  const data = await res.json();
+  const id = data.Employees?.[0]?.EmployeeID;
+  if (!id) throw new Error(await payrollErrorMessage(res, "Xero did not return a created employee"));
+  return String(id);
+}
+
+/**
+ * Idempotent: returns an existing payroll employee's id if one already matches
+ * (by email or name), otherwise creates a new one. The boolean `created` tells
+ * the caller whether a new record was made.
+ */
+export async function findOrCreatePayrollEmployee(
+  args: CreatePayrollEmployeeArgs
+): Promise<{ employeeId: string; created: boolean }> {
+  const existing = await findPayrollEmployee({
+    email: args.email,
+    firstName: args.firstName,
+    lastName: args.lastName,
+  });
+  if (existing) return { employeeId: existing, created: false };
+  const employeeId = await createPayrollEmployee(args);
+  return { employeeId, created: true };
+}

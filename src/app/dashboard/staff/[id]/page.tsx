@@ -11,6 +11,7 @@ import StaffQuickSearch from "@/components/staff/StaffQuickSearch";
 import StaffContractUpload from "@/components/staff/StaffContractUpload";
 import StaffDocumentsCard from "@/components/staff/StaffDocumentsCard";
 import ExpenseClaimsCard from "@/components/staff/ExpenseClaimsCard";
+import ProvisioningPanel from "@/components/staff/ProvisioningPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -331,6 +332,9 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
           </p>
         </div>
       </div>
+
+      {/* Account Provisioning — admin only */}
+      {caller?.role === "admin" && <ProvisioningPanel staffId={member.id} />}
 
       {/* Contracts Card */}
       {canSeeContracts && (

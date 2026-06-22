@@ -33,9 +33,18 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { full_name, email, role, position, department, google_calendar_id, contracted_hours, birthdate } = body;
+  const {
+    full_name, email, role, position, department, google_calendar_id, contracted_hours, birthdate,
+    // Canonical provisioning fields (source of truth for Google / Xero / contracts)
+    first_name, last_name, recovery_email, mobile_phone, start_date,
+    address_line1, address_line2, suburb, state, postcode, country,
+  } = body;
 
-  if (!full_name || !email) {
+  // Derive a full_name from first/last if not supplied directly.
+  const derivedFullName =
+    full_name || [first_name, last_name].filter(Boolean).join(" ").trim() || "";
+
+  if (!derivedFullName || !email) {
     return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
   }
 
@@ -44,7 +53,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { data, error } = await supabaseAdmin.from("staff").insert({
-    full_name,
+    full_name: derivedFullName,
     email,
     role: role || "staff",
     position: position || null,
@@ -52,6 +61,17 @@ export async function POST(req: NextRequest) {
     google_calendar_id: google_calendar_id || email,
     ...(contracted_hours !== undefined && contracted_hours !== "" && { contracted_hours: Number(contracted_hours) }),
     ...(birthdate ? { birthdate } : {}),
+    ...(first_name ? { first_name } : {}),
+    ...(last_name ? { last_name } : {}),
+    ...(recovery_email ? { recovery_email } : {}),
+    ...(mobile_phone ? { mobile_phone } : {}),
+    ...(start_date ? { start_date } : {}),
+    ...(address_line1 ? { address_line1 } : {}),
+    ...(address_line2 ? { address_line2 } : {}),
+    ...(suburb ? { suburb } : {}),
+    ...(state ? { state } : {}),
+    ...(postcode ? { postcode } : {}),
+    ...(country ? { country } : {}),
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
