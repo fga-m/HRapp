@@ -26,6 +26,20 @@ async function getStaffMember(id: string) {
   return data;
 }
 
+async function getRoleMeta(): Promise<Record<string, { label: string; is_admin: boolean }>> {
+  const { data } = await supabaseAdmin.from("roles").select("key, label, is_admin");
+  return Object.fromEntries(
+    (data ?? []).map((r: { key: string; label: string; is_admin: boolean }) => [r.key, { label: r.label, is_admin: r.is_admin }])
+  );
+}
+
+const ROLE_BADGE_CLS: Record<string, string> = {
+  admin: "bg-[#223149] text-white",
+  manager: "bg-[#5F7C84] text-white",
+  finance: "bg-[#2E7D52] text-white",
+  leave_approver: "bg-[#7C5C8A] text-white",
+};
+
 export default async function StaffProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const member = await getStaffMember(id);
@@ -51,6 +65,10 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
     .single();
 
   const callerRoles = caller ? resolveRoles(caller) : [];
+
+  // Role badges for this staff member (exclude the baseline "staff" role).
+  const roleMeta = await getRoleMeta();
+  const memberRoles = resolveRoles(member).filter((r) => r !== "staff");
 
   // Check manager's manage_staff permission (used for schedule editing, performance notes, etc.)
   let isManager = callerRoles.includes("admin");
@@ -217,14 +235,21 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
               )}
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl font-bold text-[#223149]">{member.full_name}</h2>
-                {member.role === "admin" && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#223149] text-white">
-                    <Shield className="w-3 h-3" />
-                    Admin
-                  </span>
-                )}
+                {memberRoles.map((r) => {
+                  const meta = roleMeta[r];
+                  const isAdmin = meta?.is_admin ?? r === "admin";
+                  return (
+                    <span
+                      key={r}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGE_CLS[r] ?? "bg-[#50676E] text-white"}`}
+                    >
+                      {isAdmin && <Shield className="w-3 h-3" />}
+                      {meta?.label ?? r}
+                    </span>
+                  );
+                })}
                 {!member.is_active && (
                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
                     Inactive

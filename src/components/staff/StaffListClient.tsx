@@ -11,13 +11,17 @@ interface StaffMember {
   position: string | null;
   department: string | null;
   role: string;
+  roles?: string[] | null;
   avatar_url: string | null;
   is_active: boolean;
 }
 
+type RoleMeta = Record<string, { label: string; is_admin: boolean }>;
+
 interface Props {
   activeStaff: StaffMember[];
   inactiveStaff: StaffMember[];
+  roleMeta?: RoleMeta;
 }
 
 function Avatar({ member }: { member: StaffMember }) {
@@ -30,7 +34,40 @@ function Avatar({ member }: { member: StaffMember }) {
   );
 }
 
-export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
+// Colour per role key; custom/unknown roles get a neutral slate.
+const ROLE_BADGE_CLS: Record<string, string> = {
+  admin: "bg-[#223149] text-white",
+  manager: "bg-[#5F7C84] text-white",
+  finance: "bg-[#2E7D52] text-white",
+  leave_approver: "bg-[#7C5C8A] text-white",
+};
+
+function RoleBadges({ member, roleMeta }: { member: StaffMember; roleMeta: RoleMeta }) {
+  const roles = member.roles && member.roles.length > 0 ? member.roles : member.role ? [member.role] : [];
+  // The baseline "staff" role applies to everyone, so don't badge it.
+  const shown = roles.filter((r) => r !== "staff");
+  if (shown.length === 0) return null;
+  return (
+    <>
+      {shown.map((r) => {
+        const meta = roleMeta[r];
+        const label = meta?.label ?? r;
+        const isAdmin = meta?.is_admin ?? r === "admin";
+        return (
+          <span
+            key={r}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${ROLE_BADGE_CLS[r] ?? "bg-[#50676E] text-white"}`}
+          >
+            {isAdmin && <Shield className="w-3 h-3" />}
+            {label}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+export default function StaffListClient({ activeStaff, inactiveStaff, roleMeta = {} }: Props) {
   const [query, setQuery] = useState("");
 
   const q = query.toLowerCase().trim();
@@ -98,16 +135,11 @@ export default function StaffListClient({ activeStaff, inactiveStaff }: Props) {
                   <Avatar member={member} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-[#223149] group-hover:text-[#50676E] transition-colors truncate">
                       {member.full_name}
                     </p>
-                    {member.role === "admin" && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#223149] text-white flex-shrink-0">
-                        <Shield className="w-3 h-3" />
-                        Admin
-                      </span>
-                    )}
+                    <RoleBadges member={member} roleMeta={roleMeta} />
                   </div>
                   <div className="flex items-center gap-4 mt-0.5">
                     {member.position && (

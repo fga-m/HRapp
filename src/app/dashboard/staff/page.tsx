@@ -15,8 +15,16 @@ async function getStaff() {
   return data;
 }
 
+async function getRoleMeta(): Promise<Record<string, { label: string; is_admin: boolean }>> {
+  const { data } = await supabaseAdmin.from("roles").select("key, label, is_admin");
+  return Object.fromEntries(
+    (data ?? []).map((r: { key: string; label: string; is_admin: boolean }) => [r.key, { label: r.label, is_admin: r.is_admin }])
+  );
+}
+
 export default async function StaffPage() {
   const staff = await getStaff();
+  const roleMeta = await getRoleMeta();
   const activeStaff = staff.filter((s: any) => s.is_active);
   const inactiveStaff = staff.filter((s: any) => !s.is_active);
 
@@ -55,7 +63,7 @@ export default async function StaffPage() {
         </div>
       </div>
 
-      <StaffListClient activeStaff={activeStaff} inactiveStaff={inactiveStaff} />
+      <StaffListClient activeStaff={activeStaff} inactiveStaff={inactiveStaff} roleMeta={roleMeta} />
     </div>
   );
 }
