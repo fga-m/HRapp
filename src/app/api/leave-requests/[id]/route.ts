@@ -15,6 +15,14 @@ function toXeroDate(dateStr: string): string {
   return `/Date(${ms}+0000)/`;
 }
 
+// Xero Payroll AU returns dates as /Date(ms+0000)/; the LeavePeriods update
+// expects PayPeriodEndDate as YYYY-MM-DD.
+function fromXeroToYMD(xeroDate: string): string {
+  const m = String(xeroDate).match(/\/Date\((\d+)/);
+  if (!m) return String(xeroDate).slice(0, 10);
+  return new Date(parseInt(m[1])).toISOString().split("T")[0];
+}
+
 // PATCH /api/leave-requests/[id] — approve or reject a pending request
 export async function PATCH(
   req: NextRequest,
@@ -187,6 +195,48 @@ export async function PATCH(
 
     const data = await res.json();
     const xeroId = data.LeaveApplications?.[0]?.LeaveApplicationID ?? null;
+
+    // Honor the hours entered in the app. By default Xero auto-calculates a full
+    // day from the employee's pay calendar, so a "1 hour" or half-day request
+    // would otherwise be recorded as a whole day. If the request specifies hours
+    // that differ from Xero's calculation, update the leave periods to total
+    // exactly that (scaled across periods). Best-effort — the leave is already
+    // created, so a failure here just leaves Xero's own figure in place.
+    if (xeroId && leaveReq.hours != null) {
+      try {
+        type XeroPeriod = { NumberOfUnits?: number | string; PayPeriodEndDate?: string };
+        let periods: XeroPeriod[] = data.LeaveApplications?.[0]?.LeavePeriods ?? [];
+        if (periods.length === 0) {
+          const g = await xeroRequest(`/payroll.xro/1.0/LeaveApplications/${xeroId}`);
+          if (g.ok) periods = (await g.json()).LeaveApplications?.[0]?.LeavePeriods ?? [];
+        }
+        const autoTotal = periods.reduce((s, p) => s + Number(p.NumberOfUnits ?? 0), 0);
+        const desired = Number(leaveReq.hours);
+        if (periods.length > 0 && autoTotal > 0 && Math.abs(autoTotal - desired) > 0.01) {
+          const factor = desired / autoTotal;
+          const newPeriods = periods.map((p) => ({
+            PayPeriodEndDate: fromXeroToYMD(p.PayPeriodEndDate ?? ""),
+            NumberOfUnits: Math.round(Number(p.NumberOfUnits ?? 0) * factor * 10000) / 10000,
+          }));
+          await xeroRequest(`/payroll.xro/1.0/LeaveApplications/${xeroId}`, {
+            method: "POST",
+            body: JSON.stringify([
+              {
+                LeaveApplicationID: xeroId,
+                EmployeeID: member.xero_employee_id,
+                LeaveTypeID: leaveReq.leave_type_id,
+                Title: (leaveReq.leave_type_name || "Leave").slice(0, 50),
+                StartDate: toXeroDate(leaveReq.start_date),
+                EndDate: toXeroDate(leaveReq.end_date),
+                LeavePeriods: newPeriods,
+              },
+            ]),
+          });
+        }
+      } catch (err) {
+        console.error("[leave-approve] hours override failed (non-fatal):", err);
+      }
+    }
 
     // Mark as approved in DB
     const { error: updateErr } = await supabaseAdmin

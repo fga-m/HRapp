@@ -7,6 +7,13 @@
 --
 -- Safe / idempotent — can be re-run.
 
+-- ── 0. Remove restrictive CHECK constraints on role_permissions ──
+-- The table had a CHECK that only allowed a fixed set of role names (and
+-- rejected 'finance' / custom roles). That constraint blocked the Finance
+-- toggle AND aborted this migration. Drop it so any role key is allowed.
+alter table role_permissions drop constraint if exists role_permissions_role_check;
+alter table role_permissions drop constraint if exists role_permissions_feature_check;
+
 -- ── 1. roles table ──────────────────────────────────────────
 create table if not exists roles (
   key         text primary key,

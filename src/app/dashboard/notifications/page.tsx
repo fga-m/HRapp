@@ -185,9 +185,14 @@ export default function NotificationsPage() {
       {tab === "templates" && canManageEmail ? (
         <div className="space-y-6">
           <p className="text-sm text-[#50676E]">
-            These emails are sent automatically when leave is approved or declined. Edit the wording, sender name and
+            These emails are sent automatically around leave requests. Edit the wording, sender name and
             reply-to address below. They send from the connected Gmail account (set up under Settings).
           </p>
+          <LeaveEmailTemplateEditor
+            kind="request"
+            title="New leave request email (to approvers)"
+            description="Sent to everyone who can approve leave when a new request is submitted."
+          />
           <LeaveEmailTemplateEditor
             kind="approve"
             title="Leave approval email"

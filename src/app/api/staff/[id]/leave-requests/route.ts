@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { xeroRequest } from "@/lib/xero";
 import { getAccessByEmail, can, getApproverStaffIds } from "@/lib/access";
+import { getEmailTemplate, renderTemplate } from "@/lib/email-templates";
+import { sendEmail } from "@/lib/google-mail";
 
 export const dynamic = "force-dynamic";
 
@@ -197,6 +199,44 @@ export async function POST(
         is_read: false,
       }))
     );
+
+    // Also email the approvers (after responding, so submitting stays fast).
+    // Best-effort — never blocks if Gmail isn't connected.
+    after(async () => {
+      try {
+        const { data: approverStaff } = await supabaseAdmin
+          .from("staff")
+          .select("email, first_name, full_name")
+          .in("id", approverIds);
+        const recipients = (approverStaff ?? []).filter((a) => a.email);
+        if (recipients.length === 0) return;
+
+        const fmt = (d: string) =>
+          new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+        const period = startDate === endDate ? fmt(startDate) : `${fmt(startDate)} to ${fmt(endDate)}`;
+        const tpl = await getEmailTemplate("request");
+
+        for (const a of recipients) {
+          const vars: Record<string, string> = {
+            name: a.first_name || a.full_name || "there",
+            requester: requester?.full_name ?? "A staff member",
+            leave_type: leaveTypeName ?? "Leave",
+            period,
+            hours: hours != null ? `${hours} hours` : "Auto-calculated in Xero",
+            app_url: process.env.NEXTAUTH_URL ?? "",
+          };
+          await sendEmail({
+            to: a.email,
+            subject: renderTemplate(tpl.subject, vars),
+            html: renderTemplate(tpl.html, vars),
+            fromName: tpl.fromName,
+            replyTo: tpl.replyTo || undefined,
+          });
+        }
+      } catch (err) {
+        console.error("[leave-request] approver email failed (non-fatal):", err);
+      }
+    });
   }
 
   return NextResponse.json({ id: data.id, status: "PENDING" }, { status: 201 });

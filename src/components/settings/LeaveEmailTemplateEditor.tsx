@@ -10,7 +10,12 @@ interface Template {
   replyTo: string;
 }
 
-function placeholdersFor(kind: "decline" | "approve"): string[] {
+type Kind = "decline" | "approve" | "request";
+
+function placeholdersFor(kind: Kind): string[] {
+  if (kind === "request") {
+    return ["{{name}}", "{{requester}}", "{{leave_type}}", "{{period}}", "{{hours}}", "{{app_url}}"];
+  }
   const list = ["{{name}}", "{{leave_type}}", "{{description}}", "{{period}}", "{{hours}}"];
   if (kind === "approve") list.push("{{balance}}");
   if (kind === "decline") list.push("{{reason}}");
@@ -19,9 +24,10 @@ function placeholdersFor(kind: "decline" | "approve"): string[] {
 }
 
 // Fill placeholders with realistic sample values for the live preview.
-function renderSample(text: string, kind: "decline" | "approve"): string {
+function renderSample(text: string, kind: Kind): string {
   const sample: Record<string, string> = {
-    name: "Megan",
+    name: kind === "request" ? "Nick" : "Megan",
+    requester: "Megan Griffith",
     leave_type: "Annual Leave",
     description: "Family holiday",
     period: "1 Jun 2026 to 5 Jun 2026",
@@ -37,7 +43,7 @@ function renderSample(text: string, kind: "decline" | "approve"): string {
 }
 
 interface Props {
-  kind: "decline" | "approve";
+  kind: Kind;
   title: string;
   description: string;
 }

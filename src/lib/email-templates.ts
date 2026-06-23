@@ -15,7 +15,7 @@ export type EmailTemplate = {
   replyTo: string;
 };
 
-export type TemplateKind = "decline" | "approve";
+export type TemplateKind = "decline" | "approve" | "request";
 
 // Placeholders available to the leave templates:
 //   {{name}}        - recipient's full name (or first name)
@@ -79,15 +79,40 @@ const DEFAULTS: Record<TemplateKind, EmailTemplate> = {
       { hours: true, balance: true }
     ),
   },
+  request: {
+    fromName: "FGA Melbourne HR (no-reply)",
+    replyTo: "",
+    subject: "Leave request awaiting your approval",
+    html: `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#223149;">
+  <div style="background:#223149;color:#ffffff;padding:20px 24px;border-radius:12px 12px 0 0;">
+    <h1 style="margin:0;font-size:18px;font-weight:700;">FGA Melbourne — HR Portal</h1>
+  </div>
+  <div style="border:1px solid #ECE3DF;border-top:none;border-radius:0 0 12px 12px;padding:24px;">
+    <p style="margin:0 0 14px;">Hi {{name}},</p>
+    <p style="margin:0 0 14px;"><strong>{{requester}}</strong> has submitted a leave request that needs your approval.</p>
+    <table style="width:100%;border-collapse:collapse;margin:0 0 16px;">
+      <tr><td style="padding:6px 0;color:#50676E;width:120px;">Staff member</td><td style="padding:6px 0;font-weight:600;">{{requester}}</td></tr>
+      <tr><td style="padding:6px 0;color:#50676E;">Leave type</td><td style="padding:6px 0;font-weight:600;">{{leave_type}}</td></tr>
+      <tr><td style="padding:6px 0;color:#50676E;">Dates</td><td style="padding:6px 0;font-weight:600;">{{period}}</td></tr>
+      <tr><td style="padding:6px 0;color:#50676E;">Hours</td><td style="padding:6px 0;font-weight:600;">{{hours}}</td></tr>
+    </table>
+    <a href="{{app_url}}/dashboard/leave" style="display:inline-block;background:#223149;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:10px;font-weight:600;font-size:14px;">Review in the HR Portal</a>
+    <p style="margin:20px 0 0;font-size:12px;color:#50676E;border-top:1px solid #ECE3DF;padding-top:14px;">
+      This is an automated message — <strong>please do not reply</strong> to this email. Open the HR Portal to approve or decline the request.
+    </p>
+  </div>
+</div>`,
+  },
 };
 
 const KEYS: Record<TemplateKind, string> = {
   decline: "leave_decline_email_template",
   approve: "leave_approve_email_template",
+  request: "leave_request_email_template",
 };
 
 export function isTemplateKind(v: unknown): v is TemplateKind {
-  return v === "decline" || v === "approve";
+  return v === "decline" || v === "approve" || v === "request";
 }
 
 export function defaultTemplate(kind: TemplateKind): EmailTemplate {
