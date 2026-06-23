@@ -133,6 +133,9 @@ function StatusBadge({ status }: { status: string }) {
 export default function LeavePageClient({ staffId, staffName, hasXeroLink, isReviewer, contractedHours }: Props) {
   const dailyHours = contractedHours / 5; // approximate hours per working day
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
+  // Full list of leave types configured in Xero (incl. circumstantial ones with
+  // no balance, e.g. compassionate / unpaid / parental). Drives the form dropdown.
+  const [leaveTypes, setLeaveTypes] = useState<{ leaveTypeId: string; name: string; units: string }[]>([]);
   const [applications, setApplications] = useState<LeaveApplication[]>([]);
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [appLoading, setAppLoading] = useState(true);
@@ -202,6 +205,16 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
     await Promise.all(fetches);
     setRefreshing(false);
   }, [staffId, hasXeroLink]);
+
+  // Load the org's full leave-type list once (so the form can offer types that
+  // don't carry a balance). Falls back to balance-derived types if Xero is down.
+  useEffect(() => {
+    if (!hasXeroLink) return;
+    fetch("/api/xero/leave-types")
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.leaveTypes)) setLeaveTypes(d.leaveTypes); })
+      .catch(() => {});
+  }, [hasXeroLink]);
 
   const fetchPending = useCallback(async () => {
     if (!isReviewer) return;
@@ -279,7 +292,13 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
     e.preventDefault();
     setSubmitting(true);
     setSubmitError("");
-    const selectedBalance = balances.find(b => b.leaveTypeId === form.leaveTypeId);
+    // Resolve the name from the full leave-type list first (covers types with no
+    // balance), then fall back to balances.
+    const typeName =
+      leaveTypes.find(t => t.leaveTypeId === form.leaveTypeId)?.name
+      ?? balances.find(b => b.leaveTypeId === form.leaveTypeId)?.name
+      ?? targetBalances.find(b => b.leaveTypeId === form.leaveTypeId)?.name
+      ?? "";
     const effectiveHours = form.hours !== "" ? Number(form.hours) : autoHours || null;
     try {
       const isEdit = editingReqId !== null;
@@ -293,7 +312,7 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           leaveTypeId: form.leaveTypeId,
-          leaveTypeName: selectedBalance?.name ?? "",
+          leaveTypeName: typeName,
           startDate: form.startDate,
           endDate: form.endDate,
           hours: effectiveHours,
@@ -365,6 +384,11 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
   const creatingForOther = isReviewer && targetStaffId !== staffId;
   const effectiveBalances = creatingForOther ? targetBalances : balances;
   const selectedBalance = effectiveBalances.find(b => b.leaveTypeId === form.leaveTypeId);
+  // Dropdown options: the full Xero leave-type list when available, otherwise
+  // fall back to the balance-derived types.
+  const typeOptions = leaveTypes.length > 0
+    ? leaveTypes
+    : effectiveBalances.map(b => ({ leaveTypeId: b.leaveTypeId, name: b.name, units: b.units }));
   const businessDays = form.startDate && form.endDate ? businessDayCount(form.startDate, form.endDate) : 0;
   // Auto-calculated hours (business days × daily contracted hours)
   const autoHours = businessDays > 0 ? Math.round(businessDays * dailyHours * 10) / 10 : 0;
@@ -1066,8 +1090,8 @@ export default function LeavePageClient({ staffId, staffName, hasXeroLink, isRev
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white"
                 >
                   <option value="">Select request…</option>
-                  {effectiveBalances.map(b => (
-                    <option key={b.leaveTypeId} value={b.leaveTypeId}>{b.name}</option>
+                  {typeOptions.map(t => (
+                    <option key={t.leaveTypeId} value={t.leaveTypeId}>{t.name}</option>
                   ))}
                 </select>
               </div>
