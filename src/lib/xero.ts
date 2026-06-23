@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase";
+import { EXPENSE_ACCOUNTS } from "@/lib/expense-accounts";
 
 const XERO_TOKEN_URL = "https://identity.xero.com/connect/token";
 const XERO_CONNECTIONS_URL = "https://api.xero.com/connections";
@@ -176,20 +177,27 @@ async function xeroErrorMessage(res: Response, fallback: string): Promise<string
 export async function listExpenseAccounts(): Promise<
   { code: string; name: string; taxType: string }[]
 > {
-  const where = encodeURIComponent(
-    'Status=="ACTIVE" AND (Class=="EXPENSE" OR Class=="OVERHEADS")'
-  );
+  // Fetch ALL active accounts (any class — the curated list includes a revenue
+  // account and mission "-Exp" codes), then narrow to the curated allow-list and
+  // present them in the list's order. Live name + GST type still come from Xero.
+  const where = encodeURIComponent('Status=="ACTIVE"');
   const res = await xeroRequest(`${ACCOUNTING}/Accounts?where=${where}`);
   if (!res.ok) throw new Error(await xeroErrorMessage(res, "Failed to load Xero accounts"));
   const data = await res.json();
-  return (data.Accounts ?? [])
-    // Exclude codes ending in "00" — those are ministry "header" accounts, not postable.
-    .filter((a: any) => a.Code && !String(a.Code).endsWith("00"))
-    .map((a: any) => ({
-      code: String(a.Code),
-      name: String(a.Name ?? ""),
+
+  const byCode = new Map<string, any>();
+  for (const a of data.Accounts ?? []) {
+    if (a.Code) byCode.set(String(a.Code), a);
+  }
+
+  return EXPENSE_ACCOUNTS.filter((entry) => byCode.has(entry.code)).map((entry) => {
+    const a = byCode.get(entry.code);
+    return {
+      code: entry.code,
+      name: String(a.Name ?? entry.name),
       taxType: String(a.TaxType ?? ""),
-    }));
+    };
+  });
 }
 
 /** List active tax rates that can be applied to expenses. */
