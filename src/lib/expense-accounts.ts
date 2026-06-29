@@ -4,7 +4,6 @@
 //
 // To change which accounts appear, edit this list (code + name) and redeploy.
 export const EXPENSE_ACCOUNTS: { code: string; name: string }[] = [
-  { code: "41105", name: "Tithes & Offering - Chinese" },
   { code: "62020", name: "Bldg-General Maintenance" },
   { code: "62030", name: "Bldg-Cleaning" },
   { code: "63011", name: "Worship-Training" },
