@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { isExpenseApprover } from "@/lib/expenses";
+import { getApproverStaffIds } from "@/lib/access";
 import { validateExpenseLines, normaliseLine, round2, type ExpenseLine } from "@/lib/expense-lines";
 
 export const dynamic = "force-dynamic";
@@ -208,25 +209,17 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Notify approvers: admins + any role with approve_expenses enabled.
-  const { data: enabledRoles } = await supabaseAdmin
-    .from("role_permissions")
-    .select("role")
-    .eq("feature", "approve_expenses")
-    .eq("enabled", true);
+  // Notify everyone who can approve expenses (admins + any role with
+  // approve_expenses enabled), respecting multiple roles per person, excluding
+  // the submitter themselves.
+  const approverIds = (await getApproverStaffIds("approve_expenses")).filter(
+    (aid) => aid !== caller.id
+  );
 
-  const roles = ["admin", ...((enabledRoles ?? []).map((r: any) => r.role))];
-  const { data: approvers } = await supabaseAdmin
-    .from("staff")
-    .select("id")
-    .in("role", roles)
-    .eq("is_active", true)
-    .neq("id", caller.id);
-
-  if (approvers && approvers.length > 0) {
+  if (approverIds.length > 0) {
     await createNotification(
-      approvers.map((a: any) => ({
-        staff_id: a.id,
+      approverIds.map((aid) => ({
+        staff_id: aid,
         title: "New expense claim to review",
         message: `${caller.full_name ?? "A staff member"} submitted an expense claim of $${amount.toFixed(2)} for review.`,
         type: "general",
