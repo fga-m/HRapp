@@ -289,6 +289,9 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
 
   const [summary, setSummary] = useState(initial?.summary ?? "");
   const [location, setLocation] = useState(initial?.location ?? "");
+  const [locSuggestions, setLocSuggestions] = useState<string[]>([]);
+  const [showLocSuggestions, setShowLocSuggestions] = useState(false);
+  const skipLocFetch = useRef(false); // don't re-query right after picking a suggestion
   const [startDateTime, setStartDateTime] = useState(
     initial?.startDateTime ?? format(new Date(), "yyyy-MM-dd'T'HH:mm")
   );
@@ -360,6 +363,24 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
     }
   };
 
+  // Debounced address autocomplete for the Location field (OpenStreetMap).
+  useEffect(() => {
+    if (skipLocFetch.current) { skipLocFetch.current = false; return; }
+    const q = location.trim();
+    if (q.length < 3) { setLocSuggestions([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/places/autocomplete?q=${encodeURIComponent(q)}`);
+        const d = await r.json();
+        setLocSuggestions(Array.isArray(d.results) ? d.results.map((x: { label: string }) => x.label) : []);
+        setShowLocSuggestions(true);
+      } catch {
+        /* ignore lookup failures — the field stays free-text */
+      }
+    }, 450);
+    return () => clearTimeout(t);
+  }, [location]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!summary.trim()) { setError("Title is required."); return; }
@@ -430,17 +451,41 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
             />
           </div>
 
-          <div>
+          <div className="relative">
             <label htmlFor="location" className="block text-sm font-semibold text-[#223149] mb-1.5">
               Location
             </label>
             <input id="location"
               type="text"
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Main Auditorium, 123 Church St, or a Zoom link"
+              onChange={(e) => { setLocation(e.target.value); setShowLocSuggestions(true); }}
+              onFocus={() => { if (locSuggestions.length) setShowLocSuggestions(true); }}
+              onBlur={() => setTimeout(() => setShowLocSuggestions(false), 150)}
+              autoComplete="off"
+              placeholder="Start typing an address, or free text (room, Zoom link…)"
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
+            {showLocSuggestions && locSuggestions.length > 0 && (
+              <ul className="absolute z-20 mt-1 w-full bg-white border border-[#ECE3DF] rounded-xl shadow-lg max-h-56 overflow-auto">
+                {locSuggestions.map((s, i) => (
+                  <li key={i}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // fire before the input's onBlur
+                        skipLocFetch.current = true;
+                        setLocation(s);
+                        setLocSuggestions([]);
+                        setShowLocSuggestions(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-[#223149] hover:bg-[#F8F6F4] transition-colors"
+                    >
+                      {s}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
