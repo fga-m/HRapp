@@ -3,8 +3,13 @@ import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-// Claude vision model used to read receipts. Cheap + capable; override via env.
+// Claude models used to read receipts.
+//  - PDFs usually contain real text, so the fast/cheap Haiku model reads them
+//    near-perfectly.
+//  - Photos (JPEG/PNG) are downscaled by the vision API and rely on visual OCR,
+//    so a stronger model reads dense/small receipt text much more reliably.
 const OCR_MODEL = process.env.ANTHROPIC_OCR_MODEL || "claude-haiku-4-5-20251001";
+const OCR_IMAGE_MODEL = process.env.ANTHROPIC_OCR_IMAGE_MODEL || "claude-sonnet-4-6";
 const ALLOWED = ["image/png", "image/jpeg", "application/pdf"];
 
 interface OcrLineItem {
@@ -28,7 +33,9 @@ Return ONLY a JSON object (no markdown, no commentary) with exactly these keys:
 - "vendor": string — the merchant / store name. null if not shown.
 - "gst": number — the total GST/tax amount shown on the receipt. null if not shown.
 - "items": array of the individual line items on the receipt, each {"description": string, "amount": number (the line total incl. tax), "gst": number or null}. Use [] if the receipt is not itemised.
-Use null for anything you cannot read confidently. Do not guess values that aren't on the receipt.`;
+Use null for anything you cannot read confidently. Do not guess values that aren't on the receipt.
+Dates are Australian format: day/month/year (e.g. "2/7/2026" means 2 July 2026 -> "2026-07-02").
+The image may be a phone photo of a printed receipt — read small text carefully and use the largest "total" figure as the grand total.`;
 
 function coerce(raw: unknown): OcrResult {
   const o = (raw ?? {}) as Record<string, unknown>;
@@ -79,10 +86,12 @@ export async function POST(req: NextRequest) {
   }
 
   const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
-  const source =
-    file.type === "application/pdf"
-      ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } }
-      : { type: "image", source: { type: "base64", media_type: file.type, data: base64 } };
+  const isPdf = file.type === "application/pdf";
+  const source = isPdf
+    ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } }
+    : { type: "image", source: { type: "base64", media_type: file.type, data: base64 } };
+  // Photos benefit from the stronger model; PDFs read fine on the cheaper one.
+  const model = isPdf ? OCR_MODEL : OCR_IMAGE_MODEL;
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -93,7 +102,7 @@ export async function POST(req: NextRequest) {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: OCR_MODEL,
+        model,
         max_tokens: 400,
         temperature: 0,
         messages: [{ role: "user", content: [source, { type: "text", text: PROMPT }] }],
