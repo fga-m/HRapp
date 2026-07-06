@@ -261,6 +261,7 @@ type EventFormProps = {
   initial?: {
     id?: string;
     summary: string;
+    location?: string;
     startDateTime: string;
     endDateTime: string;
     transparency: string;
@@ -287,6 +288,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
     : null;
 
   const [summary, setSummary] = useState(initial?.summary ?? "");
+  const [location, setLocation] = useState(initial?.location ?? "");
   const [startDateTime, setStartDateTime] = useState(
     initial?.startDateTime ?? format(new Date(), "yyyy-MM-dd'T'HH:mm")
   );
@@ -376,6 +378,7 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
       const body: Record<string, unknown> = {
         calendarId,
         summary: summary.trim(),
+        location: location.trim(), // "" clears it on edit; Google ignores empty on create
         start: { dateTime: new Date(startDateTime).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
         end: { dateTime: new Date(endDateTime).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
         transparency,
@@ -423,6 +426,19 @@ function EventFormModal({ initial, calendarId, staffList = [], onClose, onSucces
               onChange={(e) => setSummary(e.target.value)}
               autoFocus
               placeholder="e.g. Work, Team Meeting..."
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="location" className="block text-sm font-semibold text-[#223149] mb-1.5">
+              Location
+            </label>
+            <input id="location"
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Main Auditorium, 123 Church St, or a Zoom link"
               className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] placeholder:text-[#6E8189] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors"
             />
           </div>
@@ -2381,6 +2397,7 @@ export default function CalendarPage() {
           initial={{
             id: editingEvent.id,
             summary: editingEvent.summary ?? "",
+            location: editingEvent.location ?? "",
             startDateTime: format(new Date(editingEvent.start.dateTime), "yyyy-MM-dd'T'HH:mm"),
             endDateTime: format(new Date(editingEvent.end.dateTime!), "yyyy-MM-dd'T'HH:mm"),
             transparency: editingEvent.transparency ?? "opaque",
@@ -2400,6 +2417,7 @@ export default function CalendarPage() {
           staffList={staffList}
           initial={{
             summary: `${duplicatingEvent.summary ?? ""} (copy)`,
+            location: duplicatingEvent.location ?? "",
             startDateTime: format(new Date(duplicatingEvent.start.dateTime), "yyyy-MM-dd'T'HH:mm"),
             endDateTime: format(new Date(duplicatingEvent.end.dateTime!), "yyyy-MM-dd'T'HH:mm"),
             transparency: duplicatingEvent.transparency ?? "opaque",
