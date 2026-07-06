@@ -89,7 +89,7 @@ export default function NotificationsPage() {
   // Who can manage email templates: admins, or anyone who can approve leave
   // (the email templates are the leave approve/decline messages).
   const canManageEmail = isAdmin || can("approve_leave");
-  const [tab, setTab] = useState<"alerts" | "templates">("alerts");
+  const [tab, setTab] = useState<"alerts" | "preferences" | "templates">("alerts");
 
   const fetchNotifications = () => {
     setError(null);
@@ -165,22 +165,25 @@ export default function NotificationsPage() {
         )}
       </div>
 
-      {/* Tabs (Email templates only for admins / leave approvers) */}
-      {canManageEmail && (
-        <div className="flex border-b border-[#ECE3DF] gap-6">
-          {([["alerts", "My alerts"], ["templates", "Email templates"]] as const).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`pb-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-                tab === key ? "border-[#223149] text-[#223149]" : "border-transparent text-[#50676E] hover:text-[#223149]"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Tabs — actual alerts first; notification settings live under Preferences.
+          Email templates only for admins / leave approvers. */}
+      <div className="flex border-b border-[#ECE3DF] gap-6">
+        {([
+          ["alerts", "My alerts"],
+          ["preferences", "Preferences"],
+          ...(canManageEmail ? [["templates", "Email templates"]] : []),
+        ] as [string, string][]).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key as "alerts" | "preferences" | "templates")}
+            className={`pb-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+              tab === key ? "border-[#223149] text-[#223149]" : "border-transparent text-[#50676E] hover:text-[#223149]"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       {tab === "templates" && canManageEmail ? (
         <div className="space-y-6">
@@ -204,14 +207,15 @@ export default function NotificationsPage() {
             description="Sent to a staff member when their leave is declined (includes the reason)."
           />
         </div>
+      ) : tab === "preferences" ? (
+        <div className="space-y-6">
+          {/* Per-device push opt-in */}
+          <PushSetup />
+          {/* Per-user topic preferences ("choose what you're notified about") */}
+          <NotificationPreferences />
+        </div>
       ) : (
       <>
-      {/* Per-device push opt-in */}
-      <PushSetup />
-
-      {/* Per-user topic preferences */}
-      <NotificationPreferences />
-
       {/* Loading */}
       {loading && !error && (
         <div className="flex items-center justify-center h-40">
