@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { isExpenseApprover } from "@/lib/expenses";
 import { resolveRoles } from "@/lib/access";
 import { notFound } from "next/navigation";
@@ -57,14 +57,9 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
   const prevStaff = currentIndex > 0 ? staffList[currentIndex - 1] : null;
   const nextStaff = currentIndex < staffList.length - 1 ? staffList[currentIndex + 1] : null;
 
-  const session = await auth();
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role, roles")
-    .eq("email", session?.user?.email ?? "")
-    .single();
-
-  const callerRoles = caller ? resolveRoles(caller) : [];
+  // getCaller honours "Preview as staff", so admin-only cards hide in preview.
+  const caller = await getCaller();
+  const callerRoles = caller?.roles ?? [];
 
   // Role badges for this staff member (exclude the baseline "staff" role).
   const roleMeta = await getRoleMeta();
@@ -88,10 +83,10 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
   const canApproveExpenses = await isExpenseApprover(callerRoles);
 
   // Only admins and managers with manage_staff permission can edit the regular work schedule
-  const canEditSchedule = caller?.role === "admin" || isManager;
+  const canEditSchedule = caller?.isAdmin || isManager;
 
   // Fetch contract assignments for this staff member (shown to admin or own profile)
-  const canSeeContracts = caller?.role === "admin" || caller?.id === id || isManager;
+  const canSeeContracts = caller?.isAdmin || caller?.id === id || isManager;
 
   let contractRows: Array<{
     group_id: string | null;
@@ -328,7 +323,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
         </div>
 
         {/* Xero link — admin only */}
-        {caller?.role === "admin" && (
+        {caller?.isAdmin && (
           <div className="mt-4 pt-4 border-t border-[#ECE3DF]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -362,7 +357,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       </div>
 
       {/* Account Provisioning — admin only */}
-      {caller?.role === "admin" && <ProvisioningPanel staffId={member.id} />}
+      {caller?.isAdmin && <ProvisioningPanel staffId={member.id} />}
 
       {/* Contracts Card */}
       {canSeeContracts && (
@@ -372,7 +367,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
               <FileSignature className="w-4 h-4 text-[#50676E]" />
               <h3 className="text-sm font-semibold text-[#223149]">Contracts</h3>
             </div>
-            {caller?.role === "admin" && (
+            {caller?.isAdmin && (
               <StaffContractUpload staffId={id} staffName={member.full_name} />
             )}
           </div>
@@ -436,7 +431,7 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
       <StaffDocumentsCard
         staffId={id}
         staffName={member.full_name}
-        canUpload={caller?.role === "admin" || isManager}
+        canUpload={caller?.isAdmin || isManager}
         isOwnProfile={caller?.id === id}
         callerId={caller?.id}
       />

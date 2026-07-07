@@ -1,25 +1,24 @@
-import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { redirect } from "next/navigation";
-import { getAccessByEmail, can } from "@/lib/access";
+import { getCaller, callerCan } from "@/lib/caller";
 import LeavePageClient from "./LeavePageClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function LeavePage() {
-  const session = await auth();
-  if (!session) redirect("/");
+  // getCaller honours "Preview as staff", so the Team tab hides in preview.
+  const caller = await getCaller();
+  if (!caller) redirect("/");
 
   const { data: staff } = await supabaseAdmin
     .from("staff")
-    .select("id, full_name, role, xero_employee_id, contracted_hours")
-    .eq("email", session.user?.email ?? "")
+    .select("id, full_name, xero_employee_id, contracted_hours")
+    .eq("id", caller.id)
     .single();
 
   if (!staff) redirect("/");
 
-  const access = await getAccessByEmail(session.user?.email ?? "");
-  const isReviewer = access ? can(access, "approve_leave") : false;
+  const isReviewer = callerCan(caller, "approve_leave");
 
   return (
     <LeavePageClient

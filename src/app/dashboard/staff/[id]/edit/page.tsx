@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabase";
+import { getCaller } from "@/lib/caller";
 import { redirect } from "next/navigation";
 import EditStaffForm from "./EditStaffForm";
 
@@ -11,16 +10,9 @@ export default async function EditStaffPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await auth();
-  if (!session) redirect("/");
+  // getCaller honours "Preview as staff" and multi-role admin.
+  const caller = await getCaller();
+  if (!caller) redirect("/");
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  const isAdmin = caller?.role === "admin";
-
-  return <EditStaffForm id={id} isAdmin={isAdmin} />;
+  return <EditStaffForm id={id} isAdmin={caller.isAdmin} />;
 }

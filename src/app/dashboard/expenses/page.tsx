@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { isExpenseApprover } from "@/lib/expenses";
+import { getCaller } from "@/lib/caller";
 import { redirect } from "next/navigation";
 import { Receipt } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
@@ -9,19 +9,12 @@ import ExpensesPageClient from "@/components/expenses/ExpensesPageClient";
 export const dynamic = "force-dynamic";
 
 export default async function ExpensesPage() {
-  const session = await auth();
-  if (!session) redirect("/");
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role, roles")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  if (!caller) redirect("/dashboard");
+  // getCaller honours "Preview as staff", so the approver tabs hide in preview.
+  const caller = await getCaller();
+  if (!caller) redirect("/");
 
   // Approver = admin OR any of the caller's roles has approve_expenses enabled.
-  const isApprover = await isExpenseApprover(caller.roles ?? caller.role);
+  const isApprover = await isExpenseApprover(caller.roles);
 
   // Pending count for the review tab badge (claims needing attention).
   let pendingCount = 0;
