@@ -108,3 +108,12 @@ Same groups drive the mobile "More" sheet. Suggested mobile tabs: **Home · Cale
 **Phase 2 / discuss first**
 9. People (org chart + directory) and Documents (policies + contracts) consolidations.
 10. My Position folded into profile.
+
+---
+
+## Status (updated 7 Jul 2026)
+
+- Items 1–8: ✅ shipped.
+- Item 9a (People = directory + org chart): ✅ shipped — `/dashboard/people`.
+- **Item 9b (Documents & Sign-offs = Policies + Contracts merged): ⬅ NEXT.**
+- Item 10 (My Position → staff profile): pending, do after 9b.
