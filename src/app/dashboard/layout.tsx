@@ -121,7 +121,7 @@ export default async function DashboardLayout({
             <div className="flex items-center gap-2">
               <Eye className="w-4 h-4 flex-shrink-0" />
               <p className="text-sm font-semibold">
-                Previewing as a staff member — admin controls are hidden
+                Previewing staff navigation — page contents may still show your admin view
               </p>
             </div>
             <form action={disableStaffView}>

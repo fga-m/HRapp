@@ -156,7 +156,14 @@ export default function PerformancePage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-[#223149]">Performance Reviews</h1>
-          <PageSubtitle pageKey="performance" defaultDescription="Track performance conversations and review notes for staff." />
+          <PageSubtitle
+            pageKey="performance"
+            defaultDescription={
+              isManagerOrAdmin
+                ? "Track performance conversations and review notes for staff."
+                : "Your performance reviews and self-evaluations."
+            }
+          />
         </div>
         {isManagerOrAdmin && (
           <button
@@ -195,7 +202,11 @@ export default function PerformancePage() {
       {reviews.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 border border-[#ECE3DF] shadow-sm text-center">
           <TrendingUp className="w-10 h-10 text-[#50676E] mx-auto mb-3" />
-          <p className="text-[#50676E] font-medium">No performance reviews yet</p>
+          <p className="text-[#50676E] font-medium">
+            {isManagerOrAdmin
+              ? "No performance reviews yet"
+              : "No reviews here yet — they'll appear once your manager shares one with you."}
+          </p>
           {isManagerOrAdmin && (
             <button
               onClick={openModal}

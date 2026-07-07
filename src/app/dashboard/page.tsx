@@ -1,12 +1,14 @@
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { resolveRoles, rolesAreAdmin } from "@/lib/access";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
   Calendar, FileText, Shield, CheckSquare,
   BookOpen, Bell, Users, AlertCircle, ChevronRight,
-  Palmtree, FileArchive, FileSignature,
+  Palmtree, FileArchive, FileSignature, Receipt,
 } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
 
@@ -16,13 +18,18 @@ export default async function DashboardPage() {
 
   const { data: caller } = await supabaseAdmin
     .from("staff")
-    .select("id, full_name, role")
+    .select("id, full_name, role, roles")
     .eq("email", session.user?.email ?? "")
     .single();
 
   if (!caller) redirect("/");
 
-  const isAdmin = caller.role === "admin";
+  // Multi-role aware admin check that also honours "Preview as staff" mode,
+  // so the preview shows the real staff dashboard.
+  const reallyAdmin = rolesAreAdmin(resolveRoles({ role: caller.role, roles: caller.roles }));
+  const cookieStore = await cookies();
+  const viewAsStaff = reallyAdmin && cookieStore.get("fga_view_as_staff")?.value === "1";
+  const isAdmin = reallyAdmin && !viewAsStaff;
   const firstName = caller.full_name?.split(" ")[0] ?? "there";
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const today      = new Date().toISOString().split("T")[0];
@@ -190,18 +197,19 @@ export default async function DashboardPage() {
         { label: "Meeting Notes This Month",   value: meetingNotesRes.count ?? 0, icon: FileText,       href: "/dashboard/meetings",      warn: false },
       ];
 
+  // Quick-action labels match the nav so each destination has one name everywhere.
   const quickLinks = isAdmin
     ? [
-        { label: "View Calendars",    href: "/dashboard/calendar",     icon: Calendar,  description: "See when staff are working" },
+        { label: "Work Calendar",     href: "/dashboard/calendar",     icon: Calendar,  description: "See when staff are working" },
         { label: "Leave Requests",    href: "/dashboard/leave",        icon: Palmtree,  description: pendingLeaveCount > 0 ? `${pendingLeaveCount} pending approval${pendingLeaveCount === 1 ? "" : "s"}` : "Review leave requests" },
-        { label: "Manage Policies",   href: "/dashboard/policies",     icon: Shield,    description: "View sign-off status" },
-        { label: "Staff Hub",         href: "/dashboard/hub",          icon: BookOpen,  description: "Documents & links" },
+        { label: "Policies",          href: "/dashboard/policies",     icon: Shield,    description: "View sign-off status" },
+        { label: "Resources",         href: "/dashboard/hub",          icon: BookOpen,  description: "Documents & links" },
       ]
     : [
-        { label: "View Calendars",    href: "/dashboard/calendar",     icon: Calendar,  description: "See when staff are working" },
-        { label: "New Meeting Note",  href: "/dashboard/meetings/new", icon: FileText,  description: "Create a meeting note" },
-        { label: "Manage Policies",   href: "/dashboard/policies",     icon: Shield,    description: "View sign-off status" },
-        { label: "Staff Hub",         href: "/dashboard/hub",          icon: BookOpen,  description: "Documents & links" },
+        { label: "Work Calendar",     href: "/dashboard/calendar",     icon: Calendar,  description: "See when staff are working" },
+        { label: "Leave Requests",    href: "/dashboard/leave",        icon: Palmtree,  description: "Request or track leave" },
+        { label: "Expense Claims",    href: "/dashboard/expenses",     icon: Receipt,   description: "Submit a claim with a receipt" },
+        { label: "Resources",         href: "/dashboard/hub",          icon: BookOpen,  description: "Documents & links" },
       ];
 
   return (

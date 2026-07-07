@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Bell, LogOut, Eye } from "lucide-react";
 import { enableStaffView } from "@/app/actions/view-mode";
-import { visibleNavItems } from "@/lib/nav";
+import { visibleNavItems, NAV_SECTIONS } from "@/lib/nav";
 
 interface SidebarProps {
   isAdmin?: boolean;
@@ -71,28 +71,41 @@ export default function Sidebar({
         </div>
       )}
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        {visibleItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
+      {/* Nav — grouped into sections; empty sections (e.g. Admin for staff) are skipped */}
+      <nav className="flex-1 px-3 py-2">
+        {NAV_SECTIONS.map((section) => {
+          const items = visibleItems.filter((i) => i.section === section);
+          if (items.length === 0) return null;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-white/10 text-white"
-                  : "text-[#9BADB7] hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {item.label}
-            </Link>
+            <div key={section} className="mb-1">
+              <p className="px-3 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-[#9BADB7]/60">
+                {section}
+              </p>
+              <div className="space-y-1">
+                {items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive =
+                    item.href === "/dashboard"
+                      ? pathname === "/dashboard"
+                      : pathname.startsWith(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-white/10 text-white"
+                          : "text-[#9BADB7] hover:bg-white/5 hover:text-white"
+                      )}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </nav>
@@ -138,7 +151,7 @@ export default function Sidebar({
           <form action={enableStaffView}>
             <button
               type="submit"
-              title="See the portal exactly as a staff member sees it"
+              title="Preview the navigation as a staff member sees it"
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#9BADB7] hover:bg-white/5 hover:text-white transition-colors"
             >
               <Eye className="w-4 h-4" />

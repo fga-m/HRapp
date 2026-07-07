@@ -5,7 +5,7 @@ import { Bell, X, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { visibleMoreItems, getPageTitle } from "@/lib/nav";
+import { visibleMoreItems, getPageTitle, NAV_SECTIONS } from "@/lib/nav";
 
 interface TopBarProps {
   userName?: string;
@@ -174,25 +174,38 @@ export default function TopBar({
                 <X className="w-5 h-5 text-[#50676E]" />
               </button>
             </div>
-            <div className="px-4 py-3 space-y-1">
-              {visibleMoreItems({ isAdmin, permissions, hasActiveChecklists })
-                .map(item => {
-                  const Icon = item.icon;
-                  const isActive = pathname.startsWith(item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setShowMore(false)}
-                      className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-colors ${
-                        isActive ? "bg-[#223149]/5 text-[#223149]" : "text-[#50676E] hover:bg-[#F8F6F4]"
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  );
-                })}
+            <div className="px-4 py-3 max-h-[70vh] overflow-y-auto">
+              {NAV_SECTIONS.map((section) => {
+                const items = visibleMoreItems({ isAdmin, permissions, hasActiveChecklists })
+                  .filter((i) => i.section === section);
+                if (items.length === 0) return null;
+                return (
+                  <div key={section} className="mb-1">
+                    <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-[#9BADB7]">
+                      {section}
+                    </p>
+                    <div className="space-y-1">
+                      {items.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = pathname.startsWith(item.href);
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setShowMore(false)}
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${
+                              isActive ? "bg-[#223149]/5 text-[#223149]" : "text-[#50676E] hover:bg-[#F8F6F4]"
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span className="font-medium">{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>
