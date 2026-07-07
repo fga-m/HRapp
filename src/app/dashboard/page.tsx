@@ -11,6 +11,7 @@ import {
   Palmtree, FileArchive, FileSignature, Receipt,
 } from "lucide-react";
 import PageSubtitle from "@/components/PageSubtitle";
+import ActionItemsCard, { type ActionItem } from "@/components/dashboard/ActionItemsCard";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -126,6 +127,24 @@ export default async function DashboardPage() {
       : Promise.resolve({ count: 0 }),
   ]);
 
+  // ── Personal action items (everyone, admins included) ───────────────────
+  // Contracts assigned to me + my signatures, and my checklists with open
+  // required tasks. Policies-to-sign are derived from data already fetched.
+  const [myAssignmentsRes, myContractSigsRes, myChecklistsRes] = await Promise.all([
+    supabaseAdmin
+      .from("contract_assignments")
+      .select("contract_id, contracts ( id, title, is_active )")
+      .eq("staff_id", caller.id),
+    supabaseAdmin
+      .from("contract_signatures")
+      .select("contract_id")
+      .eq("staff_id", caller.id),
+    supabaseAdmin
+      .from("staff_checklists")
+      .select("id, title, due_date")
+      .eq("staff_id", caller.id),
+  ]);
+
   // ── Compute pending sign-offs ────────────────────────────────────────────
   const activeStaffIds = new Set((activeStaffIdsRes.data ?? []).map((s: any) => s.id));
   const mySignedIds = new Set((mySignoffsRes.data ?? []).map((s: any) => s.policy_id));
@@ -172,6 +191,88 @@ export default async function DashboardPage() {
         return n;
       })()
     : 0;
+
+  // ── Personal action items — the caller's own obligations ────────────────
+  type PolicyRow = { id: string; title: string; required_signatories: string[] | null };
+  type ContractRow = { id: string; title: string; is_active: boolean };
+  type ChecklistRow = { id: string; title: string; due_date: string | null };
+  type ReqItemRow = { id: string; staff_checklist_id: string };
+
+  const myPendingPolicies = (allPolicies as PolicyRow[]).filter((p) => {
+    const isRequired =
+      !p.required_signatories?.length || p.required_signatories.includes(caller.id);
+    return isRequired && !mySignedIds.has(p.id);
+  });
+
+  const mySigSet = new Set(
+    ((myContractSigsRes.data ?? []) as { contract_id: string }[]).map((s) => s.contract_id)
+  );
+  const myUnsignedContracts = (
+    (myAssignmentsRes.data ?? []) as unknown as { contract_id: string; contracts: ContractRow | null }[]
+  )
+    .map((a) => a.contracts)
+    .filter((c): c is ContractRow => !!c?.id && c.is_active && !mySigSet.has(c.id));
+
+  // My checklists with incomplete required tasks (same tables the layout uses
+  // to decide checklist nav visibility).
+  const myChecklists = (myChecklistsRes.data ?? []) as ChecklistRow[];
+  let openChecklists: (ChecklistRow & { remaining: number })[] = [];
+  if (myChecklists.length > 0) {
+    const checklistIds = myChecklists.map((c) => c.id);
+    const { data: reqItemsData } = await supabaseAdmin
+      .from("staff_checklist_items")
+      .select("id, staff_checklist_id")
+      .in("staff_checklist_id", checklistIds)
+      .eq("is_required", true);
+    const reqItems = (reqItemsData ?? []) as ReqItemRow[];
+
+    const done = new Set<string>();
+    if (reqItems.length > 0) {
+      const { data: completions } = await supabaseAdmin
+        .from("checklist_completions")
+        .select("staff_checklist_item_id")
+        .in("staff_checklist_item_id", reqItems.map((i) => i.id));
+      for (const c of (completions ?? []) as { staff_checklist_item_id: string }[]) {
+        done.add(c.staff_checklist_item_id);
+      }
+    }
+
+    const remainingByChecklist = new Map<string, number>();
+    for (const item of reqItems) {
+      if (!done.has(item.id)) {
+        remainingByChecklist.set(
+          item.staff_checklist_id,
+          (remainingByChecklist.get(item.staff_checklist_id) ?? 0) + 1
+        );
+      }
+    }
+    openChecklists = myChecklists
+      .map((c) => ({ ...c, remaining: remainingByChecklist.get(c.id) ?? 0 }))
+      .filter((c) => c.remaining > 0);
+  }
+
+  const actionItems: ActionItem[] = [
+    ...myPendingPolicies.map((p) => ({
+      kind: "policy" as const,
+      label: `Sign "${p.title}"`,
+      sublabel: "Policy awaiting your signature",
+      href: `/dashboard/policies/${p.id}`,
+    })),
+    ...myUnsignedContracts.map((c) => ({
+      kind: "contract" as const,
+      label: `Sign "${c.title}"`,
+      sublabel: "Contract awaiting your signature",
+      href: `/dashboard/contracts/${c.id}`,
+    })),
+    ...openChecklists.map((c) => ({
+      kind: "checklist" as const,
+      label: c.title,
+      sublabel: `${c.remaining} required task${c.remaining === 1 ? "" : "s"} to complete${
+        c.due_date ? ` · due ${format(new Date(c.due_date), "d MMM")}` : ""
+      }`,
+      href: "/dashboard/onboarding",
+    })),
+  ];
 
   // ── Admin-only aggregates ────────────────────────────────────────────────
   const pendingLeaveCount   = (pendingLeaveRes as any).count ?? 0;
@@ -222,6 +323,9 @@ export default async function DashboardPage() {
         <p className="text-[#50676E] mt-1">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
         <PageSubtitle pageKey="dashboard" defaultDescription="Your overview of today's alerts, pending actions, and quick links." />
       </div>
+
+      {/* ── Personal action items — your own signatures & tasks, one list ── */}
+      <ActionItemsCard items={actionItems} />
 
       {/* ── Alert banners ───────────────────────────────────────────────── */}
       <div className="space-y-3">
@@ -286,8 +390,9 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Policy sign-offs — amber */}
-        {alertPolicy && (
+        {/* Policy sign-offs (org-wide, admin) — personal ones live in the
+            Action Items card above */}
+        {isAdmin && alertPolicy && (
           <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
             <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
