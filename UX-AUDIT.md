@@ -115,5 +115,5 @@ Same groups drive the mobile "More" sheet. Suggested mobile tabs: **Home · Cale
 
 - Items 1–8: ✅ shipped.
 - Item 9a (People = directory + org chart): ✅ shipped — `/dashboard/people`.
-- **Item 9b (Documents & Sign-offs = Policies + Contracts merged): ⬅ NEXT.**
-- Item 10 (My Position → staff profile): pending, do after 9b.
+- Item 9b (Documents & Sign-offs = Policies + Contracts merged): ✅ shipped — `/dashboard/documents`.
+- **Item 10 (My Position → staff profile, admin manage view under Staff): ⬅ NEXT.**
