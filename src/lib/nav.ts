@@ -60,7 +60,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Notifications",       href: "/dashboard/notifications",         icon: Bell,            section: "My Work",       mobile: "more", desktopHidden: true },
 
   // ── My Employment — personal records staff visit occasionally
-  { label: "My Position",         href: "/dashboard/position-descriptions", icon: Briefcase,       section: "My Employment", mobile: "more" },
+  // (My Position lives on the staff profile now; admins manage PDs below.)
   { label: "Documents",           href: "/dashboard/documents",             icon: FileSignature,   section: "My Employment", mobile: "more", title: "Documents & Sign-offs" },
   { label: "Performance",         href: "/dashboard/performance",           icon: TrendingUp,      section: "My Employment", mobile: "more" },
   { label: "Checklists",          href: "/dashboard/onboarding",            icon: CheckSquare,     section: "My Employment", mobile: "more", hideWhenNoChecklists: true },
@@ -75,6 +75,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   // ── Admin — management tools (permission-gated)
   { label: "Staff",               href: "/dashboard/staff",                 icon: Users,           section: "Admin",         mobile: "more", permission: "manage_staff" },
+  { label: "Position Descriptions", href: "/dashboard/position-descriptions", icon: Briefcase,     section: "Admin",         mobile: "more", adminOnly: true, title: "Position Description" },
   { label: "Hours & TOIL",        href: "/dashboard/schedule",              icon: CalendarDays,    section: "Admin",         mobile: "more", permission: "view_team_schedule" },
   { label: "Roles & Permissions", href: "/dashboard/access",                icon: ShieldCheck,     section: "Admin",         mobile: "more", adminOnly: true },
   { label: "Settings",            href: "/dashboard/settings",              icon: Settings,        section: "Admin",         mobile: "more", adminOnly: true },

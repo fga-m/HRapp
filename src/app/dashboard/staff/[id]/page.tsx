@@ -4,7 +4,7 @@ import { isExpenseApprover } from "@/lib/expenses";
 import { resolveRoles } from "@/lib/access";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink, FileSignature, CheckCircle, Clock, Clock3, Cake } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Mail, Building2, User, Calendar, Shield, Edit, ExternalLink, FileSignature, CheckCircle, Clock, Clock3, Cake, Briefcase } from "lucide-react";
 import ScheduleCard from "@/components/staff/ScheduleCard";
 import PerformanceNotesCard from "@/components/staff/PerformanceNotesCard";
 import LeaveBalancesCard from "@/components/staff/LeaveBalancesCard";
@@ -148,6 +148,34 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
     }
 
     contractRows = [...groupMap.values(), ...standaloneList];
+  }
+
+  // Position description(s) for this member — their "My Position" now lives
+  // here on the profile (the old page is the admin manage view).
+  const canSeePosition = caller?.isAdmin || caller?.id === id || isManager;
+  let positionDescriptions: { id: string; title: string; version: number; acknowledged: boolean }[] = [];
+  if (canSeePosition) {
+    const { data: pdData } = await supabaseAdmin
+      .from("position_descriptions")
+      .select("id, title, version")
+      .eq("staff_id", id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+    const pdList = (pdData ?? []) as { id: string; title: string; version: number }[];
+    if (pdList.length > 0) {
+      const { data: acks } = await supabaseAdmin
+        .from("pd_acknowledgements")
+        .select("pd_id, pd_version")
+        .eq("staff_id", id)
+        .eq("ack_year", new Date().getFullYear())
+        .in("pd_id", pdList.map((p) => p.id));
+      const ackSet = new Set(
+        ((acks ?? []) as { pd_id: string; pd_version: number }[])
+          .filter((a) => pdList.find((p) => p.id === a.pd_id)?.version === a.pd_version)
+          .map((a) => a.pd_id)
+      );
+      positionDescriptions = pdList.map((p) => ({ ...p, acknowledged: ackSet.has(p.id) }));
+    }
   }
 
   const initials = member.full_name
@@ -358,6 +386,57 @@ export default async function StaffProfilePage({ params }: { params: Promise<{ i
 
       {/* Account Provisioning — admin only */}
       {caller?.isAdmin && <ProvisioningPanel staffId={member.id} />}
+
+      {/* Position Card */}
+      {canSeePosition && (
+        <div className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-[#50676E]" />
+              <h3 className="text-sm font-semibold text-[#223149]">Position</h3>
+            </div>
+            {caller?.isAdmin && (
+              <Link
+                href="/dashboard/position-descriptions"
+                className="text-xs text-[#50676E] hover:text-[#223149] hover:underline"
+              >
+                Manage all
+              </Link>
+            )}
+          </div>
+          {positionDescriptions.length === 0 ? (
+            <p className="text-sm text-[#50676E]">No position description yet</p>
+          ) : (
+            <div className="space-y-2">
+              {positionDescriptions.map((pd) => (
+                <Link
+                  key={pd.id}
+                  href={`/dashboard/position-descriptions/${pd.id}`}
+                  className="flex items-center justify-between gap-3 p-3 bg-[#F8F6F4] rounded-xl hover:bg-[#ECE3DF] transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-sm font-medium text-[#223149] truncate">{pd.title}</span>
+                    <span className="bg-[#ECE3DF] text-[#223149] text-xs px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
+                      v{pd.version}
+                    </span>
+                  </div>
+                  {pd.acknowledged ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 flex-shrink-0">
+                      <CheckCircle className="w-3 h-3" />
+                      Acknowledged
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 flex-shrink-0">
+                      <Clock className="w-3 h-3" />
+                      To acknowledge
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Contracts Card */}
       {canSeeContracts && (
