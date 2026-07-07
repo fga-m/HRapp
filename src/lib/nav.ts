@@ -68,7 +68,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   // ── Organisation — shared reference
   { label: "Resources",           href: "/dashboard/hub",                   icon: BookOpen,        section: "Organisation",  mobile: "more" },
-  { label: "Org Chart",           href: "/dashboard/org",                   icon: Network,         section: "Organisation",  mobile: "more" },
+  { label: "People",              href: "/dashboard/people",                icon: Network,         section: "Organisation",  mobile: "more" },
 
   // ── Admin — management tools (permission-gated)
   { label: "Staff",               href: "/dashboard/staff",                 icon: Users,           section: "Admin",         mobile: "more", permission: "manage_staff" },
