@@ -61,10 +61,13 @@ export const NAV_ITEMS: NavItem[] = [
 
   // ── My Employment — personal records staff visit occasionally
   { label: "My Position",         href: "/dashboard/position-descriptions", icon: Briefcase,       section: "My Employment", mobile: "more" },
-  { label: "Contracts",           href: "/dashboard/contracts",             icon: FileSignature,   section: "My Employment", mobile: "more" },
-  { label: "Policies",            href: "/dashboard/policies",              icon: Shield,          section: "My Employment", mobile: "more" },
+  { label: "Documents",           href: "/dashboard/documents",             icon: FileSignature,   section: "My Employment", mobile: "more", title: "Documents & Sign-offs" },
   { label: "Performance",         href: "/dashboard/performance",           icon: TrendingUp,      section: "My Employment", mobile: "more" },
   { label: "Checklists",          href: "/dashboard/onboarding",            icon: CheckSquare,     section: "My Employment", mobile: "more", hideWhenNoChecklists: true },
+  // Title-only entries so detail pages under the old routes keep a sensible
+  // mobile top-bar title (index routes redirect to /dashboard/documents).
+  { label: "Policies",            href: "/dashboard/policies",              icon: Shield,          section: "My Employment", desktopHidden: true },
+  { label: "Contracts",           href: "/dashboard/contracts",             icon: FileSignature,   section: "My Employment", desktopHidden: true },
 
   // ── Organisation — shared reference
   { label: "Resources",           href: "/dashboard/hub",                   icon: BookOpen,        section: "Organisation",  mobile: "more" },

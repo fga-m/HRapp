@@ -286,13 +286,13 @@ export default async function DashboardPage() {
     ? [
         { label: "Active Staff",               value: staffRes.count ?? 0,        icon: Users,          href: "/dashboard/staff",         warn: false },
         { label: "Pending Leave Approvals",    value: pendingLeaveCount,           icon: Palmtree,       href: "/dashboard/leave",         warn: pendingLeaveCount > 0 },
-        { label: "Policies Pending Sign-off",  value: pendingCount,               icon: Shield,         href: "/dashboard/policies",      warn: pendingCount > 0 },
+        { label: "Policies Pending Sign-off",  value: pendingCount,               icon: Shield,         href: "/dashboard/documents?tab=policies",      warn: pendingCount > 0 },
         { label: "Active Checklists",          value: checklistsRes.count ?? 0,   icon: CheckSquare,    href: "/dashboard/onboarding",    warn: false },
         { label: "Document Issues",            value: docIssueCount,              icon: FileArchive,    href: "/dashboard/staff",         warn: docIssueCount > 0 },
-        { label: "Unsigned Contracts",         value: unsignedCount,              icon: FileSignature,  href: "/dashboard/contracts",     warn: unsignedCount > 0 },
+        { label: "Unsigned Contracts",         value: unsignedCount,              icon: FileSignature,  href: "/dashboard/documents?tab=contracts",     warn: unsignedCount > 0 },
       ]
     : [
-        { label: "Unsigned Policies",          value: pendingCount,               icon: Shield,         href: "/dashboard/policies",      warn: pendingCount > 0 },
+        { label: "Unsigned Policies",          value: pendingCount,               icon: Shield,         href: "/dashboard/documents?tab=policies",      warn: pendingCount > 0 },
         { label: "My Checklists",              value: checklistsRes.count ?? 0,   icon: CheckSquare,    href: "/dashboard/onboarding",    warn: false },
         { label: "Unread Notifications",       value: unreadRes.count ?? 0,       icon: Bell,           href: "/dashboard/notifications", warn: (unreadRes.count ?? 0) > 0 },
         { label: "Meeting Notes This Month",   value: meetingNotesRes.count ?? 0, icon: FileText,       href: "/dashboard/meetings",      warn: false },
@@ -303,7 +303,7 @@ export default async function DashboardPage() {
     ? [
         { label: "Work Calendar",     href: "/dashboard/calendar",     icon: Calendar,  description: "See when staff are working" },
         { label: "Leave Requests",    href: "/dashboard/leave",        icon: Palmtree,  description: pendingLeaveCount > 0 ? `${pendingLeaveCount} pending approval${pendingLeaveCount === 1 ? "" : "s"}` : "Review leave requests" },
-        { label: "Policies",          href: "/dashboard/policies",     icon: Shield,    description: "View sign-off status" },
+        { label: "Policies",          href: "/dashboard/documents?tab=policies",     icon: Shield,    description: "View sign-off status" },
         { label: "Resources",         href: "/dashboard/hub",          icon: BookOpen,  description: "Documents & links" },
       ]
     : [
@@ -406,7 +406,7 @@ export default async function DashboardPage() {
                   ? `"${alertPolicy.title}" — ${alertPendingCount} ${alertPendingCount === 1 ? "person" : "people"} yet to sign`
                   : `"${alertPolicy.title}" is waiting for your signature`}
               </p>
-              <Link href="/dashboard/policies" className="inline-flex items-center gap-0.5 text-xs text-amber-600 underline mt-1">
+              <Link href="/dashboard/documents?tab=policies" className="inline-flex items-center gap-0.5 text-xs text-amber-600 underline mt-1">
                 View policies <ChevronRight className="w-3 h-3" />
               </Link>
             </div>
