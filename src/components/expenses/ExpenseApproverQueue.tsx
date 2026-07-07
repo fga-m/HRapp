@@ -19,7 +19,9 @@ interface Claim {
   tax_amount?: number | null;
   line_items?: ExpenseLine[] | null;
   spent_at?: string | null;
-  status: "submitted" | "push_failed";
+  // "approved" appears only for claims whose background Xero push stalled
+  // (approved a while ago, still no Xero invoice) so they can be retried.
+  status: "submitted" | "push_failed" | "approved";
   xero_error?: string | null;
   receipt_signed_url?: string | null;
   receipt_mime?: string | null;
@@ -74,6 +76,18 @@ export default function ExpenseApproverQueue() {
 
   useEffect(() => { load(); }, []);
 
+  // Warm the browser cache for the first few receipt images so "View receipt"
+  // opens instantly instead of downloading on click.
+  useEffect(() => {
+    claims
+      .filter((c) => c.receipt_signed_url && c.receipt_mime?.startsWith("image/"))
+      .slice(0, 6)
+      .forEach((c) => {
+        const img = new Image();
+        img.src = c.receipt_signed_url!;
+      });
+  }, [claims]);
+
   const decide = async (claim: Claim, action: "APPROVE" | "REJECT", noteText?: string) => {
     setBusyId(claim.id);
     setActionError("");
@@ -87,7 +101,9 @@ export default function ExpenseApproverQueue() {
       if (!res.ok) throw new Error(d.error ?? "Action failed");
       setRejectingId(null);
       setNote("");
-      load();
+      // Optimistically drop the card rather than re-fetching (and re-signing
+      // receipt URLs for) the entire queue after every decision.
+      setClaims((prev) => prev.filter((c) => c.id !== claim.id));
     } catch (err: any) {
       setActionError(`${claim.staff?.full_name ?? "Claim"}: ${err.message}`);
     } finally {
@@ -132,6 +148,7 @@ export default function ExpenseApproverQueue() {
 
       {claims.map((claim) => {
         const failed = claim.status === "push_failed";
+        const stalled = claim.status === "approved"; // push never completed
         const busy = busyId === claim.id;
         return (
           <div key={claim.id} className="bg-white rounded-2xl border border-[#ECE3DF] shadow-sm p-5 space-y-3">
@@ -224,6 +241,13 @@ export default function ExpenseApproverQueue() {
               </div>
             )}
 
+            {stalled && (
+              <div className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-lg">
+                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-700">Approved, but it never reached Xero — retry sending.</p>
+              </div>
+            )}
+
             {rejectingId === claim.id ? (
               <div className="space-y-2">
                 <textarea
@@ -246,13 +270,13 @@ export default function ExpenseApproverQueue() {
               <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <button disabled={busy} onClick={() => decide(claim, "APPROVE")}
                   className="flex-1 py-2 bg-[#223149] text-white rounded-lg text-xs font-semibold hover:bg-[#1a2638] transition-colors disabled:opacity-50">
-                  {busy ? "Working…" : failed ? "Retry sending to Xero" : "Approve & send to Xero"}
+                  {busy ? "Working…" : failed || stalled ? "Retry sending to Xero" : "Approve & send to Xero"}
                 </button>
                 <button disabled={busy} onClick={() => setEditing(claim)}
                   className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#ECE3DF] text-[#50676E] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50">
                   <Pencil className="w-3.5 h-3.5" /> Edit
                 </button>
-                {!failed && (
+                {!failed && !stalled && (
                   <button disabled={busy} onClick={() => { setRejectingId(claim.id); setNote(""); }}
                     className="px-3 py-2 border border-[#ECE3DF] text-[#50676E] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors disabled:opacity-50">
                     Decline

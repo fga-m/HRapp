@@ -55,9 +55,15 @@ export async function GET(req: NextRequest) {
 
   if (queue) {
     if (!approver) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    // The review queue surfaces claims needing attention: awaiting review, and
-    // any whose Xero push failed (so an approver can retry).
-    query = query.in("status", ["submitted", "push_failed"]);
+    // The review queue surfaces claims needing attention: awaiting review, any
+    // whose Xero push failed (so an approver can retry), and — as a safety net —
+    // claims approved a while ago whose background Xero push never completed
+    // (e.g. the server died mid-push). The 2-minute grace keeps claims that are
+    // mid-push right now from flickering back into the queue on a refresh.
+    const stuckBefore = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    query = query.or(
+      `status.in.(submitted,push_failed),and(status.eq.approved,xero_invoice_id.is.null,updated_at.lt."${stuckBefore}")`
+    );
   } else if (all) {
     // Full history of every claim (approver only), optionally date-ranged on submission date.
     if (!approver) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

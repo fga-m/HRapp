@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
@@ -17,6 +17,8 @@ import {
 } from "@/lib/expense-lines";
 
 export const dynamic = "force-dynamic";
+// The Xero push runs after the response (via `after()`); allow time for it.
+export const maxDuration = 60;
 
 function notifyOwner(staffId: string, title: string, message: string) {
   return createNotification({
@@ -164,10 +166,12 @@ export async function PATCH(
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    await notifyOwner(
-      claim.staff_id,
-      "Expense claim declined",
-      `Your expense claim of $${Number(claim.amount).toFixed(2)} was not approved${note?.trim() ? `: "${note.trim()}"` : "."}`
+    after(() =>
+      notifyOwner(
+        claim.staff_id,
+        "Expense claim declined",
+        `Your expense claim of $${Number(claim.amount).toFixed(2)} was not approved${note?.trim() ? `: "${note.trim()}"` : "."}`
+      )
     );
 
     return NextResponse.json(data);
@@ -183,8 +187,10 @@ export async function PATCH(
     );
   }
 
-  // Only submitted or previously-failed pushes may be (re)approved.
-  if (claim.status !== "submitted" && claim.status !== "push_failed") {
+  // Only submitted, previously-failed, or approved-but-not-yet-pushed claims
+  // may be (re)approved. "approved" is allowed so a claim whose background
+  // Xero push never completed (e.g. a crash mid-push) can be retried.
+  if (!["submitted", "push_failed", "approved"].includes(claim.status)) {
     return NextResponse.json(
       { error: "Only submitted claims can be approved" },
       { status: 400 }
@@ -233,20 +239,65 @@ export async function PATCH(
     });
   }
 
-  // Owner details for the Xero contact.
-  const { data: owner } = await supabaseAdmin
-    .from("staff")
-    .select("id, full_name, email, xero_contact_id")
-    .eq("id", claim.staff_id)
-    .single();
+  // (3) Push to Xero AFTER this response is sent, so approving feels instant.
+  //     Failures mark the claim 'push_failed' and it resurfaces in the queue.
+  after(() => pushApprovedClaimToXero(claim, amount, claimLines));
 
-  if (!owner) return NextResponse.json({ error: "Claim owner not found" }, { status: 404 });
+  return NextResponse.json({ ...claim, status: "approved" });
+}
+
+// Pushes an approved claim to Xero: resolves the contact, creates the ACCPAY
+// bill, attaches the receipt, and notifies the owner. Runs in the background
+// (via `after()`) once the approve response has been sent, so errors can't be
+// returned to the approver — instead the claim is marked 'push_failed' with
+// the error recorded, and it reappears in the review queue for a retry.
+interface PushableClaim {
+  id: string;
+  staff_id: string;
+  date: string;
+  description: string | null;
+  account_code: string | null;
+  tax_type: string | null;
+  tax_amount: number | string | null;
+  line_amount_type: string | null;
+  receipt_path: string | null;
+  receipt_mime: string | null;
+}
+
+async function pushApprovedClaimToXero(
+  claim: PushableClaim,
+  amount: number,
+  claimLines: ExpenseLine[] | null
+) {
+  const id = claim.id;
+
+  const markFailed = (message: string) =>
+    supabaseAdmin
+      .from("expense_claims")
+      .update({
+        status: "push_failed",
+        xero_error: message,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
 
   try {
+    // Owner details for the Xero contact.
+    const { data: owner } = await supabaseAdmin
+      .from("staff")
+      .select("id, full_name, email, xero_contact_id")
+      .eq("id", claim.staff_id)
+      .single();
+
+    if (!owner) {
+      await markFailed("Claim owner not found");
+      return;
+    }
+
     // (2b) Idempotency: adopt an existing bill matched by reference (claim id).
     const existing = await findBillByReference(claim.id);
     if (existing) {
-      const { data: adopted } = await supabaseAdmin
+      await supabaseAdmin
         .from("expense_claims")
         .update({
           status: "pushed",
@@ -255,16 +306,14 @@ export async function PATCH(
           xero_error: null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", id)
-        .select()
-        .single();
+        .eq("id", id);
 
       await notifyOwner(
         claim.staff_id,
         "Expense claim approved",
         `Your expense claim of $${amount.toFixed(2)} has been approved and sent to Xero.`
       );
-      return NextResponse.json(adopted);
+      return;
     }
 
     // (3) Resolve / persist the Xero contact for the owner.
@@ -297,16 +346,7 @@ export async function PATCH(
 
     if (guardErr || !guarded) {
       // Another request already pushed (or is pushing) this claim.
-      const { data: latest } = await supabaseAdmin
-        .from("expense_claims")
-        .select("status, xero_invoice_id, xero_total")
-        .eq("id", id)
-        .single();
-      return NextResponse.json({
-        status: latest?.status ?? "pushed",
-        xero_invoice_id: latest?.xero_invoice_id ?? null,
-        xero_total: latest?.xero_total ?? null,
-      });
+      return;
     }
 
     // (4) Create the ACCPAY bill. Itemised claims send one Xero line per item
@@ -322,10 +362,11 @@ export async function PATCH(
         }))
       : [
           {
-            Description: claim.description,
+            // account_code / tax_type were validated non-null before approval.
+            Description: claim.description ?? "",
             UnitAmount: amount,
-            AccountCode: claim.account_code,
-            TaxType: claim.tax_type,
+            AccountCode: claim.account_code as string,
+            TaxType: claim.tax_type as string,
             Quantity: 1,
             ...(claim.tax_amount != null ? { TaxAmount: Number(claim.tax_amount) } : {}),
           },
@@ -360,16 +401,10 @@ export async function PATCH(
 
     // (5) Assert the Xero total matches the claimed amount to the cent.
     if (Math.round(bill.total * 100) !== Math.round(amount * 100)) {
-      const message = `Xero total ($${bill.total.toFixed(2)}) does not match the claim amount ($${amount.toFixed(2)}).`;
-      await supabaseAdmin
-        .from("expense_claims")
-        .update({
-          status: "push_failed",
-          xero_error: message,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
-      return NextResponse.json({ error: message }, { status: 502 });
+      await markFailed(
+        `Xero total ($${bill.total.toFixed(2)}) does not match the claim amount ($${amount.toFixed(2)}).`
+      );
+      return;
     }
 
     // (6) Best-effort: attach the receipt. Failure keeps status 'pushed' but records a note.
@@ -397,7 +432,7 @@ export async function PATCH(
     }
 
     // (7) Mark as pushed.
-    const { data: pushed, error: pushErr } = await supabaseAdmin
+    const { error: pushErr } = await supabaseAdmin
       .from("expense_claims")
       .update({
         status: "pushed",
@@ -408,30 +443,20 @@ export async function PATCH(
         bill_reference: billReference,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id)
-      .select()
-      .single();
+      .eq("id", id);
 
-    if (pushErr) return NextResponse.json({ error: pushErr.message }, { status: 500 });
+    if (pushErr) {
+      console.error(`[expenses] failed to mark claim ${id} as pushed:`, pushErr.message);
+      return;
+    }
 
     await notifyOwner(
       claim.staff_id,
       "Expense claim approved",
       `Your expense claim of $${amount.toFixed(2)} has been approved and sent to Xero.`
     );
-
-    return NextResponse.json(pushed);
   } catch (err: any) {
-    const message = err?.message ?? "Failed to push the bill to Xero";
-    await supabaseAdmin
-      .from("expense_claims")
-      .update({
-        status: "push_failed",
-        xero_error: message,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
-    return NextResponse.json({ error: message }, { status: 502 });
+    await markFailed(err?.message ?? "Failed to push the bill to Xero");
   }
 }
 
