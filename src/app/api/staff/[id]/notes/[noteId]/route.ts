@@ -1,23 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 
 type Params = { params: Promise<{ id: string; noteId: string }> };
 
 export async function PATCH(req: NextRequest, { params }: Params) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, noteId } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Only admin or the note's author can edit
   const { data: note } = await supabaseAdmin
@@ -28,7 +20,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     .single();
 
   if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
-  if (caller.role !== "admin" && caller.id !== note.author_id) {
+  if (!caller.isAdmin && caller.id !== note.author_id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -64,18 +56,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, noteId } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { data: note } = await supabaseAdmin
     .from("performance_notes")
@@ -85,7 +69,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     .single();
 
   if (!note) return NextResponse.json({ error: "Note not found" }, { status: 404 });
-  if (caller.role !== "admin" && caller.id !== note.author_id) {
+  if (!caller.isAdmin && caller.id !== note.author_id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

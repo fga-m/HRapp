@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ staffId: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { staffId } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
-
-  const isManagerOrAdmin = caller.role === "admin" || caller.role === "manager";
+  const isManagerOrAdmin = caller.isAdmin || caller.role === "manager";
 
   // Staff can only get their own reviews
   if (!isManagerOrAdmin && caller.id !== staffId) {

@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id: groupId } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   // Verify group exists
   const { data: group, error: groupError } = await supabaseAdmin

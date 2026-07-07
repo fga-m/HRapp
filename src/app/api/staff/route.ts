@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { primaryRoleFor } from "@/lib/access";
 
 export async function GET() {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Directory listing: return only non-sensitive columns. Never expose
   // google_access_token / google_refresh_token / birthdate / xero_employee_id.
@@ -19,17 +19,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Check caller is admin
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("role")
-    .eq("email", session.user?.email)
-    .single();
 
-  if (caller?.role !== "admin") {
+  if (!caller.isAdmin) {
     return NextResponse.json({ error: "Admins only" }, { status: 403 });
   }
 

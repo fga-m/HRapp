@@ -1,24 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 
-async function getCaller(email: string) {
-  const { data } = await supabaseAdmin
-    .from("staff")
-    .select("id, role, full_name")
-    .eq("email", email)
-    .single();
-  return data;
-}
-
 // GET: admin sees all assigned checklists; staff sees only their own
 export async function GET() {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const caller = await getCaller(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let query = supabaseAdmin
     .from("staff_checklists")
@@ -31,7 +19,7 @@ export async function GET() {
     `)
     .order("created_at", { ascending: false });
 
-  if (caller.role !== "admin") {
+  if (!caller.isAdmin) {
     query = query.eq("staff_id", caller.id);
   }
 
@@ -81,12 +69,10 @@ export async function GET() {
 
 // POST (admin only): create an assigned checklist
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const caller = await getCaller(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (caller.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const body = await req.json();
   const { staff_id, template_id, title, is_offboarding, due_date } = body;

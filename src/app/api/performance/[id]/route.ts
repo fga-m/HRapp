@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 
@@ -7,18 +7,10 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
 
   const { data: review, error } = await supabaseAdmin
     .from("performance_reviews")
@@ -28,7 +20,7 @@ export async function GET(
 
   if (error || !review) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isAdmin = caller.role === "admin";
+  const isAdmin = caller.isAdmin;
   const isManagerOrAdmin = isAdmin || caller.role === "manager";
   const isOwnReview = review.staff_id === caller.id;
 
@@ -56,18 +48,10 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
 
   const { data: review, error: fetchError } = await supabaseAdmin
     .from("performance_reviews")
@@ -77,7 +61,7 @@ export async function PATCH(
 
   if (fetchError || !review) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isAdmin = caller.role === "admin";
+  const isAdmin = caller.isAdmin;
   const isManagerOrAdmin = isAdmin || caller.role === "manager";
   const isOwnReview = review.staff_id === caller.id;
 

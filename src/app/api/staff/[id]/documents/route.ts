@@ -1,46 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller, callerCan } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
-
-async function getCallerAndPermission(email: string) {
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role, full_name")
-    .eq("email", email)
-    .single();
-
-  if (!caller) return { caller: null, hasManageStaff: false };
-
-  let hasManageStaff = caller.role === "admin";
-  if (caller.role === "manager") {
-    const { data: perm } = await supabaseAdmin
-      .from("role_permissions")
-      .select("enabled")
-      .eq("role", "manager")
-      .eq("feature", "manage_staff")
-      .single();
-    hasManageStaff = perm?.enabled ?? false;
-  }
-
-  return { caller, hasManageStaff };
-}
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { caller, hasManageStaff } = await getCallerAndPermission(session.user?.email ?? "");
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
+  const hasManageStaff = callerCan(caller, "manage_staff");
 
   // Access check: admin, manager with manage_staff, or own profile
   const canView =
-    caller.role === "admin" || hasManageStaff || caller.id === id;
+    caller.isAdmin || hasManageStaff || caller.id === id;
 
   if (!canView) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -58,7 +33,7 @@ export async function GET(
   // - self: sees docs where visibility includes 'self'
   const filtered = (docs ?? []).filter((doc: any) => {
     const vis: string[] = doc.visibility ?? ["admin", "self"];
-    if (caller.role === "admin") return true;
+    if (caller.isAdmin) return true;
     if (hasManageStaff && vis.includes("manager")) return true;
     if (caller.id === id && vis.includes("self")) return true;
     return false;
@@ -81,16 +56,14 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { caller, hasManageStaff } = await getCallerAndPermission(session.user?.email ?? "");
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
+  const hasManageStaff = callerCan(caller, "manage_staff");
 
   // Only admin or manager with manage_staff
-  if (caller.role !== "admin" && !hasManageStaff) {
+  if (!caller.isAdmin && !hasManageStaff) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

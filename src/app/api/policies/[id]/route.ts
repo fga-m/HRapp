@@ -1,21 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { data: policy, error } = await supabaseAdmin
     .from("policies")
@@ -74,17 +66,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const body = await req.json();
   const { title, description, content_drive_url, requires_signoff, is_active, bump_version, new_version, required_signatories } = body;

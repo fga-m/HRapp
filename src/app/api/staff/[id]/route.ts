@@ -1,41 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller, callerCan } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { primaryRoleFor } from "@/lib/access";
 
-async function getCallerAndPermission(email: string) {
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", email)
-    .single();
-
-  if (!caller) return { caller: null, hasManageStaff: false };
-
-  let hasManageStaff = caller.role === "admin";
-  if (caller.role === "manager") {
-    const { data: perm } = await supabaseAdmin
-      .from("role_permissions")
-      .select("enabled")
-      .eq("role", "manager")
-      .eq("feature", "manage_staff")
-      .single();
-    hasManageStaff = perm?.enabled ?? false;
-  }
-
-  return { caller, hasManageStaff };
-}
-
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { caller, hasManageStaff } = await getCallerAndPermission(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const hasManageStaff = callerCan(caller, "manage_staff");
 
   // Access check: admin, manager with manage_staff, or own profile.
-  if (caller.role !== "admin" && !hasManageStaff && caller.id !== id) {
+  if (!caller.isAdmin && !hasManageStaff && caller.id !== id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -53,13 +29,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff").select("role").eq("email", session.user?.email).single();
-
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const { id } = await params;
   const body = await req.json();

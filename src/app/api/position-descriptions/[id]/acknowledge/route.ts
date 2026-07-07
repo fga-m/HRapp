@@ -1,21 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, full_name")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
 
   const { data: pd } = await supabaseAdmin
     .from("position_descriptions")
@@ -55,7 +47,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     await createNotification({
       staff_id: pd.created_by,
       title: "Position Description Acknowledged",
-      message: `${caller.full_name} has acknowledged their position description (v${pd.version})`,
+      message: `${caller.fullName} has acknowledged their position description (v${pd.version})`,
       type: "general",
       category: "position_description",
       reference_id: id,

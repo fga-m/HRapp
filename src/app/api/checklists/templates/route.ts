@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
-
-async function getCaller(email: string) {
-  const { data } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", email)
-    .single();
-  return data;
-}
 
 // GET: fetch all templates with item counts
 export async function GET() {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const caller = await getCaller(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await supabaseAdmin
     .from("checklist_templates")
@@ -39,12 +27,10 @@ export async function GET() {
 
 // POST (admin only): create a template
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const caller = await getCaller(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (caller.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const body = await req.json();
   const { title, description, category, ministry, is_offboarding } = body;

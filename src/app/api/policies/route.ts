@@ -1,19 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let query = supabaseAdmin
     .from("policies")
@@ -21,26 +13,20 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   // Staff only see active policies
-  if (caller.role !== "admin") {
+  if (!caller.isAdmin) {
     query = query.eq("is_active", true);
   }
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ policies: data, role: caller.role, staffId: caller.id, email: session.user?.email ?? "" });
+  return NextResponse.json({ policies: data, role: caller.role, staffId: caller.id, email: caller.email });
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (caller?.role !== "admin") {
+  if (!caller.isAdmin) {
     return NextResponse.json({ error: "Admins only" }, { status: 403 });
   }
 

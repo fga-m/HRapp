@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse, after } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { xeroRequest } from "@/lib/xero";
-import { getAccessByEmail, can, getApproverStaffIds } from "@/lib/access";
+import { can, getApproverStaffIds } from "@/lib/access";
 import { getEmailTemplate, renderTemplate } from "@/lib/email-templates";
 import { sendEmail } from "@/lib/google-mail";
 
@@ -22,13 +22,10 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const caller = await getAccessByEmail(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const canView = caller.id === id || can(caller, "approve_leave");
   if (!canView) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -117,13 +114,10 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const caller = await getAccessByEmail(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // The staff member themselves, plus anyone who can approve leave, can submit a
   // request (approvers can create on behalf of any staff member).

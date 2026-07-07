@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse, after } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import {
@@ -37,18 +37,10 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role, roles")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { action, note, fields } = (await req.json()) as {
     action: "APPROVE" | "REJECT" | "UPDATE";
@@ -68,7 +60,7 @@ export async function PATCH(
 
   if (!claim) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const approver = await isExpenseApprover(caller.roles ?? caller.role);
+  const approver = await isExpenseApprover(caller.roles);
   const isOwner = claim.staff_id === caller.id;
 
   // ---- UPDATE (approver edits any submission; owner edits their own while submitted) ----
@@ -464,18 +456,10 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { data: claim } = await supabaseAdmin
     .from("expense_claims")
@@ -485,7 +469,7 @@ export async function DELETE(
 
   if (!claim) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isAdmin = caller.role === "admin";
+  const isAdmin = caller.isAdmin;
   const isOwner = caller.id === claim.staff_id;
 
   if (!isAdmin && !isOwner) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

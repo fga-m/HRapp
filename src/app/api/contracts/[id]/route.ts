@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { data: contract, error } = await supabaseAdmin
     .from("contracts")
@@ -25,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (error || !contract) return NextResponse.json({ error: "Contract not found" }, { status: 404 });
 
   // Staff: only proceed if they are assigned
-  if (caller.role !== "admin") {
+  if (!caller.isAdmin) {
     const { data: assignment } = await supabaseAdmin
       .from("contract_assignments")
       .select("id")
@@ -81,18 +73,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const { title, description, is_active } = body;
@@ -114,18 +100,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { data: contract } = await supabaseAdmin
     .from("contracts")

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import {
   getWorkspaceConnection,
@@ -72,15 +72,6 @@ function missingFields(s: StaffRow) {
   return { google, xero };
 }
 
-async function requireAdmin(email: string) {
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", email)
-    .single();
-  return caller?.role === "admin" ? caller : null;
-}
-
 async function loadStaff(id: string): Promise<StaffRow | null> {
   const { data } = await supabaseAdmin.from("staff").select(STAFF_COLUMNS).eq("id", id).single();
   return (data as StaffRow | null) ?? null;
@@ -88,10 +79,9 @@ async function loadStaff(id: string): Promise<StaffRow | null> {
 
 // GET — provisioning status, connection availability, and missing fields.
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const caller = await requireAdmin(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const { id } = await params;
   const staff = await loadStaff(id);
@@ -172,10 +162,9 @@ const EDITABLE_FIELDS = [
 //   { services: { google?: boolean, xero?: boolean }, fields?: {<canonical fields>} }
 // Each service runs independently; one failing never blocks the other.
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const caller = await requireAdmin(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));

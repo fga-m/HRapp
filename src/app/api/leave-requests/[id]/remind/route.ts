@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
-import { getAccessByEmail, can, getApproverStaffIds } from "@/lib/access";
+import { can, getApproverStaffIds } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +13,8 @@ const REMIND_COOLDOWN_MS = 12 * 60 * 60 * 1000;
 // Re-notifies the leave approvers that a PENDING request is still waiting.
 // Allowed for the requester themselves or any reviewer (admin / leave_approver).
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const caller = await getAccessByEmail(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 

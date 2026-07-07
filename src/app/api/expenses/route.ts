@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { isExpenseApprover } from "@/lib/expenses";
@@ -24,16 +24,8 @@ async function signReceipt<T extends { receipt_path?: string | null }>(
 //  - approver + ?queue=1: all status='submitted' with staff join
 //  - approver + ?staffId=<id>: that staff member's claims (server-side filter)
 export async function GET(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role, roles")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const queue = searchParams.get("queue") === "1";
@@ -42,7 +34,7 @@ export async function GET(req: NextRequest) {
   const from = searchParams.get("from"); // YYYY-MM-DD (inclusive), filters created_at
   const to = searchParams.get("to");     // YYYY-MM-DD (inclusive)
 
-  const approver = (queue || all || staffId) ? await isExpenseApprover(caller.roles ?? caller.role) : false;
+  const approver = (queue || all || staffId) ? await isExpenseApprover(caller.roles) : false;
 
   let query = supabaseAdmin
     .from("expense_claims")
@@ -90,16 +82,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/expenses — multipart form submit. Receipt REQUIRED.
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role, full_name")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const formData = await req.formData();
   const amountRaw = (formData.get("amount") as string) ?? "";
@@ -227,7 +211,7 @@ export async function POST(req: NextRequest) {
       approverIds.map((aid) => ({
         staff_id: aid,
         title: "New expense claim to review",
-        message: `${caller.full_name ?? "A staff member"} submitted an expense claim of $${amount.toFixed(2)} for review.`,
+        message: `${caller.fullName ?? "A staff member"} submitted an expense claim of $${amount.toFixed(2)} for review.`,
         type: "general",
         category: "expense",
         link: "/dashboard/expenses",

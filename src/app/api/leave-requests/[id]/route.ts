@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse, after } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { xeroRequest } from "@/lib/xero";
 import { getGoogleTokensByStaffId, saveGoogleTokensByStaffId } from "@/lib/google-tokens";
 import { sendEmail } from "@/lib/google-mail";
 import { getEmailTemplate, renderTemplate } from "@/lib/email-templates";
-import { getAccessByEmail, can } from "@/lib/access";
+import { can } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -28,13 +28,10 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const caller = await getAccessByEmail(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (!can(caller, "approve_leave")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; docId: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, docId } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
-
   // Permission check: admin or manager with manage_staff
-  let canDelete = caller.role === "admin";
+  let canDelete = caller.isAdmin;
   if (caller.role === "manager") {
     const { data: perm } = await supabaseAdmin
       .from("role_permissions")
@@ -70,18 +62,10 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; docId: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, docId } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
 
   // Fetch the document
   const { data: doc } = await supabaseAdmin
@@ -94,7 +78,7 @@ export async function PATCH(
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
 
   // Only the uploader or an admin can change visibility
-  const canEdit = caller.role === "admin" || caller.id === doc.uploaded_by;
+  const canEdit = caller.isAdmin || caller.id === doc.uploaded_by;
   if (!canEdit) return NextResponse.json({ error: "Only the uploader or an admin can change visibility" }, { status: 403 });
 
   const { visibility } = await req.json();

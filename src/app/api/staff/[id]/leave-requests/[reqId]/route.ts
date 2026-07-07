@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
-import { getAccessByEmail, can, getApproverStaffIds } from "@/lib/access";
+import { can, getApproverStaffIds } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -12,13 +12,10 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; reqId: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, reqId } = await params;
-
-  const caller = await getAccessByEmail(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // The staff member themselves, plus anyone who can approve leave, can edit a
   // pending request (reviewers can fix up a team member's request first).

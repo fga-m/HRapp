@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getToilWindowWeeks } from "@/lib/app-settings";
 
@@ -69,19 +70,11 @@ function toMelbourneISO(dateStr: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const token = (session as any).accessToken;
-
-  // Resolve caller
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", session.user?.email ?? "")
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff record not found" }, { status: 404 });
+  const token = (session as any)?.accessToken;
 
   const canViewTeam = await callerCanDo(caller.role, "view_team_schedule");
 

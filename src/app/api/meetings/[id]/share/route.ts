@@ -1,22 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 import { shareFileWithUser } from "@/lib/google-drive";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const session = await auth();
   if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, role, full_name")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (caller?.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const { data: note } = await supabaseAdmin
     .from("meeting_notes")
@@ -54,7 +52,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     await createNotification(
       note.attendees.map((staffId: string) => ({
         staff_id: staffId,
-        title: `${caller.full_name} shared a meeting summary with you`,
+        title: `${caller.fullName} shared a meeting summary with you`,
         message: `"${note.title}" — please read and acknowledge that you've received it.`,
         type: "meeting",
         reference_id: id,

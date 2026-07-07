@@ -1,21 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createNotification } from "@/lib/notifications";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  const { data: caller } = await supabaseAdmin
-    .from("staff")
-    .select("id, full_name")
-    .eq("email", session.user?.email)
-    .single();
-
-  if (!caller) return NextResponse.json({ error: "Staff not found" }, { status: 404 });
 
   const { data: policy } = await supabaseAdmin
     .from("policies")
@@ -48,7 +40,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     await createNotification({
       staff_id: policy.created_by,
       title: "Policy Signed Off",
-      message: `${caller.full_name} has signed off on "${policy.title}" (v${policy.version})`,
+      message: `${caller.fullName} has signed off on "${policy.title}" (v${policy.version})`,
       type: "policy",
       reference_id: id,
     });

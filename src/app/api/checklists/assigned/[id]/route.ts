@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCaller } from "@/lib/caller";
 import { supabaseAdmin } from "@/lib/supabase";
-
-async function getCaller(email: string) {
-  const { data } = await supabaseAdmin
-    .from("staff")
-    .select("id, role")
-    .eq("email", email)
-    .single();
-  return data;
-}
 
 // GET: fetch assigned checklist with staff info, items grouped by section, and completions
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const caller = await getCaller(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 
@@ -37,7 +25,7 @@ export async function GET(
   if (error || !checklist) return NextResponse.json({ error: "Checklist not found" }, { status: 404 });
 
   // Non-admin staff can only view their own checklist
-  if (caller.role !== "admin" && checklist.staff_id !== caller.id) {
+  if (!caller.isAdmin && checklist.staff_id !== caller.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -87,12 +75,10 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const caller = await getCaller();
+  if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const caller = await getCaller(session.user?.email ?? "");
-  if (!caller) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (caller.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!caller.isAdmin) return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const { id } = await params;
 
