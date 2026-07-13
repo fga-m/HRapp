@@ -152,7 +152,9 @@ export default function LineItemsEditor({
                 <select id="gst"
                   value={r.tax_type}
                   disabled={loading}
-                  onChange={(e) => update(r.key, { tax_type: e.target.value })}
+                  // Changing the rate invalidates any typed GST override (it was
+                  // calculated for the old rate), so drop back to auto.
+                  onChange={(e) => update(r.key, { tax_type: e.target.value, gstText: "" })}
                   className="w-full px-3 py-2 rounded-lg border border-[#ECE3DF] text-sm text-[#223149] bg-white focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors disabled:opacity-50"
                 >
                   <option value="">{loading ? "Loading…" : "Tax rate…"}</option>

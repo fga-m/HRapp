@@ -233,7 +233,9 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
               <div>
                 <label htmlFor="tax-rate" className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
                 <select id="tax-rate" required value={form.tax_type} disabled={metaLoading}
-                  onChange={(e) => setForm({ ...form, tax_type: e.target.value })}
+                  // Changing the rate invalidates any GST override, so drop back
+                  // to auto so GST recalculates for the new rate.
+                  onChange={(e) => setForm({ ...form, tax_type: e.target.value, gstOverride: "" })}
                   className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50">
                   <option value="">{metaLoading ? "Loading…" : "Select tax rate…"}</option>
                   {taxRates.map((t) => <option key={t.taxType} value={t.taxType}>{t.name}</option>)}

@@ -658,7 +658,9 @@ export default function ExpenseClaimsCard({ staffId, isOwnProfile, isManager }: 
                       <label htmlFor="tax-rate" className="block text-sm font-semibold text-[#223149] mb-1.5">Tax rate</label>
                       <select id="tax-rate"
                         required value={taxType} disabled={metaLoading}
-                        onChange={(e) => setTaxType(e.target.value)}
+                        // Changing the rate invalidates any GST override (typed or
+                        // OCR-prefilled), so drop back to auto so GST recalculates.
+                        onChange={(e) => { setTaxType(e.target.value); setGstOverride(""); }}
                         className="w-full px-4 py-2.5 rounded-xl border border-[#ECE3DF] text-[#223149] focus:outline-none focus:ring-2 focus:ring-[#223149]/20 focus:border-[#223149] transition-colors bg-white disabled:opacity-50"
                       >
                         <option value="">{metaLoading ? "Loading…" : "Select tax rate…"}</option>
