@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { X, Paperclip, Upload } from "lucide-react";
 import AccountSelect from "@/components/expenses/AccountSelect";
 import LineItemsEditor from "@/components/expenses/LineItemsEditor";
+import { compressReceiptImage } from "@/lib/receipt-image";
 import { evaluateAmount, looksLikeExpression } from "@/lib/calc";
 import {
   autoGstInclusive,
@@ -24,6 +25,8 @@ export interface EditableClaim {
   tax_rate_name?: string | null;
   tax_amount?: number | null;
   line_items?: ExpenseLine[] | null;
+  receipt_signed_url?: string | null;
+  receipt_mime?: string | null;
   staff?: { full_name: string } | null;
 }
 
@@ -62,6 +65,21 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
   const [metaError, setMetaError] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // Optional receipt replacement. `newFile` unset = keep the existing receipt.
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [newFileUrl, setNewFileUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const selectNewFile = (f: File | null) => {
+    setNewFileUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return f ? URL.createObjectURL(f) : null;
+    });
+    setNewFile(f);
+  };
+
+  // Revoke the preview object-URL when the modal unmounts.
+  useEffect(() => () => { if (newFileUrl) URL.revokeObjectURL(newFileUrl); }, [newFileUrl]);
 
   useEffect(() => {
     setMetaLoading(true);
@@ -135,6 +153,18 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d.error ?? "Failed to save changes");
+
+      // Replace the receipt file too, if the user chose a new one.
+      if (newFile) {
+        const fd = new FormData();
+        fd.append("file", await compressReceiptImage(newFile));
+        const rres = await fetch(`/api/expenses/${claim.id}/receipt`, { method: "PUT", body: fd });
+        if (!rres.ok) {
+          const rd = await rres.json().catch(() => ({}));
+          throw new Error(rd.error ?? "Saved the details, but the new receipt couldn't be uploaded.");
+        }
+      }
+
       onSaved();
     } catch (err: any) {
       setError(err.message);
@@ -156,6 +186,52 @@ export default function ExpenseEditModal({ claim, subtitle, onClose, onSaved }: 
           </button>
         </div>
         <form onSubmit={save} className="p-6 space-y-4">
+          {/* Receipt — view the attached file and optionally replace it */}
+          <div>
+            <label className="block text-sm font-semibold text-[#223149] mb-1.5">Receipt</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,application/pdf"
+              className="hidden"
+              onChange={(e) => selectNewFile(e.target.files?.[0] ?? null)}
+            />
+            <div className="rounded-xl border border-[#ECE3DF] p-3 space-y-3">
+              {/* A newly chosen file previews over the existing receipt. */}
+              {newFile ? (
+                newFile.type.startsWith("image/") && newFileUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={newFileUrl} alt="New receipt preview" className="max-h-40 w-full object-contain rounded-lg bg-[#F8F6F4]" />
+                ) : (
+                  <p className="flex items-center gap-1.5 text-sm text-[#223149]"><Paperclip className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{newFile.name}</span></p>
+                )
+              ) : claim.receipt_signed_url ? (
+                claim.receipt_mime?.startsWith("image/") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={claim.receipt_signed_url} alt="Current receipt" className="max-h-40 w-full object-contain rounded-lg bg-[#F8F6F4]" />
+                ) : (
+                  <a href={claim.receipt_signed_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-[#50676E] hover:text-[#223149] transition-colors"><Paperclip className="w-3.5 h-3.5" /> View current receipt</a>
+                )
+              ) : (
+                <p className="text-sm text-[#50676E]">No receipt attached.</p>
+              )}
+
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#ECE3DF] text-[#223149] rounded-lg text-xs font-semibold hover:bg-[#F8F6F4] transition-colors">
+                  <Upload className="w-3.5 h-3.5" /> {claim.receipt_signed_url ? "Replace receipt" : "Attach receipt"}
+                </button>
+                {newFile && (
+                  <button type="button" onClick={() => selectNewFile(null)}
+                    className="text-xs font-medium text-[#50676E] hover:text-[#223149] underline">
+                    Keep current
+                  </button>
+                )}
+              </div>
+              {newFile && <p className="text-xs text-[#50676E]">The new receipt uploads when you save.</p>}
+            </div>
+          </div>
+
           {/* Whole-receipt fields */}
           <div className="grid grid-cols-2 gap-3">
             <div>
